@@ -376,3 +376,5 @@
 — 2026-10-05: R185 superseded by owner request R186. R186 complete technically: transparent PNG on local homepage, desktop/mobile checked; live site unchanged.
 
 - [ ] R187 · Push current work to GitHub and provide SSH commands for Git-based Hostinger updates (plan: M63.1)
+
+— 2026-10-05: R187 committed locally (726571d), push pending GitHub authentication; HTTPS credentials missing and existing SSH deploy key denied this repository.

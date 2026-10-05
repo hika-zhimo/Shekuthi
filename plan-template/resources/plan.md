@@ -1328,6 +1328,7 @@ Historical paths and planned-path markers below are preserved as recorded; they 
   > **Request:** R187
   > **Files:** Existing M49–M62 tracked file lists and implementation changes · `docs/deploy/hostinger.md` · `plan-template/resources/{plan,request}.md`
   > **Comment:** — 2026-10-05: Owner explicitly requests GitHub push and SSH Git update instructions. Publish accumulated implementation/docs/tests to origin/main after checks; exclude local image derivatives, asset references, environment/secrets and local runtime DB. Document fast-forward updates from repo root, preserving host environment/storage and separate public_html assets. Illustration requires one separate upload because asset-isolation policy forbids committing it.
+  > **Progress:** — 2026-10-05: Commit 726571d created (146 files); full backend 308 tests / 1570 assertions and Flutter 99 tests pass; staged diff whitespace check clean. HTTPS push fails: no GitHub credentials. Existing SSH key authenticates as hika-zhimo/onkhokaku deploy key and is denied access to openlogic75-cloud/listingplatform. No remote push completed; M63.1 remains 🔄 pending owner GitHub authentication. Environment, local DB and supplied image derivatives excluded.
 
 ## 6 · Open questions and decisions
 
