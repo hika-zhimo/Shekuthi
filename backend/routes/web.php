@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\Admin\AuthController;
 use App\Http\Controllers\Web\Admin\CollectorController as AdminCollectorController;
 use App\Http\Controllers\Web\Admin\DataRequestController;
 use App\Http\Controllers\Web\Admin\DonationSettingsController;
+use App\Http\Controllers\Web\Admin\ForgotPasswordController;
 use App\Http\Controllers\Web\Admin\ListingModerationController;
 use App\Http\Controllers\Web\Admin\LocalityController;
 use App\Http\Controllers\Web\Admin\PasswordController as AdminPasswordController;
@@ -156,6 +157,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])
         ->middleware('throttle:5,1')
         ->name('login.attempt');
+
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'show'])->name('recovery.show');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'requestCode'])
+        ->middleware('throttle:3,10')->name('recovery.request');
+    Route::post('/forgot-password/confirm', [ForgotPasswordController::class, 'confirm'])
+        ->middleware('throttle:5,1')->name('recovery.confirm');
 
     Route::middleware('admin')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

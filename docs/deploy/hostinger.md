@@ -1,5 +1,7 @@
 # Shekuthi Hostinger shared-hosting deployment (M8.4/M32.2)
 
+> **Use the confirmed procedure in section 12 for this account.** Earlier layout examples and sections 10–11 are historical/generic; the live app is directly under `domains/shekuthi.in`, not a `backend/` subdirectory.
+>
 > Status: reference — apply once the target plan, PHP version, and cron access
 > are confirmed with the host (Q7). Everything here matches the codebase's
 > Hostinger constraints: **no Redis, no long-lived queue workers**, media on
@@ -223,3 +225,163 @@ asset derived from supplied artwork; Git does not distribute it. Upload it
 separately to backend/public/img/ and public_html/img/ before deploying the
 homepage view. Logo/favicon and original project SVG are part of the code
 release. Do not seed demo users on production or copy local databases.
+
+## 12. Confirmed working update procedure — 2026-10-05 (M64.1)
+
+Owner confirmed the website is live and updated after the troubleshooting
+below. These paths supersede generic layout examples above.
+
+| Item | Confirmed value |
+|---|---|
+| GitHub | `git@github.com:hika-zhimo/Shekuthi.git`, branch `main` |
+| Server user | `u710272704` |
+| Server prompt hostname | `in-mum-web1338` (use hPanel SSH host/IP and port to connect) |
+| Git source checkout | `/home/u710272704/shekuthi-source` |
+| Live Laravel app | `/home/u710272704/domains/shekuthi.in` |
+| Browser document root | `/home/u710272704/domains/shekuthi.in/public_html` |
+| Laravel asset lookup directory | `/home/u710272704/domains/shekuthi.in/public` |
+| PHP | `/opt/alt/php82/usr/bin/php` |
+| Composer | `/usr/local/bin/composer` |
+
+The live application has no Git checkout. Pull into `shekuthi-source`, then
+copy its `backend/` into the live app. The checkout under `domains/aghili.in`
+is a different sports application: never change its remote or deploy here.
+
+### A. Before updating
+
+1. Test locally, commit reviewed code and push to Shekuthi GitHub main.
+2. Back up the live database and media in hPanel.
+3. Upload new ignored artwork before releasing views that reference it.
+   For the current illustration, File Manager destination:
+   `domains/shekuthi.in/public_html/img/home-landscape-cutout.png`.
+   Local source:
+   `/home/openlogic/Documents/projects/Shekuthi/backend/public/img/home-landscape-cutout.png`.
+   Optionally keep a matching copy in live `public/img/` as well.
+4. Connect using `ssh -p SSH_PORT u710272704@SSH_HOST`, taking host/port from
+   hPanel. The server's GitHub access key is independent of your computer key.
+
+### B. Fetch the release on Hostinger
+
+Run commands individually. Do not use `set -e` in the interactive shell.
+Stop on every error rather than pasting the next block.
+
+```bash
+cd /home/u710272704/shekuthi-source
+git status --short
+git remote -v
+git pull --ff-only origin main
+```
+
+Proceed only with a clean checkout and the Shekuthi remote. No reset, clean,
+force pull, or unrelated-history merge. This source checkout is already
+created; do not clone again for routine updates.
+
+### C. Maintain and copy application code
+
+```bash
+cd /home/u710272704/domains/shekuthi.in
+/opt/alt/php82/usr/bin/php artisan down --retry=60
+rsync -av \
+  --exclude='.env*' \
+  --exclude='storage/' \
+  --exclude='vendor/' \
+  --exclude='bootstrap/cache/' \
+  --exclude='database/*.sqlite*' \
+  --exclude='database/listingplatform' \
+  --exclude='public/' \
+  --exclude='tests/' \
+  /home/u710272704/shekuthi-source/backend/ \
+  /home/u710272704/domains/shekuthi.in/
+```
+
+Preserves live `.env`, encryption keys, uploaded media, local databases,
+dependencies and cached configuration until the explicit steps below.
+Never add `--delete`, copy a local database, or run demo seeders in production.
+
+### D. Dependencies and database — complete before going live
+
+```bash
+/opt/alt/php82/usr/bin/php /usr/local/bin/composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+/opt/alt/php82/usr/bin/php /usr/local/bin/composer check-platform-reqs --no-dev
+/opt/alt/php82/usr/bin/php artisan config:clear
+/opt/alt/php82/usr/bin/php artisan migrate --force
+/opt/alt/php82/usr/bin/php artisan migrate:status
+```
+
+Stop if any command fails. The October 5 listing migration moves legacy
+active listings to pending admin review; admin approval republishes them.
+Do not use `migrate:fresh`, database resets, or `key:generate` during updates.
+
+### E. Publish assets to BOTH public directories
+
+```bash
+rsync -av \
+  --exclude='index.php' \
+  --exclude='.htaccess' \
+  --exclude='storage' \
+  /home/u710272704/shekuthi-source/backend/public/ \
+  /home/u710272704/domains/shekuthi.in/public/
+/opt/alt/php82/usr/bin/php artisan assets:publish
+rsync -av \
+  --exclude='index.php' \
+  --exclude='.htaccess' \
+  --exclude='storage' \
+  /home/u710272704/domains/shekuthi.in/public/ \
+  /home/u710272704/domains/shekuthi.in/public_html/
+```
+
+Laravel checks `public/` for logo existence and CSS modification timestamps;
+the browser serves `public_html/`. Updating only public_html caused missing
+logo markup and stale CSS version URLs. Preserve both bootstrap index.php
+files, .htaccess files and storage symlinks. Ignored illustrations are not
+in Git, so these copies do not replace the separate upload in step A.
+
+### F. Refresh deployment caches and restore service
+
+```bash
+/opt/alt/php82/usr/bin/php artisan config:cache
+/opt/alt/php82/usr/bin/php artisan route:cache
+/opt/alt/php82/usr/bin/php artisan view:cache
+/opt/alt/php82/usr/bin/php artisan up
+```
+
+Purge the site cache/CDN through hPanel and hard-refresh the browser
+(Ctrl+Shift+R). Avoid routine `cache:clear`/`optimize:clear`, which can affect
+application cache rather than only deployment caches.
+
+### G. Verify
+
+Open Home, catalog, sign-in and the admin dashboard. Check logo, green palette,
+illustration and existing uploaded media. Verify direct asset URLs:
+
+- `https://shekuthi.in/css/tokens.css` contains `--color-accent: #008000`.
+- `https://shekuthi.in/img/logo.svg` loads.
+- `https://shekuthi.in/img/home-landscape-cutout.png` loads (not 404).
+
+Confirm configured cron continues running, especially listing lifecycle and
+retention schedules. A successful page update alone does not verify cron.
+
+### Known failures and the checks that resolved them
+
+| Symptom | Cause/check | Resolution |
+|---|---|---|
+| `not a git repository` from `~` | Commands run outside source checkout | `cd /home/u710272704/shekuthi-source` |
+| Aghili players/matches/tournaments in status | Wrong application checkout | Leave Aghili untouched; use Shekuthi source |
+| SSH shell closes after command error | Interactive `set -e` | Run individually without `set -e`; `set +e` if already enabled |
+| 503 after deployment | Maintenance mode still enabled or cached response | Complete dependencies/migrations, run `artisan up`, purge cache |
+| 500: missing `products.expires_at` | New migrations pending | `artisan migrate --force`, then verify status |
+| Old UI/no logo | public/public_html differ or cache stale | Synchronize both, clear/rebuild views, purge CDN |
+| Illustration 404 | Ignored image never uploaded | Upload PNG through File Manager to public_html/img |
+
+For errors, obtain the current response and latest error headings, not just
+the bottom of an old stack trace:
+
+```bash
+curl -sS -D - -o /tmp/shekuthi-response.html "https://shekuthi.in/?check=$(date +%s)"
+grep -nE 'production.ERROR|local.ERROR' storage/logs/laravel.log | tail -n 5
+/opt/alt/php82/usr/bin/php artisan migrate:status
+ls -l storage/framework/down storage/framework/maintenance.php
+```
+
+Missing maintenance files are normal after `artisan up`. Redact credentials
+and personal information before sharing logs; do not paste `.env`.

@@ -19,6 +19,10 @@
             sign in at the <a href="{{ route('login') }}">member sign-in</a>.
         </p>
 
+        @if (session('status'))
+            <p class="alert" role="status">{{ session('status') }}</p>
+        @endif
+
         @if ($errors->any())
             <p class="alert error" role="alert">{{ $errors->first() }}</p>
         @endif
@@ -47,6 +51,7 @@
                 Sign in
             </button>
         </form>
+        <p><a class="button secondary" href="{{ route('admin.recovery.show') }}">Forgot password?</a></p>
     </main>
 </body>
 </html>

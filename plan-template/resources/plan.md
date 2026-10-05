@@ -1331,6 +1331,29 @@ Historical paths and planned-path markers below are preserved as recorded; they 
   > **Progress:** — 2026-10-05: Commit 726571d created (146 files); full backend 308 tests / 1570 assertions and Flutter 99 tests pass; staged diff whitespace check clean. HTTPS push fails: no GitHub credentials. Existing SSH key authenticates as hika-zhimo/onkhokaku deploy key and is denied access to openlogic75-cloud/listingplatform. No remote push completed; M63.1 remains 🔄 pending owner GitHub authentication. — Owner supplies corrected remote git@github.com:hika-zhimo/Shekuthi.git; origin updated and push retried. GitHub still denies access to existing deploy key (authenticated for onkhokaku), so publication remains pending a key authorized for Shekuthi.
   > **Completed:** — 2026-10-05: Owner adds dedicated Shekuthi key and explicitly requests replacing remote history. Lease-protected force push replaces remote main 9bd6428 with local 307f3fd at git@github.com:hika-zhimo/Shekuthi.git; upstream configured. Earlier unrelated workflow history not merged by owner instruction. Verified suites: 308 backend tests / 1570 assertions, 99 Flutter tests. Local supplied cutout remains excluded and requires separate host upload. No live website changes. Environment, local DB and supplied image derivatives excluded.
 
+### M64 · Confirmed Hostinger update runbook — status: ✅
+
+- [x] **M64.1 · Save working production update procedure** — ✅
+  > **Request:** R188
+  > **Files:** `docs/deploy/hostinger.md` · `plan-template/resources/plan.md` · `plan-template/resources/request.md`
+  > **Comment:** — 2026-10-05: Owner confirms site is live and updated; save exact deployment topology, Git source checkout, PHP/Composer commands, safe copy excludes, migration-before-up sequence, public/public_html synchronization, separate illustration upload and error diagnostics. Preserve old notes as history, clearly supersede generic paths. Syntax-check commands without production execution.
+  > **Completed:** — 2026-10-05: Confirmed procedure saved in section 12; earlier examples explicitly marked historical. All new shell blocks pass bash syntax validation and diff whitespace checks. Production success is owner-confirmed; no deployment executed during documentation work.
+
+### M65 · Live admin login investigation — status: 🔄
+
+- [ ] **M65.1 · Diagnose admin sign-in after deployment** — 🔄
+  > **Request:** R189
+  > **Files:** `plan-template/resources/plan.md` · `plan-template/resources/request.md`
+  > **Comment:** — 2026-10-05: Owner reports admin login fails on live site. Inspected controller: encrypted-email blind-index lookup, password, admin role and active-account checks precede session regeneration. Exact browser error and live diagnostics required before choosing a fix; no passwords, environment secrets, account resets or production data changes. Public page unavailable through web tool; live cause not verified.
+
+### M66 · Admin password recovery — status: 🔄
+
+- [ ] **M66.1 · Email-verified forgotten admin password** — 🔄
+  > **Request:** R190
+  > **Files:** `backend/app/Http/Controllers/Web/Admin/ForgotPasswordController.php` · `backend/routes/web.php` · `backend/resources/views/admin/auth/login.blade.php` · `backend/resources/views/admin/auth/forgot-password.blade.php` · `backend/tests/Feature/AdminForgotPasswordTest.php` · `plan-template/resources/{plan,request}.md`
+  > **Comment:** — 2026-10-05: Add public admin password recovery using existing email OTP mail/table; generic account response, active admin only, session-bound challenge, expiry/attempt limit, throttling and transactional single-use verification. Preserve users and encryption keys; no schema change. Live mail delivery requires host verification.
+  > **Progress:** — 2026-10-05: Implemented login recovery link, email/new-password form and code confirmation. Resets rotate remember token and consume outstanding password challenges. Pint passes; recovery and existing password tests pass (6 tests / 46 assertions), covering successful reset, replay, wrong/expired/exhausted/unbound codes, non-admin/disabled/unknown accounts. Page rendering checked by HTTP tests; full browser state walk and live SMTP delivery not verified, so task remains 🔄. No deployment, account changes or new migrations executed.
+
 ## 6 · Open questions and decisions
 
 
@@ -1366,6 +1389,7 @@ Historical paths and planned-path markers below are preserved as recorded; they 
 
 | Date | Task ID | Change | Files touched |
 |------|---------|--------|---------------|
+| 2026-10-05 | M64.1 · Confirmed Hostinger runbook | Saved exact working paths, environment-safe copies, migration sequence, both public asset directories, separate illustration upload and troubleshooting; shell syntax checked. | `docs/deploy/hostinger.md` · `plan-template/resources/{plan,request}.md` |
 | 2026-10-05 | M63.1 · GitHub publication | Owner-authorized remote replacement pushed successfully to hika-zhimo/Shekuthi main with force-with-lease; docs explain Git updates and separate illustration upload. | Existing release file lists · `docs/deploy/hostinger.md` · `plan-template/resources/{plan,request}.md` |
 | 2026-10-05 | M62.3 · Transparent landscape homepage | Imagegen background removal, RGBA verified, desktop/mobile layout and six tests pass; supersedes traced SVG homepage selection. | `backend/public/img/home-landscape-cutout.png` · `backend/resources/views/pages/home.blade.php` · `.gitignore` · `ATTRIBUTION.md` |
 | 2026-10-05 | M62.1 · Supplied image to vector | True contour-path SVG in three brand colors; XML/palette/no-raster and rendered preview checked; derivative locally ignored. | `scratch/brand-landscape-traced.svg` · `.gitignore` · `ATTRIBUTION.md` |

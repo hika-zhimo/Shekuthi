@@ -380,3 +380,13 @@
 — 2026-10-05: R187 committed locally (726571d), push pending GitHub authentication; HTTPS credentials missing and existing SSH deploy key denied this repository.
 
 — 2026-10-05: R187 technically complete; owner-authorized replacement pushed to hika-zhimo/Shekuthi main. Hostinger deployment not performed.
+
+- [ ] R188 · Save the working Hostinger website update steps for future releases (plan: M64.1)
+
+— 2026-10-05: R188 technically complete; confirmed update runbook saved in docs/deploy/hostinger.md section 12 and shell syntax checked. Owner confirms live website is updated. Request checkbox remains for owner confirmation.
+
+- [ ] R189 · Diagnose and restore live admin login after the website update (plan: M65.1)
+
+- [ ] R190 · Add forgot password to the admin login form (plan: M66.1)
+
+— 2026-10-05: Recovery implemented locally; six password tests pass. Deployment, browser state walk and live email delivery remain to verify.
