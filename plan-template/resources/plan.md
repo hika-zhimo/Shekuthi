@@ -1354,6 +1354,21 @@ Historical paths and planned-path markers below are preserved as recorded; they 
   > **Comment:** — 2026-10-05: Add public admin password recovery using existing email OTP mail/table; generic account response, active admin only, session-bound challenge, expiry/attempt limit, throttling and transactional single-use verification. Preserve users and encryption keys; no schema change. Live mail delivery requires host verification.
   > **Progress:** — 2026-10-05: Implemented login recovery link, email/new-password form and code confirmation. Resets rotate remember token and consume outstanding password challenges. Pint passes; recovery and existing password tests pass (6 tests / 46 assertions), covering successful reset, replay, wrong/expired/exhausted/unbound codes, non-admin/disabled/unknown accounts. Page rendering checked by HTTP tests; full browser state walk and live SMTP delivery not verified, so task remains 🔄. No deployment, account changes or new migrations executed.
 
+### M67 · Production listing preservation — status: 🔄
+
+- [ ] **M67.1 · Document preservation and recover archived test listing** — 🔄
+  > **Request:** R191
+  > **Files:** `docs/deploy/hostinger.md` · `plan-template/resources/{plan,request}.md`
+  > **Comment:** — 2026-10-05: Live read-only output shows product #1 archived, last updated September 23, no lifecycle dates; archive cause unknown and not established as October deployment. Owner authorizes moving only this record to pending. Document backups, status baselines, migration review and guarded recovery preserving all other fields. No active server access; live execution and verification require owner SSH output.
+
+### M68 · Listing approval button alignment — status: 🔄
+
+- [ ] **M68.1 · Align listing moderation actions** — 🔄
+  > **Request:** R192
+  > **Files:** `backend/resources/views/admin/listings/index.blade.php` · `backend/resources/css/admin.css` · `backend/public/css/admin.css` · `plan-template/resources/{plan,request}.md`
+  > **Comment:** — 2026-10-05: Owner reports misaligned Approve/Reject actions. Existing row-actions class has no styling; add scoped flex layout with consistent button widths, token spacing and wrapping. Preserve submission behavior. Verify published CSS; browser state walk if available.
+  > **Progress:** — 2026-10-05: Added row-actions flex alignment, token gap, wrapping, margin-free forms and full-width buttons; source and served CSS match and diff whitespace check passes. Existing 44px targets and focus/hover styles retained. No UI markup or behavior changes; no new test for a reversible CSS layout edit. Browser state walk and live deployment remain unverified, so task stays 🔄.
+
 ## 6 · Open questions and decisions
 
 

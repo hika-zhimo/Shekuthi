@@ -385,3 +385,34 @@ ls -l storage/framework/down storage/framework/maintenance.php
 
 Missing maintenance files are normal after `artisan up`. Redact credentials
 and personal information before sharing logs; do not paste `.env`.
+
+## 13. Preserve user data and diagnose missing listings — 2026-10-05 (M67.1)
+
+Before every deployment, back up the live database and storage uploads through
+hPanel and confirm the backup is downloadable/restorable. Preserve `.env`,
+APP_KEY, PII_INDEX_KEY, database credentials and storage; never overwrite a live
+database with a local one. Use section 12's excluded paths and never run
+migrate:fresh, migrate:refresh, db:wipe or demo seeders in production.
+Review new migrations for changes to existing rows, not just schema changes.
+Compare user totals and listing totals by status before and after updating;
+verify an existing account, listing and uploaded photo. Rehearse database changes
+on an isolated, access-controlled backup with outbound email disabled.
+
+An empty approval queue means no pending products; it does not prove deletion.
+Check archived, inactive, draft and active records before recreating anything.
+Product #1 was reported archived with last update September 23 and null expiry
+fields. The archive cause is unknown; the October 5 update is not established
+as its cause. Owner authorized submitting only this test record for review.
+
+Run inside Hostinger SSH from the live application root. This guarded update
+changes only product #1 when its current status is archived; it preserves owner,
+media and other fields, apart from the normal updated_at timestamp. It does not
+publish automatically. Already pending is safe to retry; other states stop.
+
+```bash
+cd /home/u710272704/domains/shekuthi.in
+/opt/alt/php82/usr/bin/php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); $changed = App\Models\Product::query()->whereKey(1)->where("status", "archived")->update(["status" => "pending"]); $status = App\Models\Product::query()->whereKey(1)->value("status"); if ($status !== "pending") { fwrite(STDERR, "Stopped: listing #1 is missing or no longer archived. No forced change made.\n"); exit(1); } echo $changed ? "Listing #1 sent to admin approval.\n" : "Listing #1 is already pending approval.\n";'
+```
+
+Verify Admin → Listings shows #1, then review and approve normally. Production
+execution is owner-run; no live recovery has been confirmed yet.

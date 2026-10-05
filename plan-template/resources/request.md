@@ -390,3 +390,9 @@
 - [ ] R190 · Add forgot password to the admin login form (plan: M66.1)
 
 — 2026-10-05: Recovery implemented locally; six password tests pass. Deployment, browser state walk and live email delivery remain to verify.
+
+- [ ] R191 · Document data-preserving updates and move archived test listing #1 to admin approval (plan: M67.1)
+
+- [ ] R192 · Align Approve and Reject buttons in the admin listing approval dashboard (plan: M68.1)
+
+— 2026-10-05: Local CSS alignment fixed and served copy synchronized; browser and live verification pending.
