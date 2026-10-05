@@ -18,6 +18,9 @@ class Listing {
     this.verificationFeeInr,
     this.vendorId,
     this.vendorName,
+    this.expiresAt,
+    this.deletionScheduledAt,
+    this.canRenew = false,
   });
 
   final int id;
@@ -30,6 +33,9 @@ class Listing {
   final List<String> images;
   final bool isVerified;
   final String status;
+  final DateTime? expiresAt;
+  final DateTime? deletionScheduledAt;
+  final bool canRenew;
 
   /// Present only when the listing is unverified and the admin has set a fee
   /// (M5.4). That fee is paid directly to the visiting volunteer.
@@ -50,14 +56,18 @@ class Listing {
             .toList(),
         isVerified: json['is_verified'] as bool? ?? false,
         status: json['status'] as String? ?? 'active',
+        expiresAt: DateTime.tryParse(json['expires_at'] as String? ?? ''),
+        deletionScheduledAt:
+            DateTime.tryParse(json['deletion_scheduled_at'] as String? ?? ''),
+        canRenew: json['can_renew'] as bool? ?? false,
         vendorId: json['vendor'] == null
             ? null
             : (json['vendor'] as Map<String, dynamic>)['id'] as int?,
         vendorName: json['vendor'] == null
             ? null
-            : (json['vendor'] as Map<String, dynamic>)['display_name'] as String?,
-        verificationFeeInr:
-            (json['verification_fee_inr'] as num?)?.toDouble(),
+            : (json['vendor'] as Map<String, dynamic>)['display_name']
+                as String?,
+        verificationFeeInr: (json['verification_fee_inr'] as num?)?.toDouble(),
       );
 }
 

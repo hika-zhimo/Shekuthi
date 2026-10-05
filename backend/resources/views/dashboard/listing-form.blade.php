@@ -157,22 +157,13 @@
                         </section>
 
                         <section class="dash-form-section">
-                            <h2>Publish</h2>
-
-                            <div class="field">
-                                <label for="listing-status">Status</label>
-                                    <select id="listing-status" name="status">
-                                        <option value="draft" @selected(old('status', $product?->status ?? 'draft') === 'draft')>Draft — hidden from the catalog</option>
-                                        @if ($product?->status === 'pending')
-                                            <option value="pending" selected>Pending admin approval</option>
-                                        @endif
-                                        <option value="active" @selected(old('status', $product?->status ?? 'draft') === 'active')>Submit for admin approval</option>
-                                        <option value="inactive" @selected(old('status', $product?->status ?? 'draft') === 'inactive')>Inactive — paused</option>
-                                </select>
-                            </div>
+                            <h2>Admin approval</h2>
+                            <p>Every new listing and content change needs admin approval before publication.
+                                Approved listings expire after one year and can be renewed.</p>
+                            <input type="hidden" name="status" value="active">
 
                             <div class="dash-actions">
-                                <button class="btn btn-primary" type="submit">{{ $product ? 'Save changes' : 'Create listing' }}</button>
+                                <button class="btn btn-primary" type="submit">Submit for admin approval</button>
                                 <a class="btn btn-secondary" href="{{ route('dashboard') }}">Cancel</a>
                             </div>
                         </section>

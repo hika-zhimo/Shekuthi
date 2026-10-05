@@ -3,14 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\District;
-use App\Models\Errand;
 use App\Models\Locality;
-use App\Models\LogisticsJob;
-use App\Models\RiderBaseOperation;
 use App\Models\User;
+use App\Models\Vendor;
 use App\Support\BlindIndex;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class LogisticsTest extends TestCase
@@ -45,7 +42,7 @@ class LogisticsTest extends TestCase
         ]);
     }
 
-        private function makeVendor(string $email = 'vendor@test.com'): User
+    private function makeVendor(string $email = 'vendor@test.com'): User
     {
         $this->seedDistrictLocalities();
         $user = User::query()->create([
@@ -57,7 +54,7 @@ class LogisticsTest extends TestCase
             'is_active' => true,
         ]);
 
-        \App\Models\Vendor::query()->create([
+        Vendor::query()->create([
             'user_id' => $user->id,
             'display_name' => 'Test Shop',
             'category' => 'traditional',
@@ -111,7 +108,7 @@ class LogisticsTest extends TestCase
         $response = $this->actingAs($driver, 'sanctum')
             ->putJson('/api/v1/driver/availability', ['is_online' => true]);
 
-                $response->assertOk()
+        $response->assertOk()
             ->assertJsonPath('data.is_online', true);
         $this->assertNull($response->json('data.last_online_at'));
 
@@ -143,6 +140,7 @@ class LogisticsTest extends TestCase
         $localities = Locality::query()->where('district_id', $district->id)->get();
 
         $response = $this->postJson('/api/v1/errands', [
+            'accept_contact' => true,
             'contact_name' => 'Guest User',
             'contact_phone' => '+5557777',
             'description' => 'Please pick up my package from the station',
@@ -170,6 +168,7 @@ class LogisticsTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/v1/errands', [
+            'accept_contact' => true,
             'contact_name' => 'Guest User',
             'contact_phone' => '+5557777',
             'description' => 'Test',

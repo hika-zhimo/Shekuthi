@@ -21,6 +21,8 @@ class Consent extends Model
 
     public const KEY_LISTING_IMAGES_PUBLIC = 'listing_images_public';
 
+    public const KEY_VERIFICATION_EVIDENCE_PUBLIC = 'verification_evidence_public';
+
     protected $fillable = [
         'subject_type',
         'subject_id',

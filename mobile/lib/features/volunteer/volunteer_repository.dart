@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/api_client.dart';
@@ -68,7 +69,8 @@ class VerificationItem {
 /// The admin-set verification fee (M5.4): paid directly to the volunteer,
 /// never handled by the platform. Null amount means "not decided yet".
 class VerificationFee {
-  const VerificationFee({required this.amountInr, required this.currencySymbol});
+  const VerificationFee(
+      {required this.amountInr, required this.currencySymbol});
 
   final double? amountInr;
   final String currencySymbol;
@@ -76,8 +78,7 @@ class VerificationFee {
   factory VerificationFee.fromJson(Map<String, dynamic> json) =>
       VerificationFee(
         amountInr: (json['amount_inr'] as num?)?.toDouble(),
-        currencySymbol:
-            json['currency_symbol'] as String? ?? '₹',
+        currencySymbol: json['currency_symbol'] as String? ?? '₹',
       );
 }
 
@@ -175,8 +176,8 @@ class VolunteerRepository {
         await _api.dio.get<Map<String, dynamic>>('/volunteer/queue');
 
     return (response.data?['data'] as List<dynamic>? ?? <dynamic>[])
-        .map((dynamic e) =>
-            VerificationItem.fromJson(e as Map<String, dynamic>))
+        .map(
+            (dynamic e) => VerificationItem.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
@@ -187,6 +188,7 @@ class VolunteerRepository {
     Map<String, bool>? checklist,
     double? geoLat,
     double? geoLng,
+    List<String> evidence = const <String>[],
   }) async {
     final Response<Map<String, dynamic>> response =
         await _api.dio.post<Map<String, dynamic>>(
@@ -198,6 +200,8 @@ class VolunteerRepository {
         if (checklist != null) 'checklist': checklist,
         if (geoLat != null) 'geo_lat': geoLat,
         if (geoLng != null) 'geo_lng': geoLng,
+        if (evidence.isNotEmpty) 'evidence': evidence,
+        if (evidence.isNotEmpty) 'evidence_public_consent': true,
       },
     );
 
@@ -206,11 +210,29 @@ class VolunteerRepository {
     );
   }
 
+  /// The server re-encodes evidence using the same validator as listing photos.
+  Future<String> uploadEvidence(XFile photo) async {
+    final response = await _api.dio.post<Map<String, dynamic>>('/media',
+        data: FormData.fromMap(<String, dynamic>{
+          'directory': 'evidence',
+          'evidence_public_consent': true,
+          'file': MultipartFile.fromBytes(await photo.readAsBytes(),
+              filename: photo.name),
+        }));
+    return response.data!['path'] as String;
+  }
+
   Future<VerificationItem> submit(VerificationItem item) async {
     final Response<Map<String, dynamic>> response = await _api.dio
         .post<Map<String, dynamic>>('/verifications/${item.id}/submit');
     return VerificationItem.fromJson(
-      response.data?['data'] as Map<String, dynamic>,
+      <String, dynamic>{
+        'subject_type': item.subjectType,
+        'subject_id': item.subjectId,
+        'notes': item.notes,
+        'created_at': item.createdAt?.toIso8601String(),
+        ...response.data?['data'] as Map<String, dynamic>,
+      },
     );
   }
 }

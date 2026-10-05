@@ -200,7 +200,7 @@ a:hover {
 
 .btn-primary {
     background: var(--color-accent);
-    color: #FFFFFF;
+    color: var(--color-on-accent);
 }
 
 .btn-primary:hover {
@@ -489,23 +489,23 @@ a:hover {
 }
 
 .chip-agro {
-    background: #E7F6EC;
-    color: #1E7B3C;
+    background: var(--color-surface-alt);
+    color: var(--color-success);
 }
 
 .chip-traditional {
-    background: #EAF2FC;
-    color: #1D5FA8;
+    background: var(--color-surface-alt);
+    color: var(--color-ink);
 }
 
 .chip-rental-homestay {
-    background: #FBF3DB;
-    color: #956400;
+    background: var(--color-surface-alt);
+    color: var(--color-ink);
 }
 
 .chip-verified {
-    background: #E7F6EC;
-    color: #1E7B3C;
+    background: var(--color-surface-alt);
+    color: var(--color-success);
 }
 
 .chip-verified .icon {
@@ -558,7 +558,7 @@ a:hover {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #1E7B3C;
+    color: var(--color-success);
     font-weight: 500;
 }
 

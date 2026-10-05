@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import '../../core/widgets/role_loading.dart';
+import '../../core/theme/tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,6 +20,8 @@ class _VolunteerHomeScreenState extends ConsumerState<VolunteerHomeScreen> {
   VolunteerProfile? _profile;
   List<VerificationItem> _queue = <VerificationItem>[];
   bool _loading = true;
+  bool _creating = false;
+  final Set<int> _submitting = {};
   String? _error;
 
   @override
@@ -32,8 +36,7 @@ class _VolunteerHomeScreenState extends ConsumerState<VolunteerHomeScreen> {
       _error = null;
     });
     try {
-      final VolunteerRepository repo =
-          ref.read(volunteerRepositoryProvider);
+      final VolunteerRepository repo = ref.read(volunteerRepositoryProvider);
       final VolunteerProfile? profile = await repo.profile();
       final List<VerificationItem> queue =
           profile == null ? <VerificationItem>[] : await repo.queue();
@@ -55,9 +58,11 @@ class _VolunteerHomeScreenState extends ConsumerState<VolunteerHomeScreen> {
   }
 
   Future<void> _createProfile() async {
+    setState(() => _creating = true);
     try {
       final VolunteerProfile profile =
           await ref.read(volunteerRepositoryProvider).createProfile();
+      if (!mounted) return;
       setState(() => _profile = profile);
     } on DioException catch (_) {
       if (mounted) {
@@ -65,6 +70,23 @@ class _VolunteerHomeScreenState extends ConsumerState<VolunteerHomeScreen> {
           const SnackBar(content: Text('Could not create your profile.')),
         );
       }
+    } finally {
+      if (mounted) setState(() => _creating = false);
+    }
+  }
+
+  Future<void> _submitReport(VerificationItem item) async {
+    setState(() => _submitting.add(item.id));
+    try {
+      await ref.read(volunteerRepositoryProvider).submit(item);
+      if (mounted) await _load();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Could not submit the report. Try again.')));
+      }
+    } finally {
+      if (mounted) setState(() => _submitting.remove(item.id));
     }
   }
 
@@ -75,12 +97,12 @@ class _VolunteerHomeScreenState extends ConsumerState<VolunteerHomeScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Volunteer dashboard')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const RoleLoading()
           : _error != null
               ? ListView(
                   children: <Widget>[
                     Padding(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(Spacing.xl),
                       child: Text(
                         _error!,
                         style: theme.textTheme.bodyLarge
@@ -97,8 +119,9 @@ class _VolunteerHomeScreenState extends ConsumerState<VolunteerHomeScreen> {
 
   Widget _emptyProfile(ThemeData theme) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+      child: SingleChildScrollView(
+          child: Padding(
+        padding: const EdgeInsets.all(Spacing.xl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -107,35 +130,35 @@ class _VolunteerHomeScreenState extends ConsumerState<VolunteerHomeScreen> {
               size: 48,
               color: theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Text(
               'Create your volunteer profile to start visiting sites.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyLarge,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             FilledButton(
-              onPressed: _createProfile,
-              child: const Text('Create profile'),
+              onPressed: _creating ? null : _createProfile,
+              child: Text(_creating ? 'Creating…' : 'Create profile'),
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 
   Widget _dashboard(ThemeData theme) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       children: <Widget>[
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text('Availability', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 4),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   (_profile!.availability?.isEmpty ?? true)
                       ? 'No availability set yet.'
@@ -148,9 +171,9 @@ class _VolunteerHomeScreenState extends ConsumerState<VolunteerHomeScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         const _TrainingCard(),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         OutlinedButton.icon(
           onPressed: () async {
             await context.push('/volunteer/report');
@@ -159,9 +182,9 @@ class _VolunteerHomeScreenState extends ConsumerState<VolunteerHomeScreen> {
           icon: const Icon(Icons.fact_check_outlined),
           label: const Text('New site-visit report'),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         Text('My visits', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
+        const SizedBox(height: Spacing.sm),
         if (_queue.isEmpty)
           Text(
             'No reports yet. Create one after your first site visit.',
@@ -179,12 +202,9 @@ class _VolunteerHomeScreenState extends ConsumerState<VolunteerHomeScreen> {
                 subtitle: Text(item.statusLabel),
                 trailing: item.status == 'draft'
                     ? TextButton(
-                        onPressed: () async {
-                          await ref
-                              .read(volunteerRepositoryProvider)
-                              .submit(item);
-                          await _load();
-                        },
+                        onPressed: _submitting.contains(item.id)
+                            ? null
+                            : () => _submitReport(item),
                         child: const Text('Submit'),
                       )
                     : null,
@@ -212,7 +232,7 @@ class _TrainingCard extends StatelessWidget {
     ),
     (
       'Take evidence photos',
-      'Shop front, goods, anything proving the checklist. Max 8.',
+      'Shop front, goods and checklist evidence. Up to 4 photos, 500 KB each.',
     ),
     (
       'File the report here',
@@ -231,7 +251,7 @@ class _TrainingCard extends StatelessWidget {
     return Card(
       color: theme.colorScheme.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -241,24 +261,25 @@ class _TrainingCard extends StatelessWidget {
                   Icons.school_outlined,
                   color: theme.colorScheme.onPrimaryContainer,
                 ),
-                const SizedBox(width: 8),
-                Text(
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                    child: Text(
                   'How site visits work',
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.w600,
                   ),
-                ),
+                )),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             for (int i = 0; i < _steps.length; i++) ...<Widget>[
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Container(
-                    width: 24,
-                    height: 24,
+                    width: TouchTarget.min,
+                    height: TouchTarget.min,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -274,7 +295,7 @@ class _TrainingCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: Spacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

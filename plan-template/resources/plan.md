@@ -1,0 +1,1855 @@
+# Shekuthi — Plan & Status Tracker
+
+> Active project tracker: `plan-template/resources/plan.md`. User requests: `plan-template/resources/request.md`. All implementation paths resolve from the repository root, not this folder. Process rules remain in root `AGENTS.md` and this folder's `AGENTS.md`; the root agreement governs the whole repository.
+> Migrated on 2026-10-05 from root `plan.md`, retaining permanent task IDs, recorded statuses, dated notes, decisions, file ownership, change log and inventories. Historical verification reflects its recorded date, not a new application audit. The root copy is retained for owner deletion; future updates go here.
+
+## 0 · How to use
+
+**Status legend**
+
+| Icon | Meaning |
+|------|---------|
+| ⬜ | Not started |
+| 🔄 | In progress |
+| ✅ | Done |
+| ⏸️ | Blocked — waiting on a decision in §6 (cite the Q#, e.g. `⏸️ Q5`) |
+| 🚫 | Dropped / won't do (never delete a task — close it instead) |
+
+**Rules**
+1. **Track first, build second.** Work that isn't a task here gets added here (ID + status + comment + files) before any code is written.
+2. **Update in place.** Flip the status, tick the checkbox, append notes to the comment as `— <date>: <note>`. Never rewrite or delete existing notes.
+3. **Close the loop.** On completion: set ✅, add every created file to the entry's **Files** list, add a row to §7.
+4. **Keep tasks surgical.** One task = one concern = its own file list. If a change outgrows its task, split it: the original task keeps its files, the new task gets the rest.
+5. **Path meanings.** `🆕` = planned path, created when the task starts. No marker = already exists in the repo. Reference folders (`ui deisgns/`, `UX/`, `assets/`) are never edited by build tasks — copy out instead.
+6. **IDs are permanent.** Tasks `M<milestone>.<n>`, sub-tasks `a, b, c…`. Never renumber; close with 🚫 instead.
+
+---
+
+
+**Requests:** every task and lettered subtask links to a permanent request ID. Request checkboxes are owner confirmation only; do not tick them from inherited technical status. — 2026-10-05 (M52): owner explicitly requested the agent to mark verified built work done; request ticks now reflect that delegated technical review. Future manual acceptance can still be recorded by the owner.
+
+## 1 · Source documents
+
+| File | Role | Status |
+|------|------|--------|
+| `local-market.md` | Product outline: marketplace, logistics (collector/delivery), farmers, buyers, verified/volunteer, donation-funded, no commission | ✅ |
+| `additionalfeatures.txt` | Feature requests: rider base-of-operation, UPI donations, rentals/homestays, guest browsing, online/offline toggle, referral/affiliate, DPDP + encryption | ✅ |
+| `AGENTS.md` | Agent working agreement — stack-agnostic, reusable in any project | ✅ |
+| `plan.md` | This tracker | 🔄 living doc |
+
+---
+
+
+| `SKILL/plan-template/SKILL.md` | Adopted tracking workflow; user-selected location overrides root-file bootstrap | ✅ |
+| `SKILL/plan-template/resources/request.md` | Current user feature list and request IDs | 🔄 |
+| `SKILL/plan-template/resources/plan.md` | Active technical tracker after migration | 🔄 |
+
+## 2 · Repo map
+
+```text
+Shekuthi/
+├── AGENTS.md · ATTRIBUTION.md · README.md · local-market.md · additionalfeatures.txt
+├── plan.md                              # Legacy copy retained for owner deletion
+├── plan-template/SKILL.md            # Adopted workflow
+├── plan-template/resources/
+│   │   ├── AGENTS.md                    # Skill working agreement
+│   │   ├── plan.md                      # Active project tracker (this file)
+│   │   └── request.md                   # Add future requests here
+├── design/                          # Local design references; read-only
+├── backend/                             # Laravel 12 / PHP >=8.2, Blade + JSON API
+│   ├── app/{Http,Models,Services,Policies,Support,Console}/
+│   ├── config/ · database/{migrations,seeders}/ · routes/
+│   ├── resources/{views,css}/ · public/ · tests/{Feature,Unit}/
+│   └── storage/                         # Runtime files; not source artifacts
+├── mobile/                              # Flutter / Dart, role-based app
+│   ├── lib/{core,features}/ · test/ · android/ · ios/
+│   └── assets/                          # Local runtime assets
+├── docs/{decisions,design,deploy,dpdp,launch,security,volunteer}/
+└── UX/ · assets/ · ui deisgns/           # Legacy local-only reference paths
+```
+
+Historical paths and planned-path markers below are preserved as recorded; they do not assert that every referenced file exists today.
+
+## 3 · Milestone dashboard
+
+| Milestone | Scope | Status | Progress |
+|-----------|-------|--------|----------|
+| M0 | Design system & assets adoption | 🔄 | 4/7 — top-level tasks |
+| M1 | Foundations: scaffolds, schema, auth, encryption, CI | 🔄 | 6/6 — top-level tasks; M1.1c blocked on Q7 |
+| M2 | Roles, catalog & listings | ✅ | 5/5 — top-level tasks |
+| M3 | Booking + MOQ (guest) | ✅ | 3/3 — top-level tasks |
+| M4 | Logistics: localities, rider bases, availability, matching, errands | ✅ | 6/6 — top-level tasks |
+| M5 | Verification & verified badge | ✅ | 7/7 — top-level tasks |
+| M6 | Donations (UPI) + referral/affiliate | ✅ | 3/3 — top-level tasks |
+| M7 | DPDP + security | ✅ | 5/5 — application tasks; backup operations remain Q7/M8.4 |
+| M8 | Notifications, website pages, tests, deploy, launch | 🔄 | 10/12 — top-level tasks |
+| M9 | Service areas + audit gap-closing | ✅ | 6/6 — top-level tasks |
+| M10 | Scope corrections & role rename (raised 2026-09-18) | ✅ | 3/3 — top-level tasks |
+| M11 | Upload optimisation (raised 2026-09-18) | ✅ | 1/1 — top-level tasks |
+| M12 | Vendor functional gaps (raised 2026-09-18) | ✅ | 4/4 — top-level tasks |
+| M13 | App parity gaps (raised 2026-09-18) | 🔄 | 1/3 — top-level tasks |
+| M14 | Admin & platform gaps (raised 2026-09-18) | 🔄 | 1/2 — top-level tasks |
+| M15 | Member workspace & form UI (raised 2026-09-18) | ✅ | 5/5 — top-level tasks |
+| M16 | Dev tooling (raised 2026-09-18) | ✅ | 1/1 — top-level tasks |
+| M17 | Volunteer approval & skilled-worker discovery (raised 2026-09-18) | ✅ | 3/3 — top-level tasks |
+| M18 | Transport & errands directory (raised 2026-09-18) | ✅ | 2/2 — top-level tasks |
+| M19 | Region reference data (raised 2026-09-18) | ✅ | 1/1 — top-level tasks |
+| M20 | Production readiness (raised 2026-09-18) | 🔄 | 2/3 — top-level tasks |
+| M21 | Sales reporting & affiliate commissions (raised 2026-09-18) | 🔄 | 2/3 — top-level tasks |
+| M22 | Blog / community stories (raised 2026-09-19) | ✅ | 2/2 — top-level tasks |
+| M23 | PG / rentals / homestays section (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M24 | About page & content (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M25 | Verification questionnaire + signed story (raised 2026-09-19) | 🔄 | 2/3 — top-level tasks |
+| M26 | Legal pages & DPDP compliance (raised 2026-09-19) | ✅ | 3/3 — top-level tasks |
+| M27 | Production audit (raised 2026-09-19) | 🔄 | 4/8 — top-level tasks |
+| M28 | Collectors & reseller farm produce (raised 2026-09-19) | ✅ | 5/5 — top-level tasks |
+| M29 | Open-source distribution (raised 2026-09-19) | ✅ | 2/2 — top-level tasks |
+| M30 | Media limits & optimisation (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M31 | Third-party asset hygiene (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M32 | Shekuthi brand + Hostinger deployment readiness (raised 2026-09-19) | ✅ | 2/2 — top-level tasks |
+| M33 | Contact, grievance and peer-to-peer responsibility copy (raised 2026-09-19) | ✅ | 2/2 — top-level tasks |
+| M34 | Responsive UI fluidity audit (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M35 | Modern responsive public search/filter UI (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M36 | Clean sharp typography and UI pass (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M37 | Mobile website app-like shell (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M38 | Admin password change with email OTP (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M39 | About-page AI attribution update (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M40 | Android APK build and live API verification (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M41 | Flutter bottom navigation shell (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M42 | Navigation inset fix + causal functional audit (raised 2026-09-19) | ✅ | 2/2 — top-level tasks |
+| M43 | Mobile auth network diagnostics (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M44 | Android release network permission (raised 2026-09-19) | ✅ | 1/1 — top-level tasks |
+| M45 | Email verification + listing approval (raised 2026-09-19) | ✅ | 2/2 — top-level tasks |
+| M46 | Current function inventory and plan reconciliation (raised 2026-09-24) | ✅ | 1/1 — top-level tasks |
+| M47 | Protect data export files (raised 2026-09-24) | ✅ | 1/1 — top-level tasks |
+| M48 | Vendor delayed listing deletion (raised 2026-09-24) | ✅ | 1/1 — top-level tasks |
+
+> Dates/durations are deliberately not tracked — status and dependencies are. Update Progress as sub-tasks close.
+
+---
+
+
+| M49 | Skill tracking migration | ✅ | 1/1 — top-level tasks |
+
+| M50 | Merge remaining skill-folder metadata | ✅ | 1/1 — top-level tasks |
+
+| M51 | Supplied logo, listing-first app and remaining-work review | ✅ | 3/3 — top-level tasks |
+
+| M52 | Built milestone completion review | ✅ | 1/1 — top-level tasks |
+| M53 | Mandatory approval and annual listing renewal | ✅ | 3/3 — local implementation verified; host rollout remains M8.4/Q7 |
+| M54 | Driver vehicle selection before directory listing | ✅ | 1/1 — locally verified; production rollout remains M8.4/Q7 |
+| M55 | Fluid role interfaces and workflow verification | ✅ | 5/5 |
+| M56 | Home search and location spacing | ✅ | 1/1 |
+| M57 | Bottom navigation on every app screen | ✅ | 3/3 |
+| M58 | Catalog optimization and SSH update instructions | ✅ | 2/2 |
+
+## 4 · Preferences and product context
+
+- Donation-funded, commission-free platform; payments settle directly between parties.
+- Nagaland launch, India, INR; guest buyers and role-based registered members.
+- Follow chosen website/dashboard tokens and Material 3 for Flutter.
+- Third-party references stay local and uncommitted; root `ATTRIBUTION.md` owns credits.
+- 2026-10-05: owner chose skill-folder tracking and will delete the old root plan personally.
+
+### Design system and asset inventory (historical inputs)
+
+| Concern | Inventory | Path | Consumed by |
+|---------|-----------|------|-------------|
+| Website UI candidates | 4 templates | `ui deisgns/website ui/minimalist-swiss-design.md` · `material design.md` · `design.md` · `fresh white ui.md` | M0.1 → M0.4 |
+| Dashboard UI candidates | 3 systems | `ui deisgns/dashboard ui/genesis-DESIGN.md` · `verdana-health-design-system-DESIGN.md` · `design-md-sistema-de-monitoreo-el-ctrico-wattvision-DESIGN.md` | M0.2 → M0.4 |
+| Mobile design language | Material 3 guidelines | `UX/android-design-guidelines_SKILL.md` · `UX/mobile-android-design_SKILL.md` | M0.3 |
+| UI polish playbook | detail rules: radius, shadows, motion, icon states | `UX/better-ui_SKILL.md` | every UI task |
+| Editorial-minimal style | constraints + warm-monochrome palette | `UX/minimalist-ui_SKILL.md` | optional style input |
+| Brand / logo | playbooks + generation | `UX/brand-guidelines_SKILL.md` · `UX/brandkit_SKILL.md` · `UX/ip-as-logo_SKILL.md` | M0.7 |
+| Icons | Tabler-style SVG, two states | `assets/icons/outline/` (default) · `assets/icons/filled/` (active/selected only) | web + app |
+| Illustrations | unDraw + Flowbite (true dark variants) | `assets/illustrations art/undraw-illustrations/` · `assets/illustrations art/flowbite-illustrations/` | empty states, 404, auth, about |
+| Slicing playbook | tracer-bullet issue breakdown | `UX/to-issues_SKILL.md` | any feature kickoff |
+
+---
+
+
+### Actors and roles
+
+| Role | Registers? | Owner tasks |
+|------|-----------|-------------|
+| Buyer (end user / reseller) | **No — guest** | catalog M2.4–M2.5 · booking M3.1–M3.3 · errand M4.5 · donations M6.1 |
+| Seller / Vendor (farmer, traditional, agro) | Yes | profile M2.1a · listings M2.2 · pickups M4.4 · referrals M6.3 |
+| Rental / Homestay owner | Yes | listings M2.2 (category `rental_homestay`) |
+| Driver / Rider | Yes | base M4.2 · toggle M4.3 · jobs M4.4 · errands M4.5 |
+| Collector | Yes | pickups M4.4 |
+| Skilled worker | Yes | profile M2.1b |
+| Volunteer | Yes | visits M5.1–M5.2 · badge M5.3 |
+| Admin (staff) | managed account | localities M4.1 · donation settings M6.2 · DPDP M7.3 · verification review M9.5 · listing moderation via API policies (M2.2) |
+
+---
+
+
+## 5 · Tasks
+
+### M0 · Design system & assets — status: 🔄 (4/7 top-level tasks)
+
+- [x] **M0.1 · Pick the website UI template (adopt ONE)** — ✅
+  > **Request:** R1
+  > **Files:** `ui deisgns/website ui/` (candidates only — nothing edited) · `docs/decisions/Q11-website-template.md` 🆕
+  > **Comment:** Token source for the public website (colors/type/radius/components/motion). Recommendation: **minimalist-swiss-design.md** — clean, semantic color, zig-zag sections, suits a marketplace (density 3/10). Alternatives: `material design.md` (vibrant), `design.md` (corporate flat), `fresh white ui.md` (micro-interaction heavy). `— 2026-09-05: task created` `— 2026-09-05: DECIDED minimalist-swiss; ADR written; tokens implemented in backend/public/css/tokens.css`
+- [x] **M0.2 · Pick the dashboard UI system (adopt ONE)** — ✅
+  > **Request:** R2
+  > **Files:** `ui deisgns/dashboard ui/` (candidates) · `docs/decisions/Q12-dashboard-system.md` 🆕
+  > **Comment:** For admin + vendor/driver dashboards. Recommendation: **genesis-DESIGN.md** (built for platform dashboards; indigo strictly for interactive elements; flat cards, hover lift). Verdana = calm/clinical alternative. Wattvision = dark data-dense — better saved for a later ops/KPI skin. `— 2026-09-05: DECIDED genesis; ADR written; tokens implemented in backend/public/css/admin-tokens.css`
+- [x] **M0.3 · Adopt mobile design language: Material 3** — ✅
+  > **Request:** R3
+  > **Files:** `UX/android-design-guidelines_SKILL.md` · `UX/mobile-android-design_SKILL.md` · `mobile/lib/core/theme/app_theme.dart` 🆕
+  > **Comment:** Dynamic color on Android 12+, static fallback below; theme color roles only — never hardcode hex in widgets; ≥48dp touch targets; content descriptions on all interactive elements. `— 2026-09-05: app_theme.dart (light+dark, ColorScheme.fromSeed) and tokens.dart created; Inter via google_fonts`
+- [x] **M0.4 · Generate token files from the chosen systems** — ✅
+  > **Request:** R4
+  > **Files:** `backend/resources/css/tokens.css` 🆕 · `backend/resources/css/app.css` 🆕 · `backend/resources/css/admin-tokens.css` 🆕 · `backend/public/css/` 🆕 (served copies; no node build needed on shared hosting) · `mobile/lib/core/theme/tokens.dart` 🆕 · `docs/design/tokens.md` 🆕
+  > **Comment:** Single source per surface: palette, type scale, radius, spacing, elevation, motion curves. Rule: tokens only in views/widgets — zero literal hex values. Reconcile website template + dashboard system into one shared neutral palette where they overlap. `— 2026-09-05: all token files created; USER RULE recorded: no emoji icons anywhere in the built project — icons come from the SVG library (assets/icons) only`
+- [ ] **M0.5 · Icon pipeline (copy-out, not reference)** — 🔄
+  > **Request:** R5
+  > **Files:** `assets/icons/outline/` · `assets/icons/filled/` (sources) → `backend/public/icons/` 🆕 · `mobile/assets/icons/` 🆕
+  > **Comment:** Outline = default state; filled = active/selected only; recolor via `currentColor` / theme tint; stroke weight matches adjacent text. Copy only icons actually used. Feature icons verified present in outline set: `map-pin`, `motorbike`, `bike`, `building-store`, `leaf`, `bed`, `truck-delivery`, `qrcode`, `coin-rupee`, `heart-handshake`, `shield-check`, `rosette-discount-check`, `user-plus`, `share`, `link`, `tool`, `toggle-right`. Note: filled set has partial coverage — icons without a filled twin fall back to outline + tint for active states. `— 2026-09-05: icon names verified against repo` `— 2026-09-05: 13 svgs copied to backend/public/icons, 7 to mobile/assets/icons (building-store, truck-delivery, map-pin, rosette-discount-check, heart-handshake, user-plus, tool); more copied per-feature as UI lands`
+- [ ] **M0.6 · Illustration pipeline (copy-out)** — 🔄
+  > **Request:** R6
+  > **Files:** `assets/illustrations art/undraw-illustrations/` · `assets/illustrations art/flowbite-illustrations/{light,dark}/` → `backend/public/img/` 🆕 · `mobile/assets/images/` 🆕
+  > **Comment:** unDraw for hero/about/empty states; Flowbite where true dark-mode variants are needed (404, auth, errors). Track each copied file in the consuming task's entry. `— 2026-09-05: farm-girl.svg (home hero) + empty.svg (catalog/donation empty states) copied to backend/public/img`
+- [ ] **M0.7 · Brand basics: name, logo, palette** — ⏸️ Q13
+  > **Request:** R7
+  > **Files:** `docs/brand/` 🆕 · `backend/public/brand/` 🆕 · `mobile/assets/brand/` 🆕
+  > **Comment:** Playbooks: ip-as-logo (mascot mark), brandkit (identity board), brand-guidelines (palette/type application). Palette must pass WCAG AA on both website and app tokens once M0.4 lands. `— 2026-09-18: plumbing shipped with the Flutter v1 pass — backend/config/branding.php + components/brand-logo.blade.php + mobile/lib/core/branding/app_brand.dart + assets/brand/ slot; config carries whatever Q13 decides. Task stays ⏸️ Q13 for the actual name/logo/palette.`
+  > **Audit note:** — 2026-10-05: Owner supplied the approved olive logo; adopted under M51.1. Logo is no longer the blocker. Final theme palette and remaining store/brand collateral are not decided here, so this broader task stays open.
+
+### M1 · Foundations — status: 🔄 (6/6 top-level tasks; M1.1c blocked on Q7)
+
+- [x] **M1.1 · Backend scaffold (Laravel on shared hosting)** — ✅ (Q7 partially decided; cron still open)
+  > **Request:** R8
+  > **Files:** `backend/composer.json` 🆕 · `backend/.env.example` 🆕 · `backend/public/.htaccess` 🆕 · `backend/config/` 🆕 · `backend/composer.lock` 🆕
+  > **Comment:** One app serves the JSON API (`/api/v1/*`) + the website (Blade). Database/cache drivers (no Redis on shared hosting); synchronous jobs unless cron confirmed (Q7). Sanctum bearer tokens for the app; session + CSRF for the web.
+  > **Notes:** `— 2026-09-05: skeleton hand-authored` `— 2026-09-05: pinned to LARAVEL 12 (^12.0) — composer's security policy blocks Laravel 11 (past security-fix window); same skeleton structure, PHP 8.2+ unchanged` `— 2026-09-05: composer install verified, artisan boots (Laravel 12.69.1), config files complete` `— 2026-09-05: local .env uses sqlite for smoke; switch to mysql on the host`
+  - [x] a · Create project, docroot → `backend/public/` — ✅ — `backend/composer.json` 🆕, `backend/public/.htaccess` 🆕
+    > **Request:** R9
+  - [x] b · `.env.example` with DB / Sanctum / app-key / FCM placeholders — ✅ — `backend/.env.example` 🆕 — 💬 keys never committed
+    > **Request:** R10
+  - [ ] c · Record Hostinger limits in an ADR — ⏸️ Q7 — `docs/decisions/Q7-hosting.md` 🆕 — 💬 ADR written with decided constraints; host confirmation pending
+    > **Request:** R11
+- [x] **M1.2 · Mobile app scaffold (Flutter)** — ✅
+  > **Request:** R12
+  > **Files:** `mobile/pubspec.yaml` 🆕 · `mobile/lib/main.dart` 🆕 · `mobile/lib/core/{network,storage,router}/` 🆕
+  > **Comment:** Dio + flutter_secure_storage + go_router + Riverpod (state choice recorded here once made — default Riverpod) + Hive offline cache. Theme wired to M0.3/M0.4.
+  > **Notes:** `— 2026-09-05: RIVERPOD confirmed as state solution` `— 2026-09-05: full Dart/lib authored (theme, api_client, token_storage, router, auth feature with login+register+session controller, home shell, tokens test); platform folders intentionally generated later via 'flutter create .' on an SDK machine (README documents the command) — flutter analyze/test pending that machine, hence task stays in progress` `— 2026-09-05: Q14 decided (Flutter defaults, minSdk 21) — docs/decisions/Q14-android-sdk.md` `— 2026-09-18: DONE — Flutter 3.47.4 / Dart 3.13.3 installed at /home/mint/flutter; the app was NEVER analyzer-clean (only import-checked), so first real pass fixed ~30 pre-existing breakages: flutter_riverpod pinned 2.5.1 (2.6.1 dropped Notifier's 2nd generic + FamilyAsyncNotifierProvider — code was written against 2.5.x); Notifier<State,State> → Notifier<State>; FamilyAsyncNotifierProvider → AsyncNotifierProvider.family; CardTheme → CardThemeData (Flutter 3.47); missing dio/catalog_repository/booking_repository/booking_controller imports; catalog_controller AsyncData wrap; ListingsController.update → updateListing (dodges AsyncNotifierBase.update); Listing.status field added; ~10 unused-catch/const lint fixes. Result: flutter analyze 0 issues, flutter test 3/3 green. Platform folders generated 2026-09-18 via `flutter create . --platforms=android,ios` (M2.3a build step); iOS photo-library usage string added. The flutter-create template `test/widget_test.dart` (MyApp stub) was removed — it did not compile against this app. Still no Android SDK → no APK build possible; analyze/test remain the verification floor`
+- [x] **M1.3 · Database schema — all migrations** — ✅
+  > **Request:** R13
+  > **Files:** `backend/database/migrations/` 🆕 · `backend/database/seeders/` 🆕 · `backend/app/Models/` 🆕
+  > **Comment:** One migration + one model per table. PII columns always via encrypted casts (M1.5). Naming: `<date>_<slug>.php`.
+  > **Notes:** `— 2026-09-05: 15 migrations + 22 models written; php artisan migrate --seed verified live (sqlite) incl. sanctum tokens migration` `— 2026-09-05: users.district_id deliberately FK-less (framework users migration precedes districts); integrity enforced at app layer`
+  - [x] a · `users` (+ roles, encrypted PII, blind-index phone) — ✅ — `0001_01_01_000000_create_users_table.php`
+    > **Request:** R14
+  - [x] b · `vendors` (profile + category: traditional / agro / rental_homestay) — ✅ — `2026_01_01_000020_create_vendors_table.php`
+    > **Request:** R15
+  - [x] c · `districts` + `localities` (admin-managed names) — ✅ — `2026_01_01_000010_create_districts_and_localities_tables.php`
+    > **Request:** R16
+  - [x] d · `rider_base_operations` (1 district + ≤5 localities) + `driver_availability` — ✅ — `2026_01_01_000030_create_rider_base_operations_tables.php`
+    > **Request:** R17
+  - [x] e · `products` (category enum, price, unit, moq, stock/batch, availability dates for rentals) — ✅ — `2026_01_01_000040_create_products_table.php`
+    > **Request:** R18
+  - [x] f · `bookings` (+ items pivot, status lifecycle, guest contact fields) — ✅ — `2026_01_01_000050_create_bookings_tables.php`
+    > **Request:** R19
+  - [x] g · `logistics_jobs` (pickup/delivery, collector + driver legs) + `errands` — ✅ — `2026_01_01_000060_create_logistics_jobs_and_errands_tables.php`
+    > **Request:** R20
+  - [x] h · `verifications` + `verification_volunteers` + `badges` (volunteer-name snapshot) — ✅ — `2026_01_01_000070_create_verification_tables.php`
+    > **Request:** R21
+  - [x] i · `donation_settings` (upi_id, qr_path; single admin-managed row) — ✅ — `2026_01_01_000080_create_donation_settings_table.php`
+    > **Request:** R22
+  - [x] j · `referrals` (code, owner, attribution, conversion ledger) — ✅ — `2026_01_01_000090_create_referrals_tables.php`
+    > **Request:** R23
+  - [x] k · `consents` + `data_requests` (DPDP) — ✅ — `2026_01_01_000100_create_dpdp_tables.php`
+    > **Request:** R24
+  - [x] l · `media` + inbox notifications + device tokens — ✅ — `2026_01_01_000110_create_media_and_device_tokens_tables.php`
+    > **Request:** R25
+  > **Notes:** `— 2026-09-18: sub-task checkboxes closed — they were stale; all 15 migrations exist and migrate:fresh --seed has been verified live repeatedly (2026-09-05 note, and again for Q10 on 2026-09-18); later additions: worker_profiles (000120), verification_fee_settings + badges.fee_inr (2026_09_18) to match M5.4/M6-era schema`
+- [x] **M1.4 · Auth + roles (vendors, drivers, workers, volunteers only)** — ✅
+  > **Request:** R26
+  > **Files:** `backend/app/Http/Controllers/Api/AuthController.php` 🆕 · `backend/app/Http/Controllers/Api/RegistrationController.php` 🆕 · `backend/app/Policies/` 🆕 · `mobile/lib/features/auth/` 🆕 · `docs/api/auth.md` 🆕
+  > **Comment:** Buyers never register — guest everywhere; the registration UI offers exactly the four registerable roles. Sanctum bearer for the app; session for web. Rate-limited (M7.4).
+  > **Notes:** `— 2026-09-05: register/login/me/logout live; roles = vendor, driver, collector, worker, volunteer (collectors self-register per tracker §4); throttle 6/min login, 10/min register` `— 2026-09-05: feature tests green — 8/8 passing (36 assertions) incl. buyer-rejection, duplicate-email case-insensitivity, driver availability row creation` `— 2026-09-05: app side: login + register screens with role selector wired to the session controller (Riverpod); docs/api/auth.md deferred to the M2 documentation sweep`
+- [x] **M1.5 · PII encryption layer (registered users)** — ✅
+  > **Request:** R27
+  > **Files:** `backend/app/Support/EncryptedCast.php` 🆕 (or framework encrypted casts) · `backend/app/Support/BlindIndex.php` 🆕 · `backend/app/Models/User.php` 🆕
+  > **Comment:** Name/phone/email/address encrypted at rest; keys only in `.env`. Blind-index hash column keeps phone lookup working without decrypting the table. Never log decrypted PII.
+  > **Notes:** `— 2026-09-05: used framework 'encrypted' casts (no custom cast class needed) + keyed HMAC blind index (email_index/phone_index, PII_INDEX_KEY in .env)` `— 2026-09-05: verified by test — raw DB rows hold base64 payloads; indexes and password hashes never serialize`
+- [x] **M1.6 · CI pipeline** — ✅
+  > **Request:** R28
+  > **Files:** `.github/workflows/ci.yml` 🆕
+  > **Comment:** Lint + tests for backend and mobile on every PR. Requires `git init` first (repo currently has none) — git init belongs to this task.
+  > **Notes:** `— 2026-09-05: git init + phase commit done on main` `— 2026-09-05: workflow runs backend tests + flutter create/analyze/test; first remote run pending a hosted remote`
+
+### M2 · Roles, catalog & listings — status: ✅ (5/5 top-level tasks)
+
+- [x] **M2.1 · Registration & profiles per role** — ✅ (Q15 decided 2026-09-18 — web registration shipped, see M8.6)
+  > **Request:** R29
+  > **Files:** `backend/app/Http/Controllers/Api/ProfileController.php` 🆕 · `mobile/lib/features/{auth,vendor,worker,volunteer}/` 🆕 · `docs/api/profiles.md` 🆕
+  > **Comment:** Role-specific onboarding; vendor picks categories; driver completes base-of-operation (M4.2) before going online (M4.3).
+  > **Notes:** `— 2026-09-05: role rows created at registration (vendors, driver_availability, verification_volunteers, worker_profiles M2.1b)` `— 2026-09-05: GET/PUT /profile live — name/phone (encrypted, blind-index unique), vendor display/description, worker services/service_areas; role is not self-updatable; worker_profiles migration 000120 added`
+  - [x] a · Vendor profile (categories, location; no payout fields — donation platform) — ✅ — `mobile/lib/features/vendor/profile/` deferred to dashboard polish — `backend` fields live `— 2026-09-18: the deferred app UI is now tracked as M9.4`
+    > **Request:** R30
+  - [x] b · Worker profile (services offered, service areas) — ✅ — `backend/app/Models/WorkerProfile.php` 🆕
+    > **Request:** R31
+  - [x] c · Volunteer profile (availability, TA/DA record) — ✅ — `backend/app/Models/VerificationVolunteer.php` — 💬 UI pass lands with M5 screens
+    > **Request:** R32
+- [x] **M2.2 · Listing CRUD — traditional, agro, rental/homestay** — ✅
+  > **Request:** R33
+  > **Files:** `backend/app/Http/Controllers/Api/ListingController.php` 🆕 · `backend/app/Http/Requests/{ListingRequest,StoreListingRequest,UpdateListingRequest}.php` 🆕 · `backend/app/Policies/ProductPolicy.php` 🆕 · `backend/app/Http/Resources/ProductResource.php` 🆕 · `mobile/lib/features/vendor/listings/` 🆕 · `docs/api/listings.md` 🆕
+  > **Comment:** One `products` table + `category` enum keeps all listing types queryable together. Rentals/homestays use availability dates instead of stock/MOQ. Admin moderation hooks via policies.
+  > **Notes:** `— 2026-09-05: vendor-scoped CRUD live; FormRequest rules mirror category semantics (rentals require date window + price, forbid moq/stock); delete = archive (soft-off)` `— 2026-09-05: app side — my-listings screen (publish/unpublish/archive), create form mirroring server rules; in-app edit screen tracked for the M3 polish pass`
+- [x] **M2.3 · Media upload + validation (shared validator)** — ✅ (⏸️ Q9 storage target unchanged)
+  > **Request:** R34
+  > **Files:** `backend/app/Support/UploadValidator.php` 🆕 · `backend/app/Http/Controllers/Api/MediaController.php` 🆕 · `backend/storage/app/public/products/` · `docs/api/media.md` 🆕
+  > **Comment:** Re-encode images, allow-list MIME/extension, size + dimension caps; local disk first, S3-compatible later (Q9). This single validator is reused by UPI QR (M6.2) and evidence (M5.2) — change it here only.
+  > **Notes:** `— 2026-09-05: content-verified MIME (JPEG/PNG/WebP), 5MB + 4096px caps, GD re-encode with graceful fallback; listing image paths validated against the uploader's own media rows` `— 2026-09-05: in-app photo attach needs the image_picker package — tracked below`
+  - [x] a · In-app photo attach (add image_picker, upload to /media, wire into listing form) — ✅ (`mobile/lib/features/vendor/listings/{listing_edit_screen,listings_repository,listings_controller}.dart` · `test/listings_repository_test.dart` 🆕 · `ios/Runner/Info.plist` · `mobile/android/` + `mobile/ios/` platform folders (M1.2 step)) — 💬 Photo picker wired into the create-listing form (multi-pick, max 8, thumbnails + per-photo remove; uploads to `POST /media` field `file`/directory `products`, paths passed into `POST/PUT /listings` `images`). iOS `NSPhotoLibraryUsageDescription` added.
+    > **Request:** R35
+   > **Notes:** `— 2026-09-18: shipped in-app — image_picker ^1.1.2, thumbnail strip, remove-per-photo, 8-photo cap matching the server rule; upload failures surface an inline SnackBar and keep the form + photos for retry. 3 new repository tests green (multipart field/dir/filename, images included when non-empty, omitted when empty). flutter analyze 0 issues`
+- [x] **M2.4 · Catalog browse/search — guest, app + website** — ✅
+  > **Request:** R36
+  > **Files:** `backend/app/Http/Controllers/Api/CatalogController.php` 🆕 · `backend/app/Http/Controllers/Web/CatalogController.php` (upgraded) · `backend/resources/views/pages/catalog.blade.php` 🆕 · `mobile/lib/features/catalog/` 🆕 · `docs/api/catalog.md` 🆕
+  > **Comment:** No auth. Filters: category, district, locality, price. Search on title/description only (PII never searchable). Skeleton-shimmer loading per chosen systems; empty states use M0.6 art.
+  > **Notes:** `— 2026-09-05: API + website live with q/category filters (district/locality/price params implemented in API, website keeps q+category progressive form); drafts/archived excluded; verified flag denormalized from badges (populated in M5)` `— 2026-09-05: app catalog screen with SearchBar + category chips + pagination; district/locality filter UI lands with M4.1 locality management` `— 2026-09-18: the deferred district/locality filter UI is tracked as M9.2`
+- [x] **M2.5 · Listing detail + vendor landing page** — ✅
+  > **Request:** R37
+  > **Files:** `backend/resources/views/pages/{listing,vendor}.blade.php` 🆕 · `backend/resources/views/components/product-card.blade.php` 🆕 · `backend/app/Http/Controllers/Web/{ListingController,vendorController}.php` 🆕 · `mobile/lib/features/catalog/listing_detail_screen.dart` 🆕
+  > **Comment:** Verified-badge slot (M5.3), MOQ + booking CTA (M3.1), share buttons carrying referral attribution (M6.3).
+  > **Notes:** `— 2026-09-05: website detail + vendor pages live (facts grid, verified chip when a badge row exists, honest 'bookings arrive in M3' note instead of a dead button); app detail screen live` `— 2026-09-05: share/referral attribution lands with M6.3 on these same pages` `— 2026-09-18: share buttons carrying referral attribution are tracked as M9.3 (they did not land with M6.3)`
+
+### M3 · Booking + MOQ (guest) — status: ✅ (3/3 top-level tasks)
+
+- [x] **M3.1 · Booking creation with MOQ validation (no account)** — ✅ (Q5/Q1 defaults recorded)
+  > **Request:** R38
+  > **Files:** `backend/app/Services/BookingService.php` 🆕 · `backend/app/Http/Controllers/Api/BookingController.php` 🆕 · `backend/app/Http/Controllers/Web/BookingController.php` 🆕 · `backend/app/Http/Resources/{BookingResource,BookingItemResource}.php` 🆕 · `backend/resources/views/pages/booking-success.blade.php` 🆕 · `mobile/lib/features/booking/` 🆕
+  > **Comment:** Guest booking stores only contact name + phone (purpose-limited; consent via M7.1). Qty ≥ MOQ per item enforced server-side. Settlement offline by default (Q1 option A) — the platform never touches money. Reseller bookings use the same path with a `reseller` flag.
+  > **Notes:** `— 2026-09-05: BookingService owns all lifecycle rules; per-item MOQ + stock cap validated inside one transaction; BK- code generated; unit price snapshotted; consent row written (text v1.0)` `— 2026-09-05: web tracer bullet — booking form on the listing page + /bookings/{code} success page; multi-item booking via app/API`
+- [x] **M3.2 · Booking lifecycle + vendor actions** — ✅
+  > **Request:** R39
+  > **Files:** `backend/app/Http/Controllers/Api/VendorBookingController.php` 🆕 · `backend/app/Models/Booking.php` · `backend/app/Policies/BookingPolicy.php` 🆕 · `mobile/lib/features/vendor/bookings/` 🆕
+  > **Comment:** `pending → confirmed → picked_up → in_transit → delivered → completed` (+ `cancelled`). Transitions live in one service class so new statuses never require touching controllers.
+  > **Notes:** `— 2026-09-05: forward-only transitions enforced in BookingService::TRANSITIONS; BookingPolicy gates owner vendor/admin; vendor sees decrypted contact, guests never do` `— 2026-09-05: app incoming-bookings screen with one-tap next action`
+- [x] **M3.3 · Booking lookup for guests (phone + booking code)** — ✅
+  > **Request:** R40
+  > **Files:** `backend/app/Http/Controllers/Api/BookingController.php` · `backend/app/Models/Booking.php` · `mobile/lib/features/booking/booking_lookup_screen.dart` 🆕
+  > **Comment:** Guests track via booking code + phone match; no account creation, ever.
+  > **Notes:** `— 2026-09-05: lookup + guest cancel (pending only) live; code case-insensitive, phone must match via blind index; contact data never returned to guests`
+
+### M4 · Logistics & errands — status: ✅ (6/6 top-level tasks)
+
+- [x] **M4.1 · District & locality management (admin dashboard)** — ✅
+  > **Request:** R41
+  > **Files:** `backend/app/Http/Controllers/Web/Admin/LocalityController.php` 🆕 · `backend/resources/views/admin/localities/` 🆕 · `backend/database/seeders/DistrictLocalitySeeder.php` 🆕
+  > **Comment:** Admin creates districts and locality names (e.g. centre/east/west/north/south or named areas) in the dashboard. Everything downstream references IDs — renaming or adding a locality never touches rider or matching code.
+  > **Notes:** `— 2026-09-14: backend seeder exists (DistrictLocalitySeeder), admin CRUD UI deferred to later phase` `— 2026-09-18: Q10 decided — seed Nagaland districts (16) for the first region` `— 2026-09-18: DistrictLocalitySeeder now seeds Nagaland's 16 districts (+ HQ localities); verified on fresh migrate --seed` `— 2026-09-18: AUDIT CORRECTION — the 'admin CRUD UI deferred' note above was wrong: the admin locality screen IS shipped (Web\Admin\LocalityController + admin routes + admin/localities/index.blade.php with per-row Active checkboxes, rename, add forms; districts + localities both manageable). M4 is fully complete; service-area flag wiring continues in M9.1`
+- [x] **M4.2 · Rider base of operation — 1 district + up to 5 localities** — ✅
+  > **Request:** R42
+  > **Files:** `backend/app/Models/RiderBaseOperation.php` · `backend/app/Http/Controllers/Api/DriverBaseController.php` 🆕 · `mobile/lib/features/driver/base/` 🆕 · `docs/api/driver.md` 🆕
+  > **Comment:** Server-enforced `locality_ids|max:5` (district is a single select). Updating base = row edits only, no schema change. UI: district picker + locality chips showing a 0/5 counter.
+  > **Notes:** `— 2026-09-14: DriverBaseController with store/update/show, max-5 validation, district-locality pairing enforced; app screens committed (mobile/)`
+- [x] **M4.3 · Driver online/offline availability toggle** — ✅
+  > **Request:** R43
+  > **Files:** `backend/app/Models/DriverAvailability.php` · `backend/app/Http/Controllers/Api/DriverAvailabilityController.php` 🆕 · `mobile/lib/features/driver/availability/` 🆕
+  > **Comment:** `is_online` + `last_online_at`. Only online drivers enter the matching pools (M4.4/M4.5). App: Material switch, 48dp target, haptic feedback per M0.3.
+  > **Notes:** `— 2026-09-14: DriverAvailabilityController with toggle, last_online_at tracking; app screens committed (mobile/)`
+- [x] **M4.4 · Pickup/delivery jobs + base matching (collector → driver)** — ✅
+  > **Request:** R44
+  > **Files:** `backend/app/Services/JobMatchingService.php` 🆕 · `backend/app/Http/Controllers/Api/LogisticsController.php` 🆕 · `mobile/lib/features/driver/jobs/` 🆕 · `docs/api/logistics.md` 🆕
+  > **Comment:** Vendor requests pickup (from a booking M3 or standalone); collector leg then driver leg. Matching: job locality ∈ driver's base localities AND driver online, nearest-locality first; district broadcast fallback when empty.
+  > **Notes:** `— 2026-09-14: JobMatchingService with locality-match + district fallback, LogisticsController with vendor create + driver accept/progress; app screens committed (mobile/)`
+- [x] **M4.5 · Errands (ride-style task for any user)** — ✅
+  > **Request:** R45
+  > **Files:** `backend/app/Models/Errand.php` · `backend/app/Http/Controllers/Api/ErrandController.php` 🆕 · `mobile/lib/features/errand/` 🆕 · `docs/api/errands.md` 🆕
+  > **Comment:** Pickup/drop task with description + locations; reuses the same matcher as M4.4 (one service). Guest errands allowed with phone + consent (M7.1). Status mirror of the booking lifecycle.
+  > **Notes:** `— 2026-09-14: ErrandController with guest creation (ER- codes), driver accept/progress, guest lookup by code+phone; app screens committed (mobile/)`
+- [x] **M4.6 · Driver-availability view — which drivers are online where (no map SDK)** — ✅
+  > **Request:** R46
+  > **Files:** `mobile/lib/features/driver/tracking/` 🆕 · `docs/decisions/Q8-maps.md` 🆕 · `backend/app/Http/Controllers/Api/DriverAvailabilityOverviewController.php` 🆕 · `backend/tests/Feature/DriverAvailabilityOverviewTest.php` 🆕
+  > **Comment:** Q8 decided 2026-09-18: **no map SDK, no geocoding, no ETA, no live GPS.** Users only need to know which drivers are **online now** in which locality — derived from `driver_availability` + `rider_base_operations`, rendered as a per-locality list/count. Ship status-timeline-only tracking + "drivers online near you". `— 2026-09-18: backend API delivered (GET /api/v1/drivers-online?district_id&locality_id) — public, no auth, returns per-locality online driver count + district fallback count; 6 tests green; app screen shipped — district+locality dropdowns, per-locality card, district fallback + timestamp; flutter analyze/test green`
+
+### M5 · Verification & verified badge — status: ✅ (7/7 top-level tasks)
+
+- [x] **M5.1 · Volunteer profile + visit queue** — ✅
+  > **Request:** R47
+  > **Files:** `backend/app/Http/Controllers/Api/VolunteerController.php` 🆕 · `mobile/lib/features/volunteer/` 🆕
+  > **Comment:** Volunteers claim / are assigned site visits; TA/DA records kept for reimbursements (Q6 — who funds before donations arrive). — 2026-09-18: Q6 decided — TA/DA funded by the admin-set verification fee paid to the visiting volunteer (M5.4).
+  > **Notes:** `— 2026-09-14: VolunteerController with profile CRUD + queue/available endpoints; app screens committed (mobile/)`
+- [x] **M5.2 · Site-visit report + evidence upload** — ✅
+  > **Request:** R48
+  > **Files:** `backend/app/Http/Controllers/Api/VerificationController.php` 🆕 · `backend/storage/app/public/evidence/` 🆕 · `mobile/lib/features/volunteer/visit/` 🆕 · `backend/app/Http/Controllers/Api/MediaController.php` · `backend/app/Models/Consent.php` · `backend/tests/Feature/VerificationTest.php` · `mobile/lib/features/volunteer/verification_report_screen.dart` · `mobile/lib/features/volunteer/volunteer_repository.dart` · `mobile/test/verification_report_screen_test.dart` 🆕 · `mobile/test/volunteer_repository_test.dart` 🆕
+  > **Comment:** Report fields: notes, checklist, photos, geo point. Evidence goes through the shared validator (M2.3) — never a separate sanitizer.
+  > **Implementation:** — 2026-10-05: Started remaining M5.2 app slice: up to eight gallery photos, previews/removal, shared evidence uploads with retry reuse, complete draft response, and explicit public-story permission recorded with version/timestamp. Photos are optional; evidence requires permission because approved stories publish them. Broader M27.3 website client remains separate.
+  > **Completed:** — 2026-10-05: Gallery selection/previews/removal, JPEG/PNG/WebP and 2 MB checks, eight-photo cap, permission before public upload, sequential evidence uploads, retained successful paths on upload/save retries, validated coordinates and safe async navigation implemented. Media evidence directory is volunteer/profile-scoped and uses UploadValidator; draft creation now returns the complete report expected by the app. Permission is required for attached evidence and recorded atomically with consent key verification_evidence_public, text version 1.0 and timestamp. Public-story disclosure follows M25; older admin-only training wording is historical. Errors appear near Save and announce through a live region.
+  > **Verification:** — 2026-10-05: Full backend 271 tests / 1046 assertions; Flutter 39 tests; analyzer zero issues; touched PHP files pass Pint; debug APK builds, installed and opened on emulator-5554. Evidence tests cover real image re-encoding/upload → report/read → submission → admin approval, ownership, permission and limits. Widget checks cover default/empty, gallery cancel/error, focus/hover/press, pending upload/disabled controls, retries, removal, light/dark at 2x text, invalid coordinates and leaving during upload. Upload progress uses descriptive text rather than an indeterminate spinner; no new animation. Backend changes are local and need deployment before the production API accepts this new evidence contract.
+  > **Notes:** `— 2026-09-14: VerificationController with create/submit/approve/reject + evidence path validation; app screens committed (mobile/)`
+  > **Completion review:** — 2026-10-05: Report/checklist/notes and server evidence validation/persistence are built, but the promised mobile photo picker/upload is absent. Existing verification tests pass; full task scope remains incomplete. See M27.3. Evidence: `backend/app/Http/Controllers/Api/VerificationController.php; mobile/lib/features/volunteer/verification_report_screen.dart`. Previous completion notes retained as history.
+
+- [x] **M5.3 · Verified badge — "verified by: <volunteer>"** — ✅
+  > **Request:** R49
+  > **Files:** `backend/app/Models/Badge.php` · `backend/resources/views/components/badge-verified.blade.php` 🆕 · `mobile/lib/core/widgets/verified_badge.dart` 🆕
+  > **Comment:** Badge stores the volunteer name as an immutable snapshot at issue time (survives volunteer data deletion — DPDP). No commission charged for verification (donation-funded per `local-market.md`). Badge shown on listing detail (M2.5) + vendor page. — 2026-09-18: verification is now a **paid service** — admin-set fee (M5.4) paid **directly to the volunteer**; badge gains a fee snapshot so later admin changes don't rewrite history. Platform still takes zero commission (fee goes to the volunteer — AGENTS.md §7 money boundary).
+  > **Notes:** `— 2026-09-14: Badge issued on approve, immutable volunteer_name snapshot; badge component + widget committed (mobile/core/widgets/verified_badge.dart)`
+- [x] **M5.4 · Verification fee (admin-set, goes to volunteer)** — ✅
+  > **Request:** R50
+  > **Files:** `backend/database/migrations/2026_09_18_000001_create_verification_fee_settings_table.php` 🆕 · `backend/database/migrations/2026_09_18_000002_add_fee_to_badges_table.php` 🆕 · `backend/resources/views/admin/verification-fee/edit.blade.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/VerificationFeeSettingsController.php` 🆕 · `backend/app/Http/Controllers/Api/VerificationFeeController.php` 🆕 · `backend/app/Models/VerificationFeeSetting.php` 🆕 · `backend/app/Http/Controllers/Api/VerificationController.php` · `backend/app/Models/Badge.php` · `backend/app/Http/Resources/ProductResource.php` · `backend/resources/views/pages/{listing,vendor}.blade.php` · `backend/routes/{api,web}.php` · `backend/resources/views/layouts/admin.blade.php` · `backend/tests/Feature/VerificationFeeTest.php` 🆕 · `mobile/lib/features/volunteer/` · `mobile/lib/features/vendor/`
+  > **Comment:** Verification is category-free but **fee-charged**: admin sets one fee amount in the settings dashboard; it is shown on the listing/vendor page and inside the app before a visit is booked, and goes to the volunteer who did the visit. Platform never touches the money — volunteer collects directly at the visit (Q1-style offline settlement; AGENTS.md §7 money boundary). Fee amount snapshotted onto the Badge at issue time so admin changes never rewrite history. Supersedes the "free verification" wording from M5.3. `— 2026-09-18: decision recorded — verification is paid; fee set by admin, paid to volunteer, snapshot on badge` `— 2026-09-18: DELIVERED backend: single-row verification_fee_settings (auto-created), admin web CRUD at /admin/verification-fee, fee snapshot on badge at approve time, public GET /api/v1/verification-fee, fee in ProductResource for unverified listings + web listing/vendor pages; 9 tests green.` `— 2026-09-18: mobile UI shipped — VerificationFee repo/model + fee fetch in volunteer/report screen + banner in listing detail + "get verified for ₹X" subtitle in vendor my-listings + verified_badge/home_screen copy updated; flutter analyze/test green`
+
+- [x] **M5.5 · Bug: volunteer profile POST 500 after registration** — ✅
+  > **Request:** R51
+  > **Files:** `backend/app/Http/Controllers/Api/VolunteerController.php` · `backend/tests/Feature/VolunteerProfileTest.php` 🆕
+  > **Comment:** Found during the 2026-09-18 launch smoke test. Registration already auto-creates the `verification_volunteers` row (RegistrationController), so `VolunteerController::store` double-creates → UNIQUE constraint violation → 500. `— 2026-09-18: fixed — store() now uses updateOrCreate (idempotent); regression test added`
+- [x] **M5.6 · Persist verification evidence (JSON column)** — ✅
+  > **Request:** R52
+  > **Files:** `backend/database/migrations/2026_09_18_000003_add_evidence_to_verifications_table.php` 🆕 · `backend/app/Models/Verification.php` · `backend/app/Http/Controllers/Api/VerificationController.php` · `backend/tests/Feature/VerificationTest.php`
+  > **Comment:** Evidence paths were validated (uploader's own media rows) and echoed in the store() response but **never stored** — the mapping from report to evidence photos was lost, so admins could not see what a volunteer attached. Scope: `evidence` JSON column on `verifications`, persist the validated paths at create time, expose them in `show()`. `— 2026-09-18: fixed — migration up + verification['evidence'] cast; store() persists validated paths; show() returns them; regression test exercises upload-owned-media → report with evidence → persisted JSON → visible on show()`
+
+- [x] **M5.7 · Verification photo limits: four photos, 500 KB each** — ✅
+  > **Request:** R164
+  > **Files:** `backend/app/Models/Verification.php` · `backend/app/Support/UploadValidator.php` · `backend/app/Http/Controllers/Api/{MediaController,VerificationController}.php` · `backend/tests/Feature/VerificationTest.php` · `mobile/lib/features/volunteer/verification_report_screen.dart` · `mobile/test/verification_report_screen_test.dart`
+  > **Comment:** — 2026-10-05: Owner replaces the M5.2 limits with four verification photos and 500 KB per photo (500 × 1024 bytes, matching framework file-size units). Enforce on client and server through the shared validator; preserve unrelated upload policies. Started implementation.
+  > **Completed:** — 2026-10-05: Gallery/report count capped at four; source and stored evidence files capped at 500 × 1024 bytes through UploadValidator. Existing oversized uploads cannot bypass the report cap. App copy, picker count, previews/removal and tests updated. Exact 500 KB and four-photo boundaries pass; five/501 KB are rejected. Other media policies retain their prior limits.
+  > **Verification:** — 2026-10-05: Full backend 281 tests / 1210 assertions; app 44 tests; Flutter analyzer zero issues; touched PHP files pass Pint. Android debug APK builds and is installed/open on emulator-5554. UI checks cover empty/default, explicit consent, focus/hover/press, pending/disabled, failure/retry and light/dark at 2x text; async navigation is safe. No production export/deletion or deployment performed.
+
+### M6 · Donations (UPI) + referral/affiliate — status: ✅ (3/3 top-level tasks)
+
+- [x] **M6.1 · Donation page — UPI ID + QR (app + website)** — ✅
+  > **Request:** R53
+  > **Files:** `backend/app/Http/Controllers/Api/DonationController.php` 🆕 · `backend/app/Http/Controllers/Web/DonationController.php` · `backend/resources/views/pages/donation.blade.php` · `mobile/lib/features/donations/` 🆕
+  > **Comment:** Renders the admin-set UPI ID + QR image from `donation_settings` (M6.2); `upi://pay?pa=...` deep link on mobile. Platform stores **no** payment data — display-only.
+  > **Notes:** `— 2026-09-14: Api\DonationController returns UPI ID + QR URL + deep link; web donation page already exists; app screen committed (mobile/donations/)`
+- [x] **M6.2 · Admin donation settings (upload UPI ID + QR image)** — ✅
+  > **Request:** R54
+  > **Files:** `backend/app/Http/Controllers/Web/Admin/DonationSettingsController.php` 🆕 · `backend/resources/views/admin/donation/` 🆕 · `backend/storage/app/public/upi/` 🆕
+  > **Comment:** Single settings row; QR upload re-validated via the M2.3 validator; UPI ID format-checked (`name@bank`). Change history appended to this task comment.
+  > **Notes:** `— 2026-09-14: Admin\DonationSettingsController with UPI regex validation + QR upload via shared validator; admin view committed (backend/resources/views/admin/donation/)`
+- [x] **M6.3 · Vendor referral & affiliate links** — ✅
+  > **Request:** R55
+  > **Files:** `backend/app/Services/ReferralService.php` 🆕 · `backend/app/Http/Controllers/Api/ReferralController.php` 🆕 · `backend/app/Http/Controllers/Web/ReferralLandingController.php` 🆕 · `mobile/lib/features/vendor/referrals/` 🆕 · `docs/api/referrals.md` 🆕
+  > **Comment:** Vendor generates codes/links for their marketing team; landing page attributes signups; `referrals` rows ledger conversions. Credits are informational — no money movement (Q1 default A). Listing share buttons carry the code (M2.5).
+  > **Notes:** `— 2026-09-14: ReferralService with generateCode/recordSignup/recordConversion/stats; Api\ReferralController for vendor management; Web\ReferralLandingController for /ref/{code} attribution; app screens + docs committed (backend/docs/)`
+
+### M7 · DPDP + security — status: ✅ (5/5 application tasks; hosted backup/restore gate remains Q7/M8.4)
+
+- [x] **M7.1 · Consent capture + records** — ✅
+  > **Request:** R56
+  > **Files:** `backend/app/Models/Consent.php` · `backend/app/Http/Controllers/Api/ConsentController.php` 🆕 · `docs/dpdp/privacy-policy.md` 🆕 · `backend/resources/views/pages/privacy.blade.php` 🆕 · `backend/app/Http/Controllers/Api/ErrandController.php` · `backend/app/Http/Controllers/Api/DeviceTokenController.php` · `backend/app/Services/NotificationService.php` · `backend/app/Services/AccountDataScope.php` · `backend/tests/Feature/DpdpTest.php` · `backend/tests/Feature/NotificationTest.php` · `backend/tests/Feature/LogisticsTest.php` · `backend/tests/Feature/ServiceAreaTest.php` · `mobile/lib/features/errand/errand_request_screen.dart` · `mobile/lib/features/errand/errand_repository.dart` · `mobile/test/errand_consent_test.dart` · `backend/app/Http/Controllers/Api/ConsentController.php`
+  > **Comment:** Consent rows: subject, purpose, text version, timestamp — captured at registration (M1.4), guest booking contact (M3.1), errand request (M4.5), notification opt-in (M8.1). Policy copy lives in `docs/dpdp/` and renders to the website.
+  > **Completed:** — 2026-10-05: Errand and push opt-in require explicit purpose consent, captured atomically with server text version 1.0 and timestamp. App errand permission starts unchecked and gates submission; optional Sanctum auth links registered errands. Consent grant/list/revoke uses shared ownership boundaries; notification revocation removes devices; push requires current consent, transactional inbox remains. Device-token ownership is preserved, including concurrent registration lookup boundaries. M27.5 resolved; mobile FCM/event integration remains M8.1.
+  > **Verification:** — 2026-10-05: Full backend 281 tests / 1210 assertions; app 44 tests; Flutter analyzer zero issues; touched PHP files pass Pint. Android debug APK builds and is installed/open on emulator-5554. UI checks cover empty/default, explicit consent, focus/hover/press, pending/disabled, failure/retry and light/dark at 2x text; async navigation is safe. No production export/deletion or deployment performed.
+  > **Started:** — 2026-10-05: Completing remaining scope of M7 one slice at a time: explicit errand/notification purpose consent, atomic capture and owner-scoped grant/list/revoke; preserve transactional inbox while push requires opt-in.
+  > **Notes:** `— 2026-09-14: ConsentController with grant/list/revoke (record with key, text version, granted_at; revoke by owner only)` `— 2026-09-14: privacy policy copy live — docs/dpdp/privacy-policy.md renders at /privacy (consent text v1.0)`
+  > **Completion review:** — 2026-10-05: Consent grant/list/revoke, registration and booking capture exist and pass tests. The original comment also promises errand-contact and notification opt-in capture; those paths still do not create the required consent rows. See M27.5. Evidence: `backend/app/Http/Controllers/Api/{ConsentController,ErrandController,DeviceTokenController}.php`. Previous completion notes retained as history.
+
+- [x] **M7.2 · Data export (self-serve)** — ✅
+  > **Request:** R57
+  > **Files:** `backend/app/Services/DataExportService.php` 🆕 · `backend/app/Http/Controllers/Api/DataExportController.php` 🆕 · `mobile/lib/features/profile/export/` 🆕 · `backend/app/Services/AccountDataScope.php` · `backend/app/Http/Controllers/Web/Admin/DataRequestController.php` · `backend/tests/Feature/AccountDataLifecycleTest.php` · `docs/security/account-data.md`
+  > **Comment:** Machine-readable export of all personal data incl. decrypted PII (audited, logged). One service class so new tables are added to the export map only.
+  > **Completed:** — 2026-10-05: Private JSON now exports account role/category/base/assignment data, listings/order items, related errands/jobs/reports/evidence, referral ledger, stories/badges, media plus binary contents (including legacy authored blog files), consent/inbox/device/session/access metadata and rights history. Other-party contacts, credentials/blind indexes and arbitrary referral metadata are excluded. Account locking prevents exports from being recreated after account deactivation. Admin reruns preserve the private marker. M27.4 resolved. Guest bookings are not inferred from unverified account phone numbers; ownership and guest-rights boundaries documented in docs/security/account-data.md.
+  > **Verification:** — 2026-10-05: Full backend 281 tests / 1210 assertions; app 44 tests; Flutter analyzer zero issues; touched PHP files pass Pint. Android debug APK builds and is installed/open on emulator-5554. UI checks cover empty/default, explicit consent, focus/hover/press, pending/disabled, failure/retry and light/dark at 2x text; async navigation is safe. No production export/deletion or deployment performed.
+  > **Started:** — 2026-10-05: Completing remaining scope of M7 one slice at a time: shared ownership map and complete private account export, including role records, activity/media/consents, with other participants and authentication secrets excluded.
+  > **Notes:** `— 2026-09-14: DataExportService exports user profile + consents as JSON; download URL returned; app screens committed (mobile/profile/export/)`
+  > **Completion review:** — 2026-10-05: Self-serve private JSON export is built and tests pass, including signed downloads/retention. The original scope says all personal data; the export still covers only basic user/vendor fields and user consents. See M27.4. Private storage protection M47.1 remains complete. Evidence: `backend/app/Services/DataExportService.php; mobile/lib/features/profile/profile_screen.dart`. Previous completion notes retained as history.
+
+- [x] **M7.3 · Data deletion (self-serve + admin dashboard)** — ✅
+  > **Request:** R58
+  > **Files:** `backend/app/Services/DataDeletionService.php` 🆕 · `backend/app/Http/Controllers/Api/DataDeletionController.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/DataRequestController.php` 🆕 · `mobile/lib/features/profile/delete/` 🆕 · `backend/app/Services/AccountDataScope.php` · `backend/tests/Feature/AccountDataLifecycleTest.php` · `docs/security/account-data.md` · `backend/app/Http/Middleware/EnsureActiveAccount.php` · `backend/bootstrap/app.php` · `backend/routes/{api,web}.php` · `backend/app/Http/Controllers/Api/DataExportDownloadController.php`
+  > **Comment:** Purge/anonymize PII end-to-end; keep only integrity snapshots without PII (badge volunteer names M5.3, anonymized referral ledger). Every request recorded in `data_requests` with its outcome.
+  > **Completed:** — 2026-10-05: Deletion disables access/revokes sessions/tokens first; removes role/category/base data, owned media and copied image references, private/legacy/superseded exports, consent/inbox/reset/OTP records; scrubs vendor/listing/story/report/customer-errand PII and unlinks assignments/referrals. Completed transaction amounts/status and anonymized rights ledger remain; immutable badge attribution names are the explicit M5.3 exception, while photos are removed. Failed storage leaves processing status and discoverable references for safe admin retry. Signed exports reject disabled owners; active-account middleware denies stale sessions. Other accounts and their file/content data remain intact. M27.6 resolved. Hostinger historical backups cannot be erased/verified locally; bounded backup retention and restore reconciliation remain Q7/M8.4, with procedure in docs/security/account-data.md.
+  > **Verification:** — 2026-10-05: Full backend 281 tests / 1210 assertions; app 44 tests; Flutter analyzer zero issues; touched PHP files pass Pint. Android debug APK builds and is installed/open on emulator-5554. UI checks cover empty/default, explicit consent, focus/hover/press, pending/disabled, failure/retry and light/dark at 2x text; async navigation is safe. No production export/deletion or deployment performed.
+  > **Started:** — 2026-10-05: Completing remaining scope of M7 one slice at a time: disable access and scrub owned role/activity/media plus private exports; retain anonymized integrity/rights ledgers, preserve other participants; document hosted backup/restore limitations.
+  > **Notes:** `— 2026-09-14: DataDeletionService anonymizes user PII (name/email/phone/password) + vendor description/address; data_request row recorded; app screens committed (mobile/profile/delete/)`
+  > **Completion review:** — 2026-10-05: Self-serve/basic user/vendor anonymization and admin ledger are built and tested. The original scope promises end-to-end PII removal; role/media/activity surfaces are not fully covered. See M27.6. Evidence: `backend/app/Services/DataDeletionService.php; backend/app/Http/Controllers/Web/Admin/DataRequestController.php`. Previous completion notes retained as history.
+
+- [x] **M7.4 · Security hardening pass** — ✅
+  > **Request:** R59
+  > **Files:** `backend/app/Http/Middleware/SecurityHeaders.php` · `backend/routes/{api.php,web.php}` 🆕 · `docs/security/checklist.md` 🆕 · `backend/tests/Feature/SecurityHardeningTest.php` 🆕
+  > **Comment:** Rate limits (auth, booking, upload, referral landing), validation on every endpoint, CSRF (web) + pinned CORS (app), bcrypt/argon2, optional admin MFA, security headers, upload allow-list audit (M2.3). `— 2026-09-18: audit closed all checklist items except deploy-time HTTPS and optional admin MFA (recorded decision, not shipped). Added HSTS + strict CSP (default-src 'self'; script-src 'self') to SecurityHeaders; added throttle:10,1 to web booking.store + referral.attribute; verified CORS (token-only, credentials: false), email/phone/booking encrypted casts, all 6 raw-read hits beside validate(); 3 tests green`
+- [x] **M7.5 · Retention & DPDP scheduled jobs** — ✅ (manual command; cron gated on Q7)
+  > **Request:** R60
+  > **Files:** `backend/app/Console/Commands/RetentionSweep.php` 🆕 · `backend/routes/console.php` 🆕 · `backend/tests/Feature/RetentionSweepTest.php` 🆕
+  > **Comment:** Sweeps: stale guest bookings, orphaned media, expired consents, deletion-request follow-ups. Cron if Hostinger allows; otherwise a documented manual `artisan` command. `— 2026-09-18: DELIVERED php artisan retention:sweep [--dry-run] [--sweeps=stale-bookings,media,consents,deletion-requests] [--stale-days|--media-days|--consent-days|--request-days]; schedule auto-registers only when APP_CRON_ENABLED=true (Q7 pending); 6 tests green`
+
+### M8 · Notifications, website, testing, deploy, launch — status: 🔄 (10/12 top-level tasks; notification integration and deployment operations incomplete)
+
+- [ ] **M8.1 · Notifications (FCM + in-app inbox)** — 🔄
+  > **Request:** R61
+  > **Files:** `backend/app/Services/NotificationService.php` 🆕 · `backend/app/Http/Controllers/Api/DeviceTokenController.php` 🆕 · `backend/app/Notifications/GenericNotification.php` 🆕 · `mobile/lib/features/notifications/` 🆕
+  > **Comment:** Events: booking status, job/errand assigned, verification result. Sends synchronous (no queue workers on shared hosting) unless Q7 confirms cron/queues.
+  > **Notes:** `— 2026-09-14: NotificationService writes the database inbox always; FCM legacy push behind FCM_SERVER_KEY config (empty = inbox only); booking status change wired through BookingService; device token register/remove endpoints; app inbox screen committed (mobile/notifications/)`
+  > **Completion review:** — 2026-10-05: Database inbox, device-token endpoints and booking-status notification are built and tested. jobAssigned/errandAssigned/verificationResult exist only as service definitions with no application call sites; mobile Firebase messaging/token-registration is also absent. Full promised event/push scope remains incomplete; do not treat configuration alone as completion. Evidence: `backend/app/Services/NotificationService.php; backend/app/Services/{BookingService,JobMatchingService,VerificationReviewService}.php; mobile/lib/features/notifications/`. Previous completion notes retained as history.
+
+- [x] **M8.2 · Website content pages** — ✅
+  > **Request:** R62
+  > **Files:** `backend/resources/views/pages/{home,about}.blade.php` · `backend/resources/views/pages/privacy.blade.php` 🆕 · `backend/resources/views/components/` · `backend/routes/web.php`
+  > **Comment:** About page text from `local-market.md`: connects buyer/seller/logistics/ground-truth verification, runs on donations, zero commission. Art from M0.6; tokens from M0.4.
+  > **Notes:** `— 2026-09-14: home/about/catalog/donation existed from earlier phases; privacy policy page + /privacy route added this phase (verified 200 live)`
+- [x] **M8.3 · Automated test suite** — ✅
+  > **Request:** R63
+  > **Files:** `backend/tests/Feature/` · `backend/tests/Unit/` · `mobile/test/`
+  > **Comment:** Per module: role-gated registration, MOQ validation, base matching (≤5 localities, online-only), errand lifecycle, donation settings, referral attribution, encryption casts, export/deletion. A module's tests update in the same pass as the module's task.
+  > **Notes:** `— 2026-09-14: 69 backend tests across 12 suites (Registration, Catalog, Listings, MediaUpload, Booking, WebBooking, Logistics, Verification, DonationReferral, Dpdp, Notification, Profile + BlindIndex unit); mobile token test authored (needs Flutter SDK machine to run)` `— 2026-09-18: SDK caveat resolved — Flutter 3.47.4 installed (M1.2); flutter analyze 0 issues, tests green. A module's suite updates in the same pass as its task, as before`
+- [ ] **M8.4 · Hostinger deployment** — 🔄 (live deployment recorded; Q7 operations verification pending)
+  > **Request:** R64
+  > **Files:** `docs/deploy/hostinger.md` 🆕 · `backend/.env.production.example` 🆕 · `backend/public/.htaccess`
+  > **Comment:** PHP version pin (Q7), docroot → `backend/public/`, DB via panel, cron entries (M7.5/M8.1), free SSL, media backup schedule, subdomain layout recorded here.
+  > **Notes:** `— 2026-09-14: full runbook (layout, env, migrate/seed, storage link, cron vs manual schedule:run, SSL, cache, update flow, media backup); actual deploy blocked on Q7 plan confirmation + Q10 region` `— 2026-09-18: Q10 decided; remaining blocker is Q7 (cron + PHP pin confirmation) — checkbox reopened to match reality (docs ✅, deploy pending)`
+  > **Audit note:** — 2026-10-05: Earlier "live deploy not run" wording is historical: the 2026-09-24 change-log entry records a live Hostinger session with PHP 8.2, HTTPS, SMTP/OTP, migrated data and storage symlink checks. Remaining host work is export-fix deploy/legacy-export cleanup confirmation, cron, backups/restore, FCM and legal identity verification; no new server access or deployment performed today.
+
+- [x] **M8.5 · Launch checklist** — ✅
+  > **Request:** R65
+  > **Files:** `docs/launch/checklist.md` 🆕
+  > **Comment:** Seed districts/localities for the first region (Q10), first admin account, privacy policy live, donation page verified end-to-end, store listing assets from M0.7, analytics stance recorded (default: none — privacy-first). `— 2026-09-18: region now decided — Nagaland districts to seed, ₹, launch there` `— 2026-09-18: audit note — launch additionally gates on Q7 (cron/PHP pin, M8.4) and Q13 (store listing assets need the brand/logo, M0.7); the ✅ covers the checklist document, not go-live itself`
+  > **Notes:** `— 2026-09-14: 9-section checklist with day-of go-live runbook; privacy policy now live (docs/dpdp/privacy-policy.md + /privacy page)`
+- [x] **M8.6 · Web member auth + role dashboards** — ✅
+  > **Request:** R66
+  > **Files:** `backend/app/Services/RegistrationService.php` 🆕 · `backend/app/Http/Controllers/Web/{MemberRegistrationController,MemberAuthController,DashboardController}.php` 🆕 · `backend/resources/views/auth/{login,register}.blade.php` 🆕 · `backend/resources/views/dashboard/index.blade.php` 🆕 · `backend/routes/web.php` · `backend/resources/views/layouts/app.blade.php` · `backend/resources/css/app.css` · `backend/tests/Feature/{WebRegistrationTest,WebAuthTest}.php` 🆕 · `backend/tests/Feature/WebDashboardTest.php` 🆕
+  > **Comment:** (requested by owner) Website gets member sign-in/up for the app's registerable roles (vendor/driver/collector/worker/volunteer), session + CSRF exactly like the admin dashboard; admins keep the separate /admin sign-in. `/dashboard` lands each role on real data: vendor → my listings (status chips), volunteer → visit queue + profile, driver → base + online toggle (writes `driver_availability`), collector/worker → profile summary. Registration rules extracted to ONE shared service used by both the API (app) and web so a rule never forks. Buyers stay anonymous (Q3). — 2026-09-05: earlier stance was "web/browser member area deferred — vendors, drivers and volunteers use the app" (note kept on the admin login); superseded 2026-09-18 by owner request, kept here for history.
+  > **Notes:** `— 2026-09-18: shipped — /register + /login + /logout + /dashboard; nav switches Login/Register ⇄ Dashboard/Logout; register throttle 10/1, login throttle 5/1, CSRF forms, blind-index email lookup, admin rejected at member login with pointer to /admin/login (member-login copy updated too); driver online toggle writes driver_availability; API registration refactored to the shared RegistrationService (rules identical, API tests unchanged); 15 new feature tests — backend 111 tests / 393 assertions, live smoke /register + /login 200, /dashboard 302→/login for guests`
+- [x] **M8.7 · Web member auth UI polish** — ✅
+  > **Request:** R67
+  > **Files:** `backend/resources/views/components/icon.blade.php` 🆕 · `backend/resources/views/auth/{login,register}.blade.php` · `backend/public/js/auth.js` 🆕 · `backend/resources/css/app.css` · `plan.md`
+  > **Comment:** (requested by owner) Redesigned /login and /register so they stop looking like pasted admin forms. Two-column split shell (intro panel with real role promises + inline SVG features, form panel on surface card); reusable `<x-icon>` outline component (CSP-safe, from the M0.5 icon library) for input adorners + role cards. Register: 5 role cards (radio name=role vendor/driver/collector/worker/volunteer unchanged, admin stays absent) with icon + one-line descriptor, hover/press/focus-visible/aria states; vendor-only fields hidden behind CSS `:has()` and revealed only when the Vendor card is checked. Login: icon-adorned email/password fields, password show/hide toggle with distinct eye/eye-off states (aria-pressed · external `public/js/auth.js` because CSP blocks inline script; still 'self'-served). All UI states walked (default/focus/hover/error/pressed/checked); tokens only, no literal hex in new code; motion transform/opacity ≤250ms. 111 backend tests / 393 assertions stay green; Pint clean; live smoke /register /login 200, /dashboard 302→/login, auth.js served. `— 2026-09-18: shipped`
+- [x] **M8.8 · vendor/ dependency handling for portability** — ✅
+  > **Request:** R68
+  > **Files:** `backend/.gitignore` · `plan.md`
+  > **Comment:** 🆕 raised 2026-09-18: local tooling (pint, symfony/options-resolver) only resolves because `backend/vendor/` is committed. Decide and apply one stance: keep committing `vendor/` (shared hosting may lack composer) or .gitignore it and document `composer install` as a setup step. Gated on Q17 (deploy tooling constraints); not started.
+  > **Notes:** `— 2026-09-19: RESOLVED — verified `backend/vendor/` is gitignored and untracked (0 tracked files); the deploy runbook documents `composer install --no-dev`. Q17 decided on the .gitignore + composer-install path.`
+- [x] **M8.10 · Auth pages adopt the admin centered-card layout** — ✅
+  > **Request:** R69
+  > **Files:** `backend/resources/views/auth/{login,register}.blade.php` · `backend/resources/css/app.css` · `backend/tests/Feature/{WebAuthTest,WebRegistrationTest}.php`
+  > **Comment:** Owner request 2026-09-18: single centered card in the site theme — brand, title, explainer, errors, form — mirroring `admin/auth/login.blade.php` structure (login ≈440px, register ≈620px). Site nav/footer kept (public surface, unlike the standalone staff login). Dead split-shell CSS removed.
+  > **Notes:** `— 2026-09-18: DELIVERED — both pages rebuilt as .auth-single cards; split-shell CSS deleted; render tests lock auth-single present / auth-shell+auth-intro absent. Live 200s. Backend 130 tests green; Pint clean.`
+- [x] **M8.11 · Auth forms match the admin form styling** — ✅
+  > **Request:** R70
+  > **Files:** `backend/resources/views/auth/{login,register}.blade.php` · `backend/resources/css/app.css` · `backend/tests/Feature/{WebAuthTest,WebRegistrationTest}.php`
+  > **Comment:** Owner request 2026-09-18: the forms themselves go admin-plain — stacked labels + inputs, no input icons, no password toggles, no submit arrow, role cards become a plain radio list (the CSS-only vendor-fields reveal survives via `:has` on the new container, no JS needed). Deleted the now-unused `x-icon` component, `auth.js`, and all dead form CSS. Site theme + nav kept; POST routes, native validation, and error display unchanged.
+  > **Notes:** `— 2026-09-18: DELIVERED — both forms rebuilt admin-plain; role radios are a plain fieldset list with 44px rows + branded accent; vendor shop fields still reveal only for Vendor with zero JavaScript; x-icon + auth.js deleted (no remaining references); input-group/toggle/card/check CSS deleted. Render tests updated to the new structure. Backend 130 tests green; Pint clean; live 200s with zero adornment classes in the served HTML.`
+- [x] **M8.12 · Member auth pages use the admin design system** — ✅
+  > **Request:** R71
+  > **Files:** `backend/resources/views/auth/{login,register}.blade.php` · `backend/resources/css/admin.css` · `backend/resources/css/app.css` · `backend/tests/Feature/{WebAuthTest,WebRegistrationTest}.php`
+  > **Comment:** Owner request 2026-09-18: both pages rebuilt as standalone documents on `admin-tokens.css` + `admin.css`, mirroring `admin/auth/login.blade.php`: `.login-page` centering, `.login-card` container (380px login, `.wide` 520px register), brand, h1, muted explainer, `.field` inputs, `.button` submit, footer links. Only additions to admin.css: `.login-card.wide`, `.brand-wordmark` (shared — also fixes the unstyled wordmark on the admin sign-in), `.field-error`, `.form-section`, `.role-radios` + vendor-fields `:has` reveal. Deliberately NOT copied from the admin form: `novalidate` and `autofocus` (M8.9 removed them for native validation + mobile). No site nav/footer (matches the admin standalone page); in-card links cover register/home/admin.
+  > **Notes:** `— 2026-09-18: DELIVERED — login + register are standalone admin-design pages; admin.css additions are card-width + shared wordmark + error/section/role-list styles; the auth-only CSS block (~130 lines) deleted from app.css (site tokens no longer style these pages); render tests now assert login-page/login-card/admin-tokens and absence of the old auth classes. Backend 130 tests green; Pint clean; live 200s for /login, /register, /admin/login, home, catalog, a listing page.`
+- [x] **M8.9 · Auth pages review + polish (login/register)** — ✅
+  > **Request:** R72
+  > **Files:** `backend/resources/views/auth/{login,register}.blade.php` · `backend/resources/views/components/icon.blade.php` · `backend/resources/css/app.css` · `backend/tests/Feature/{WebAuthTest,WebRegistrationTest}.php`
+  > **Comment:** 🆕 raised 2026-09-18 (owner: "improve the login/register pages, check for problems"). Review (better-ui playbook + AGENTS.md §5 state walk) found: forms post to the GET route names instead of `login.attempt`/`register.attempt` (same URL, wrong name); `novalidate` kills free instant browser validation; password toggles lack initial `aria-pressed`; `x-icon` has a dead duplicate `leaf` arm and a one-size 2px stroke (skill: match adjacent text weight); submit label+icon group off-center (`margin-left:auto`); 5th role card leaves a grid hole; form-actions checkbox misaligned + small hit area; intro pushes the form down on mobile; dead `.auth-features` media rule; login `autofocus` pops mobile keyboards. Remember-me verified working (MemberAuthController:59) — not a problem. Fix all + lock with render assertions.
+  > **Notes:** `— 2026-09-18: DELIVERED — forms post to *.attempt routes; novalidate removed (native required/email/minlength feedback); autofocus removed; aria-pressed="false" on all 3 toggles; x-icon duplicate leaf removed + weight prop (default 1.5, submit arrows explicit 2 for the semibold .btn); .btn:active press scale(0.98); submit label+icon centered as a group; last role card spans full width; checkbox margin fix + 18px branded accent box; form-first ordering on ≤860px; dead media rule removed. Live-verified: /login + /register 200, no novalidate, toggle states present, 7 icons at 1.5px + 1 at 2px. 2 new render tests; backend 130 tests green; Pint clean.`
+
+### M9 · Service areas + audit gap-closing — status: ✅ (6/6 top-level tasks)
+
+### M10 · Scope corrections & role rename — status: ✅ (3/3 top-level tasks)
+
+### M11 · Upload optimisation — status: ✅ (1/1 top-level tasks)
+
+### M12 · Vendor functional gaps — status: ✅ (4/4 top-level tasks)
+
+> Audit method: for every role journey, trace UI → route → controller → policy → DB and mark where the chain breaks. Findings (owner report "vendor cannot create listing" reproduced): the web vendor dashboard has **no listing create/edit UI** (`dashboard/index.blade.php:29` told vendors to use the app), so a vendor who registers on the website is dead-ended; the app has no listing-edit screen even though repository/controller `updateListing()` exist; there is no skilled-worker profile screen anywhere; there is no UI to request a pickup/delivery job (M4.4 API only); the web dashboard shows vendors no bookings and no profile editing.
+
+- [x] **M12.1 · Web vendor listing create + edit (bug fix)** — ✅
+  > **Request:** R73
+  > **Files:** `backend/app/Http/Controllers/Web/VendorListingController.php` 🆕 · `backend/resources/views/dashboard/listing-form.blade.php` 🆕 · `backend/resources/views/dashboard/index.blade.php` · `backend/public/js/listing-form.js` 🆕 · `backend/routes/web.php` · `backend/tests/Feature/WebVendorListingTest.php` 🆕
+  > **Comment:** Website vendors can create and edit their own listings from `/dashboard` using the same validation rules as the API (`StoreListingRequest`/`UpdateListingRequest`), with photo upload through the shared M2.3/M11.1 validator (WebP). Ownership via `ProductPolicy`; a small CSP-safe external script toggles rental vs stock fields by category. Empty-state copy no longer tells vendors to go elsewhere.
+  > **Notes:** `— 2026-09-18: DELIVERED (bug fix) — `Web\VendorListingController` (create/store/edit/update) + shared `dashboard/listing-form.blade.php` (create & edit, old-value repopulation, existing-photo removal checkboxes, status select, native date inputs) + `public/js/listing-form.js` (rental/stock toggle, CSP-safe) + dashboard "New listing" button and per-row Edit links; empty-state copy fixed. app.css regained `.field-error`, `.field textarea` and photo-grid styles for the dashboard form. 7 new tests; live smoke as a real vendor: login → dashboard shows New listing → form 200 → POST 302 → dashboard + catalog show the listing, photo stored `.webp`. Backend 144 tests green; Pint clean.`
+- [x] **M12.2 · Web vendor listing archive/unpublish + photo removal** — ✅
+  > **Request:** R74
+  > **Files:** `backend/app/Http/Controllers/Web/VendorListingController.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/resources/css/app.css` · `backend/routes/web.php` · `backend/tests/Feature/WebVendorListingTest.php`
+  > **Comment:** One-tap archive/unpublish from the listings table and per-photo removal on the edit form (the API already supports both). Keeps the web vendor workspace a full substitute for the app's listing management.
+  > **Notes:** `— 2026-09-18: DELIVERED — per-photo removal shipped with M12.1; this added `VendorListingController::status` (publish/pause/restore/archive, `PUT /dashboard/listings/{product}/status`) and row actions (Publish / Pause / Archive / Restore + Edit) with `.btn-sm`. 3 new tests (publish-pause-archive flow, invalid status rejected, another vendor's listing forbidden). Backend 163 tests green; Pint clean; assets published.`
+- [x] **M12.3 · Web vendor profile edit** — ✅
+  > **Request:** R75
+  > **Files:** `backend/app/Http/Controllers/Web/VendorProfileController.php` 🆕 · `backend/app/Rules/UniquePhone.php` 🆕 · `backend/app/Http/Controllers/Web/WorkerProfileController.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/WebVendorProfileTest.php` 🆕
+  > **Comment:** Vendors edit name, phone, shop name and description on the website (same fields as the app's M9.4 screen and `PUT /profile`); category and district stay registration-time.
+  > **Notes:** `— 2026-09-18: DELIVERED — Web\VendorProfileController::update + a "Shop profile" dashboard card (prefilled, read-only category/district tags); phone uniqueness extracted to the shared `App\Rules\UniquePhone` (also now used by the skilled-worker form). 4 tests (render, update, duplicate phone rejected, non-vendor rejected). Backend 167 tests green; Pint clean; assets published.`
+- [x] **M12.4 · Web vendor incoming bookings** — ✅
+  > **Request:** R76
+  > **Files:** `backend/app/Http/Controllers/Web/VendorBookingController.php` 🆕 · `backend/resources/views/dashboard/bookings.blade.php` 🆕 · `backend/app/Http/Controllers/Web/DashboardController.php` · `backend/resources/views/{dashboard/index,layouts/app}.blade.php` · `backend/resources/css/app.css` · `backend/routes/web.php` · `backend/tests/Feature/WebVendorBookingTest.php` 🆕
+  > **Comment:** List the vendor's bookings and advance status through the same `BookingService` transitions the API uses (one lifecycle, never forked). Guest contact visible to the owning vendor only.
+  > **Notes:** `— 2026-09-18: DELIVERED — `/dashboard/bookings` premium page (code, guest name + tel link, items with quantity/price snapshot, notes, and only the allowed next-step buttons derived from `BookingService::TRANSITIONS`); ownership via `BookingPolicy::transition`. Vendor dashboard gained a Bookings stat + header link. Also fixed a shared gap: `layouts/app.blade.php` never rendered `session('status')`, so every earlier "saved" flash was invisible — added a flash alert + `.alert.success`. 6 new tests. Backend 173 tests green; Pint clean; assets published; live 200 verified.`
+
+### M13 · App parity gaps — status: 🔄 (1/3 top-level tasks)
+
+- [ ] **M13.1 · App listing edit screen** — ⬜
+  > **Request:** R77
+  > **Files:** `mobile/lib/features/vendor/listings/listing_edit_screen.dart` · `mobile/lib/features/vendor/listings/listings_screen.dart` · `mobile/lib/core/router/app_router.dart` · `mobile/test/listings_repository_test.dart`
+  > **Comment:** `updateListing()` and `ListingsRepository.update()` already exist but no screen/route uses them — wire an `/listings/:id/edit` route, prefill the form, and make each row in My listings tappable to edit.
+  > **Audit note:** — 2026-10-05: Confirmed create-only ListingEditScreen with no listing ID/prefill; router lacks /listings/:id/edit and My listings has only status actions. Still needs implementation.
+
+- [x] **M13.2 · App skilled-worker profile** — ✅
+  > **Request:** R78
+  > **Files:** `mobile/lib/features/worker/profile/` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `backend/app/Http/Controllers/Api/ProfileController.php`
+  > **Comment:** Skilled-worker UI for profile/service updates against `GET/PUT /profile`, with a home-screen entry. Service areas stay free text (not tied to district/locality, per M10.2).
+  > **Notes:** `— 2026-09-19: VERIFIED COMPLETE — app profile screen/repository route are present and Flutter analysis/tests pass.`
+- [ ] **M13.3 · App vendor pickup/delivery job request** — ⬜
+  > **Request:** R79
+  > **Files:** `mobile/lib/features/vendor/logistics/` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/vendor/bookings/`
+  > **Comment:** M4.4 (`POST /logistics/jobs`) has no client UI — vendors cannot ask for a pickup from the app. Add a request screen from a booking (type + locality + address) and show the job status.
+  > **Audit note:** — 2026-10-05: Confirmed vendor booking UI/router still lacks ordinary logistics request entry. M28 farm-produce collections are a separate implemented flow; overlap with M27.2, not another independent feature.
+
+### M14 · Admin & platform gaps — status: 🔄 (1/2 top-level tasks)
+
+- [x] **M14.1 · Admin listing moderation screen** — ✅ (delivered with M45.2)
+  > **Request:** R80
+  > **Files:** `backend/app/Http/Controllers/Web/Admin/ListingModerationController.php` 🆕 · `backend/resources/views/admin/listings/index.blade.php` 🆕 · `backend/resources/views/layouts/admin.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/ListingApprovalTest.php` 🆕
+  > **Comment:** Admin moderation queue for new vendor listings, with approve/reject actions. New listings stay pending until approved.
+  > **Notes:** `— 2026-09-19: DELIVERED — implemented in M45.2 as `ListingModerationController`, `/admin/listings`, approve/reject routes and `ListingApprovalTest`; controller path is `Web/Admin/ListingModerationController.php` (not the originally proposed generic ListingController).`
+- [ ] **M14.2 · Web notifications inbox** — ⬜
+  > **Request:** R81
+  > **Files:** `backend/app/Http/Controllers/Web/NotificationController.php` 🆕 · `backend/resources/views/dashboard/notifications.blade.php` 🆕 · `backend/resources/views/layouts/app.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/WebNotificationTest.php` 🆕
+  > **Comment:** The in-app inbox (M8.1) has no website equivalent; surface the same `notifications` rows for signed-in members.
+  > **Audit note:** — 2026-10-05: No web notification inbox route in backend/routes/web.php; mobile database inbox exists. Still needs implementation.
+
+### M15 · Member workspace & form UI — status: ✅ (5/5 top-level tasks)
+
+### M16 · Dev tooling — status: ✅ (1/1 top-level tasks; demo seeder repaired and verified)
+
+- [x] **M16.1 · Demo accounts seeder for local testing** — ✅
+  > **Request:** R82
+  > **Files:** `backend/database/seeders/DemoAccountsSeeder.php` · `backend/tests/Feature/DemoAccountsSeederTest.php`
+  > **Comment:** Owner request 2026-09-18: one test account per role so every flow can be tried in the browser. Run on demand with `php artisan db:seed --class=DemoAccountsSeeder`; deliberately NOT registered in `DatabaseSeeder`, so a production `migrate --seed` never creates them. Idempotent: existing demo users get their password reset and any missing role row created; new ones go through the same `RegistrationService` the app/web use.
+  > **Notes:** `— 2026-09-18: DELIVERED — vendor@demo.test / driver@demo.test / collector@demo.test / worker@demo.test / volunteer@demo.test / admin@demo.test, password `test1234`; admin signs in at /admin/login, the rest at /login (session) or the API.`
+  > **Completion review:** — 2026-10-05: Seeder implementation exists and is excluded from production DatabaseSeeder, but an isolated in-memory migrate + DemoAccountsSeeder run fails validation on accept_terms. The fresh-account payload omits the now-required field. This failure is not covered by the passing 268-test suite. Task reopened for repair and verification; no seed data or production configuration changed. Evidence: `backend/database/seeders/DemoAccountsSeeder.php; backend/app/Services/RegistrationService.php`. Previous completion notes retained as history.
+  > **Continuation:** — 2026-10-05: Resumed M16.1. Supply terms acceptance for explicitly synthetic demo members through the existing registration service; verify fresh creation, consent records, repeat runs, password reset and missing role-row recovery in an isolated test database. No production seeding or registration-policy changes.
+  > **Verified:** — 2026-10-05: Completed consent payload repair. Seven synthetic accounts and six versioned member consent records created; repeat seeding preserves counts, resets credentials/reactivates accounts and recreates a missing vendor profile; default DatabaseSeeder creates no demo users. Seeder, registration and legal compliance suites pass (14 tests, 85 assertions); scoped Pint passes. CLI seeding exercised by Laravel test harness against in-memory SQLite; no live database touched. This supersedes earlier M52/M16 failure findings below.
+
+- [x] **M15.1 · Premium member dashboard + listing form** — ✅
+  > **Request:** R83
+  > **Files:** `backend/resources/css/app.css` · `backend/resources/views/dashboard/index.blade.php` · `backend/resources/views/dashboard/listing-form.blade.php` · `backend/public/js/listing-form.js` · `backend/app/Http/Controllers/Web/DashboardController.php` · `backend/tests/Feature/WebDashboardTest.php`
+  > **Comment:** Owner request 2026-09-18 ("make the new listing form modern and premium … do the same for other roles like driver skilled worker"). One shared `.dash-*` layer built from the website tokens (cards, stats, rows, tags, empty states, premium form grid + dropzone + sticky action column). Applied to every role page: vendor (stats + listing rows with thumbnails, status chips, Edit), driver (availability stat + toggle, base as tags), volunteer (visit stats + report rows), skilled worker/collector (profile + services). Motion is transform/opacity ≤200ms; accent used only for interaction/status; no literal values.
+  > **Notes:** `— 2026-09-18: DELIVERED — `.dash`/`.dash-head`/`.dash-card`/`.dash-grid`/`.dash-stat`/`.dash-row`/`.dash-tag`/`.dash-empty` + `.dash-form` (2-col grid, sections, `.dash-dropzone`, `.dash-sticky`, `.dash-actions`); dashboard index rewritten per role; listing form rewritten into Basics / Category & pricing / Photos / Publish with the dropzone + live selected-photo count; DashboardController now passes the skilled worker's profile; driver base text corrected (was "assigned by an administrator" — it is set in the app). New volunteer dashboard test. Backend 145 tests green; Pint clean; live 200s for vendor dashboard + form and driver/skilled-worker/volunteer dashboards.`
+- [x] **M15.2 · Web driver base-of-operation setting** — ✅
+  > **Request:** R84
+  > **Files:** `backend/app/Http/Controllers/Web/DriverBaseController.php` 🆕 · `backend/app/Http/Controllers/Web/DashboardController.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/resources/css/app.css` · `backend/public/js/driver-base.js` 🆕 · `backend/routes/web.php` · `backend/tests/Feature/WebDriverBaseTest.php` 🆕
+  > **Comment:** The base (one district + up to five localities) could only be set in the app; the website showed it read-only. Added a web form reusing the API's rules and the shared `ActiveLocality` rule (active district, ≤5 active localities, district pairing) so web and app can never accept different areas. District select filters the locality check-options, clears stale selections, and disables extras past five; the server re-validates everything.
+  > **Notes:** `— 2026-09-18: DELIVERED — Web\DriverBaseController::update (same rule set as Api\DriverBaseController); DashboardController passes active districts+localities for drivers; the base card is now a premium form (`.check-grid`/`.check-option`, accent-tinted when checked); `driver-base.js` filters by district + enforces the max without breaking the no-JS fallback. 7 tests (render, set, replace, >5 rejected, cross-district rejected, inactive rejected, non-driver rejected). Backend 160 tests green; Pint clean; assets published; live 200 with the form and `driver-base.js` served.`
+- [x] **M15.3 · Web skilled-worker profile edit** — ✅
+  > **Request:** R85
+  > **Files:** `backend/app/Http/Controllers/Web/WorkerProfileController.php` 🆕 · `backend/app/Http/Controllers/Web/DashboardController.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/WebWorkerProfileTest.php` 🆕
+  > **Comment:** Skilled workers could read their profile on the website but not edit it (services were app-only). Added a web form for name, phone and services matching the API's `PUT /profile`. The phone field checks the blind index so a number already used cannot be saved (the API's profile update had no such guard).
+  > **Notes:** `— 2026-09-18: DELIVERED — Web\WorkerProfileController::update (name/phone/services, blind-index phone uniqueness); skilled-worker dashboard card is now an editable premium form (services persisted to worker_profiles); collector keeps the read-only card. 5 tests (render, update, prefill, duplicate phone rejected, non-worker rejected). Backend 160 tests green; Pint clean; live 200 with the form.`
+- [x] **M15.4 · Modern public booking form** — ✅
+  > **Request:** R86
+  > **Files:** `backend/resources/views/pages/listing.blade.php` · `backend/resources/css/app.css` · `backend/public/js/booking-form.js` 🆕 · `backend/tests/Feature/WebBookingTest.php`
+  > **Comment:** Owner request 2026-09-18 ("improve the ui looks of the forms to look modern"): the guest booking form on listing pages was the dated one (flat alt background, radius-sm, uppercase micro-labels). Rebuilt as a premium card: white surface + shadow, title with a "No account needed" pill, normal-case labels, two-column name/phone grid that collapses on mobile, a quantity stepper (− / value / +), a live estimated total, and a full-width primary CTA. Also unified `.field` inputs (dashboard forms) to 44px min-height, radius-md and the accent focus ring. Progressive enhancement only — the number input still works without JS.
+  > **Notes:** `— 2026-09-18: DELIVERED — booking form rebuilt (head/badge/grid/field/total/stepper styles); `qty-stepper` clamped to MOQ and stock (max added when stock is set); `booking-form.js` (CSP-safe) drives the stepper and estimate (price × qty) via Intl; field names, MOQ label and POST contract unchanged. New test asserts the stepper, estimate (180×2=360.00), badge and script. Backend 146 tests green; Pint clean.`
+- [x] **M15.5 · Publish stylesheets + cache-bust assets (bug fix)** — ✅
+  > **Request:** R87
+  > **Files:** `backend/app/Console/Commands/PublishAssets.php` 🆕 · `backend/app/Support/AssetVersion.php` 🆕 · `backend/resources/views/layouts/{app,admin}.blade.php` · `backend/resources/views/auth/{login,register}.blade.php` · `backend/resources/views/admin/auth/login.blade.php` · `backend/resources/views/dashboard/listing-form.blade.php` · `backend/resources/views/pages/listing.blade.php` · `backend/tests/Feature/AssetPublishTest.php` 🆕 · `docs/deploy/hostinger.md`
+  > **Comment:** Owner report 2026-09-18: "new listing ui is still the same". Root cause: this project has no node build — `resources/css/` is the source and `public/css/` holds the served copies — and the copies had not been refreshed since an undocumented manual step (public app.css 11 KB/05:56 vs source 24 KB/18:11). Every CSS change from M8.9 onward (auth, admin-style pages, premium dashboards, listing form, booking form) was therefore invisible in the browser, while markup assertions passed. Fix: `php artisan assets:publish` copies `resources/css/*.css` to `public/css`; `App\Support\AssetVersion::url()` appends the file mtime to stylesheet/script links so a stale cache can never mask a change; deploy runbook documents the step.
+  > **Notes:** `— 2026-09-18: DELIVERED — command + AssetVersion applied to all 5 layouts and the JS includes; 4 stylesheets published (sizes now match); verified the served app.css contains the `.dash-*`/`qty-stepper` rules and page links carry `?v=<mtime>`; added AssetPublishTest (command syncs a deliberately-staled copy; pages version stylesheets). Backend 148 tests green; Pint clean. Lesson recorded: markup smoke checks are not enough — verify the served asset too.`
+
+- [x] **M11.1 · Convert image uploads to WebP** — ✅
+  > **Request:** R88
+  > **Files:** `backend/app/Support/UploadValidator.php` · `backend/app/Http/Controllers/Web/Admin/DonationSettingsController.php` · `backend/tests/Feature/{MediaUploadTest,DonationReferralTest}.php`
+  > **Comment:** Owner request 2026-09-18 ("yes please add the function"): the shared upload validator now re-encodes media uploads (listing photos, avatars, verification evidence) to **WebP at quality 82** in one GD pass — smaller files and the embedded-payload strip are the same step. Transparent PNG/WebP sources keep their alpha channel; the original is never stored. The UPI QR opts out (`convertToWebp: false`) and is re-encoded as lossless PNG — a lossy QR risks scannability, and it is a single small image. Conversion only affects new uploads; existing images are untouched. If the host's GD lacks WebP, the verified original is moved so uploads never fail.
+  > **Notes:** `— 2026-09-18: DELIVERED — `validateAndStore($file, $directory, $convertToWebp = true)`; GD encode helpers (`storeWebp` / `storeOriginalFormat`) + alpha prep; stored size recorded via Flysystem (native filesize reads a stale zero in-request); MediaController unchanged, DonationSettings QR opts out. Tests: PNG/JPEG→WebP, already-WebP stays WebP, alpha survives conversion, QR stays real PNG. Measured live on a 1200×900 JPEG: 1,145,257 B → 410,418 B (**64% smaller**), stored file verified RIFF/WEBP; upload endpoint 201. Backend 137 tests green; Pint clean. Host-side caveat: Hostinger's PHP/GD must support WebP (Q7) — verified on this machine; fallback keeps the original if not.`
+
+- [x] **M10.1 · Admin: add multiple localities in one submission** — ✅
+  > **Request:** R89
+  > **Files:** `backend/app/Http/Controllers/Web/Admin/LocalityController.php` · `backend/resources/views/admin/localities/index.blade.php` · `backend/tests/Feature/ServiceAreaTest.php`
+  > **Comment:** Owner request 2026-09-18: the add-locality input accepts a comma-separated list ("Centre, East, West") and creates one row per name. Each name trimmed + validated (max 120), case-insensitive de-dupe within the submission, existing names skipped rather than erroring; the Active tick applies to every name added; status flash reports how many were added and skipped.
+  > **Notes:** `— 2026-09-18: DELIVERED — storeLocality splits/trims/de-dupes, validates each name ≤120, skips existing (case-insensitive), applies the Active tick to all; form relabelled "Add localities", placeholder "Centre, East, West", hint "Separate multiple names with commas." (maxlength 2000). Live-verified the page renders the new form for all 16 seeded districts. 2 new tests (multi-add + de-dupe, skip-existing). Backend 133 tests green; Pint clean.`
+- [x] **M10.2 · Service-area enable/disable applies only to driver bases, errands and delivery** — ✅
+  > **Request:** R90
+  > **Files:** `backend/app/Rules/ActiveLocality.php` · `backend/app/Http/Requests/ListingRequest.php` · `backend/app/Models/Product.php` · `backend/app/Http/Controllers/Api/CatalogController.php` · `backend/app/Http/Controllers/Web/CatalogController.php` · `backend/tests/Feature/ServiceAreaTest.php`
+  > **Comment:** Owner clarification 2026-09-18 ("the disable enable is only for driver and errands"): the admin Active tick gates driver bases, errand pickup/drop and logistics jobs — it no longer gates listings. `ActiveLocality` gains an `enforceServiceArea` flag (still exists + district-pairing everywhere); listing create/update accepts any existing locality and the catalog stops hiding listings whose area is inactive. Registration untouched (owner: "leave registration as-is"); skilled-worker/volunteer have no district/locality selectors to remove.
+  > **Notes:** `— 2026-09-18: DELIVERED — ActiveLocality(enforceServiceArea:) flag; ListingRequest uses it with plain district exists; Product::inActiveServiceArea scope + both catalog call-sites removed; tests renamed/inverted (listings may target inactive areas while district pairing still rejected; catalog shows inactive-area listings) and driver base/errand/logistics gating tests kept. Backend 133 tests green; Pint clean.`
+- [x] **M10.3 · Rename worker role to skilled_worker (stored + labels)** — ✅
+  > **Request:** R91
+  > **Files:** `backend/database/migrations/2026_09_18_000004_rename_worker_role_to_skilled_worker.php` 🆕 · `backend/app/Models/User.php` · `backend/app/Services/RegistrationService.php` · `backend/app/Http/Controllers/Api/ProfileController.php` · `backend/database/factories/UserFactory.php` · `backend/resources/views/auth/register.blade.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/resources/views/pages/privacy.blade.php` · `mobile/lib/features/auth/{auth_repository,login_screen}.dart` · `backend/tests/Feature/{RegistrationTest,ProfileTest,WebRegistrationTest,WebDashboardTest,MediaUploadTest,RetentionSweepTest}.php` · `docs/dpdp/privacy-policy.md` · `README.md`
+  > **Comment:** Owner decision 2026-09-18: rename the display label to "Skilled worker" AND the stored role value to `skilled_worker` (data migration + `User::ROLE_*` constant + registration rules + profile match arms + every UI label). `WorkerProfile`/`worker_profiles` table keep their names — only the role string changes.
+  > **Notes:** `— 2026-09-18: DELIVERED — migration renames existing rows (down() reverses); User::ROLE_SKILLED_WORKER + REGISTERABLE_ROLES; RegistrationService match, ProfileController match/update arms, UserFactory state, web register role card, dashboard summary, privacy blade + dpdp copy, README, app role list/labels + login copy all updated; new regression test rejects the legacy `worker` value. Migration applied to the dev DB, /register renders value="skilled_worker" + "Skilled worker", no legacy value in the HTML. Backend 133 tests green; Pint clean; flutter analyze 0 issues, 10/10 tests.`
+
+- [x] **M9.1 · Locality service-area flag — tick-to-activate + active-only enforcement** — ✅
+  > **Request:** R92
+  > **Files:** `backend/app/Rules/ActiveLocality.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/LocalityController.php` · `backend/resources/views/admin/localities/index.blade.php` · `backend/app/Http/Requests/ListingRequest.php` · `backend/app/Http/Controllers/Api/{DriverBaseController,ErrandController,LogisticsController,CatalogController}.php` · `backend/app/Http/Controllers/Web/CatalogController.php` · `backend/app/Models/Product.php` · `backend/tests/Feature/ServiceAreaTest.php` 🆕
+  > **Comment:** Owner request 2026-09-18: admin adds locality names, ticks Active, users know which areas have service. The `is_active` columns, admin row checkboxes, active-only `/locations` and active-only drivers-online already exist (M4.1/M4.6); this task completes the loop: (a) "Active" checkbox on the locality ADD form — new localities start INACTIVE until ticked (decision recorded 2026-09-18; seeded Nagaland HQ localities stay active for launch); (b) ONE shared `ActiveLocality` rule (exists + belongs to district + locality active + district active) applied on every write path — driver base store/update, errand pickup/drop, logistics job create, listing create/update — so no write can target a non-service area; (c) catalog (API + web) stops surfacing listings located in inactive localities (null-location listings unaffected); (d) feature tests per path.
+  > **Notes:** `— 2026-09-18: DELIVERED — ActiveLocality rule guards driver base store/update, errand pickup/drop, logistics job create, listing create/update; Product::inActiveServiceArea() scope hides out-of-area listings in the API + web catalog; admin add-form Active checkbox (unchecked default) with an explaining status flash; app side needs no change — every picker already consumes active-only /locations and /drivers-online. Found + fixed pre-existing bug: LogisticsController::store crashed with 500 when the optional address field was absent (undefined-array-key on $data['address']); the new tests cover it. ServiceAreaTest: 7 tests (locations active-only, driver base inactive locality/district rejected, errand inactive pickup rejected, listing inactive locality rejected, logistics job inactive locality rejected, catalog hides out-of-area listings incl. web, admin add-form starts inactive until ticked). Suite 118 tests / 417 assertions green; Pint clean.` `— 2026-09-18: SCOPE NARROWED by M10.2 — the enable/disable no longer gates listings (owner clarification); listing create/update now accepts any existing locality and the catalog no longer hides inactive-area listings. Driver base, errand and logistics gating unchanged.`
+- [x] **M9.2 · App catalog district/locality filters** — ✅
+  > **Request:** R93
+  > **Files:** `mobile/lib/features/catalog/{catalog_screen,catalog_controller,catalog_repository}.dart` · `mobile/lib/core/network/locations_provider.dart` · `mobile/test/catalog_repository_test.dart` 🆕
+  > **Comment:** Closes the M2.4 deferred promise ("district/locality filter UI lands with M4.1"). District + locality dropdowns fed by the existing active-only `/locations` provider; locality choices narrow to the picked district; both ids pass to `GET /catalog` (params have existed server-side since M2.4). Empty state explains that only service areas are offered.
+  > **Notes:** `— 2026-09-18: DELIVERED — filter row under the category chips (district + locality dropdowns, "All …" reset items, locality disabled until a district is chosen); CatalogController.filterArea() always applies district+locality as a pair so a locality from another district can never linger; search/paging preserve the area filter; caption "Only areas where the platform operates are listed."; filter row hidden when /locations is empty/unavailable so the catalog stays usable. Note: Flutter 3.47 removed DropdownButtonFormField's enabled param — disabled state via onChanged:null. 2 new repository tests (area params sent when set, omitted when not); flutter analyze 0 issues, tests 8/8 green.`
+- [x] **M9.3 · Share buttons with referral attribution (web + app)** — ✅
+  > **Request:** R94
+  > **Files:** `backend/resources/views/pages/listing.blade.php` · `backend/resources/css/app.css` · `backend/public/js/share.js` 🆕 · `backend/app/Http/Controllers/Web/{ListingController,MemberRegistrationController}.php` · `backend/app/Http/Controllers/Api/CatalogController.php` · `backend/tests/Feature/DonationReferralTest.php` · `mobile/lib/features/catalog/{listing_detail_screen,catalog_repository}.dart`
+  > **Comment:** Closes the M2.5 promise ("share buttons carrying referral attribution — M6.3"). Listing page gains a copy-link share control; when the viewer is the listing's owner vendor, the link carries `?ref=CODE` (their latest code). The listing page stores `?ref=` into the session, and web registration finally CONSUMES the session `referral_code` (stored by /ref/{code} since M6.3 but never read) via `ReferralService::recordSignup` — the attribution loop becomes real. App listing detail gains a copy-link button with the same URL shape (shareable web links, per `core/network/api_client.dart`); owners get their referral code appended. Counts informational only (Q1 A).
+  > **Notes:** `— 2026-09-18: DELIVERED — web share button (plain <button> + data-share-url, external share.js honoring CSP script-src 'self', clipboard-with-fallback + "Link copied" note, .share-row/.share-note token styles); API catalog detail returns owner-aware share_url (resolved through sanctum so public guests get the plain URL); app detail parses shareUrl (ListingDetail record) with a Share button + copied SnackBar. 5 new backend tests (guest/owner share URLs, session capture valid+unknown codes, signup consumes + pops the session key). Backend 123 tests green; Pint clean; flutter analyze 0 issues, 8/8 tests. Audit footnote: the M6.3 POST /ref/attribute endpoint remains but is deprecated in favor of this session loop (throttled, untouched this pass).`
+- [x] **M9.4 · Vendor profile view/edit (app)** — ✅
+  > **Request:** R95
+  > **Files:** `mobile/lib/features/vendor/profile/{vendor_profile_screen,vendor_profile_repository}.dart` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `mobile/test/vendor_profile_repository_test.dart` 🆕 · `backend/app/Http/Controllers/Api/ProfileController.php` · `backend/tests/Feature/ProfileTest.php`
+  > **Comment:** Closes the M2.1a deferral ("deferred to dashboard polish"). Screen edits exactly the fields ProfileController allows: name, phone, vendor display_name, vendor_description; category + district display read-only (set at registration). Reachable from the vendor's home shortcuts.
+  > **Notes:** `— 2026-09-18: DELIVERED — /vendor/profile route (VendorProfileScreen + repository against GET/PUT /profile, name + display-name validation, 401 + offline states, save confirmation); read-only card shows category + district name (backend adds district_name to the vendor payload — one display field, categories/districts stay registration-time only); home screen gained a "Shop profile" action card after My listings. Backend test asserts district_name exposure plus category/district immutability through profile update. 2 new repository tests; backend 124 tests green; Pint clean; flutter analyze 0 issues, 10/10 tests.`
+- [x] **M9.5 · Admin verification queue (web)** — ✅
+  > **Request:** R96
+  > **Files:** `backend/app/Services/VerificationReviewService.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/VerificationController.php` 🆕 · `backend/app/Http/Controllers/Api/VerificationController.php` · `backend/resources/views/admin/verifications/index.blade.php` 🆕 · `backend/resources/views/layouts/admin.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/VerificationTest.php`
+  > **Comment:** Admins currently approve/reject verifications via raw API calls only. New admin screen lists submitted reports (volunteer name, subject, notes, checklist, evidence photos from M5.6) with approve/reject; the review rules move to ONE shared service used by both the API controller and the web controller so they never fork (approve = badge + fee snapshot — existing M5.3/M5.4 rules unchanged; API tests must stay green).
+  > **Notes:** `— 2026-09-18: DELIVERED — /admin/verifications queue (cards: subject, volunteer, submitted time, notes, checklist, evidence thumbnails reusing .thumb + admin tokens, approve/reject forms; empty state; nav entry) wired through VerificationReviewService — the API approve/reject were refactored onto the same service with byte-identical rules (all prior VerificationTest cases pass unchanged). 4 new tests (queue renders notes/volunteer/shop/evidence; web approve issues badge + redirects; web reject; non-admin 403). Backend 128 tests green; Pint clean.`
+- [x] **M9.6 · Volunteer training — in-app checklist + docs guide** — ✅
+  > **Request:** R97
+  > **Files:** `docs/volunteer/training.md` 🆕 · `mobile/lib/features/volunteer/volunteer_home_screen.dart`
+  > **Comment:** Owner decision 2026-09-18 (chosen from three offered options): in-app checklist + docs guide. `local-market.md` promises volunteers "training and TA/DA" — TA/DA resolved by the verification fee (Q6); training lands as a compact "how site visits work" card on the volunteer home (schedule the visit, what to check, evidence photos, submit the report, fee collection at the visit) backed by `docs/volunteer/training.md` as the source of truth.
+  > **Notes:** `— 2026-09-18: DELIVERED — docs/volunteer/training.md (schedule, site checklist, evidence rules, filing, approval/badge/fee, ground rules incl. minimum-data + consent) + "How site visits work" 5-step card on the volunteer dashboard (primaryContainer, numbered circles, theme roles only). No widget test: the card is static content with no logic — the verification floor is flutter analyze (it compiles into the volunteer screen); recorded here per the definition of done. flutter analyze 0 issues, 10/10 tests.`
+
+### M17 · Volunteer approval & skilled-worker discovery — status: ✅ (3/3 top-level tasks)
+
+- [x] **M17.1 · Volunteer registration requires admin approval** — ✅
+  > **Request:** R98
+  > **Files:** `backend/database/migrations/2026_09_18_000005_add_approval_status_to_verification_volunteers_table.php` 🆕 · `backend/app/Models/VerificationVolunteer.php` · `backend/app/Services/RegistrationService.php` · `backend/app/Http/Controllers/{Web/MemberAuthController,Api/AuthController}.php` · `backend/app/Http/Controllers/Web/Admin/VolunteerController.php` 🆕 · `backend/resources/views/admin/volunteers/index.blade.php` 🆕 · `backend/resources/views/layouts/admin.blade.php` · `backend/routes/web.php` · `backend/database/seeders/DemoAccountsSeeder.php` · `backend/tests/Feature/VolunteerApprovalTest.php` 🆕
+  > **Comment:** Owner request 2026-09-18: "to let volunteers successfully register admin has to approve in admin dashboard". Registration creates the volunteer as **pending**; they cannot sign in (web or app) until an admin approves. Decision (owner did not answer the options round; proceeding on the recommended interpretation, note recorded): a dedicated `verification_volunteers.verification_status` (pending/approved/rejected) rather than the generic `users.is_active`, so the reason/state is role-specific and other roles are untouched. Existing volunteer rows are backfilled to approved. Admin queue mirrors the M9.5 verification queue.
+  > **Notes:** `— 2026-09-18: DELIVERED — migration adds verification_status (default pending) + reviewed_by/reviewed_at, backfilling existing rows to approved; RegistrationService creates pending; both login paths block unapproved volunteers with a clear message (API 403, web session error); `/admin/volunteers` queue lists pending applications with approve/reject + recently reviewed, nav entry added; demo seeder now ships an approved and a pending volunteer. 6 tests. Backend 179 tests green; Pint clean.`
+- [x] **M17.2 · Skilled-worker skill categories (admin-managed) + custom work** — ✅
+  > **Request:** R99
+  > **Files:** `backend/database/migrations/2026_09_18_000006_create_skill_categories_tables.php` 🆕 · `backend/app/Models/{SkillCategory,WorkerProfile}.php` · `backend/database/seeders/{SkillCategorySeeder,DatabaseSeeder}.php` · `backend/app/Http/Controllers/Web/Admin/SkillCategoryController.php` 🆕 · `backend/resources/views/admin/skills/index.blade.php` 🆕 · `backend/app/Http/Controllers/Web/WorkerProfileController.php` · `backend/app/Http/Controllers/Api/ProfileController.php` · `backend/app/Http/Controllers/Web/DashboardController.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/resources/views/layouts/admin.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/{WorkerSkillsTest,AdminSkillCategoryTest}.php` 🆕
+  > **Comment:** Owner request: workers tick the work they provide (checkbox categories) or add custom work. Canonical list is an **admin-managed `skill_categories` table** (owner chose this) seeded with common trades and an active flag (retire without breaking history), mirroring the localities pattern. Worker ticks live in a pivot; the existing free-text `services` field keeps custom work. Admins manage categories (add with commas, rename, activate/deactivate).
+  > **Notes:** `— 2026-09-18: DELIVERED — skill_categories + skill_category_worker_profile pivot; SkillCategory model (active scope) + WorkerProfile::skillCategories; SkillCategorySeeder (18 trades) wired into DatabaseSeeder (canonical reference data); `/admin/skills` with comma multi-add, rename and activate/retire + nav entry; worker dashboard shows tick checkboxes (active only) plus an "Other work you provide" free-text field; API `PUT /profile` accepts `skill_category_ids` and returns `skill_categories`/`skill_category_ids`. 8 tests. Backend 187 tests green; Pint clean.`
+- [x] **M17.3 · Public skilled-worker directory, searchable by category** — ✅
+  > **Request:** R100
+  > **Files:** `backend/app/Http/Controllers/Web/WorkerController.php` 🆕 · `backend/resources/views/pages/workers.blade.php` 🆕 · `backend/app/Http/Controllers/Api/WorkerDirectoryController.php` 🆕 · `backend/resources/views/layouts/app.blade.php` · `backend/resources/css/app.css` · `backend/routes/{web,api}.php` · `backend/tests/Feature/WorkerDirectoryTest.php` 🆕
+  > **Comment:** Owner chose "public website page + API for the app": a guest-friendly `/workers` directory filtered by category, and `GET /api/v1/workers?category_id=` for the Flutter app. Only active (approved/active) skilled workers with a profile are listed; category filter uses the canonical ids so results are exact.
+  > **Notes:** `— 2026-09-18: DELIVERED — public `/workers` (premium cards: name, district, skill tags, custom-work snippet; filter pills with active state; nav link) and `GET /api/v1/workers` (workers + `meta.categories`, filter by `category_id`). **Decision recorded:** contact details (phone/email) are deliberately NOT exposed — PII stays private; a "request/contact a worker" flow is a future task. Retired categories are hidden from listings and filters. 5 tests; live-verified end-to-end (demo worker's categories synced via API, then shown on /workers). Backend 192 tests green; Pint clean; assets published.`
+
+### M18 · Transport & errands directory — status: ✅ (2/2 top-level tasks)
+
+- [x] **M18.1 · Transport & errand categories (admin-managed) + driver ticks & contact** — ✅
+  > **Request:** R101
+  > **Files:** `backend/database/migrations/2026_09_18_000007_create_transport_categories_tables.php` 🆕 · `backend/app/Models/{TransportCategory,User}.php` · `backend/database/seeders/{TransportCategorySeeder,DatabaseSeeder}.php` · `backend/app/Http/Controllers/Web/Admin/TransportCategoryController.php` 🆕 · `backend/resources/views/admin/categories/index.blade.php` 🆕 · `backend/app/Http/Controllers/Web/{Admin/SkillCategoryController,DriverProfileController}.php` · `backend/app/Http/Controllers/{Web/DashboardController,Api/ProfileController}.php` · `backend/resources/views/{dashboard/index,layouts/admin}.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/{AdminTransportCategoryTest,DriverTransportTest}.php` 🆕
+  > **Comment:** Owner request: "do the same for drivers and errands, make a separate category so users can check and call them." A dedicated admin-managed `transport_categories` list (separate from skill categories) seeded with common transport/errand work; drivers tick the services they provide and add a public contact phone. The skills and transport admin screens share one generic category view (structure for locality), with the M17.2 skills screen switched onto it.
+  > **Notes:** `— 2026-09-18: DELIVERED — transport_categories + transport_category_user pivot, TransportCategory model + User::transportCategories, seeder (10 categories) in DatabaseSeeder; `/admin/transport` (comma multi-add, rename, retire, usage counts) via a shared generic `admin/categories/index.blade.php` (the skills screen was moved onto it; its bespoke view deleted); driver dashboard gained a "Work you provide" card (name, public phone, category ticks) → `PUT /dashboard/driver/profile`; API `PUT /profile` accepts `transport_category_ids` and returns the driver's categories/online state. 8 tests. Backend 205 tests green; Pint clean.`
+- [x] **M18.2 · Public Transport & errands directory with call (web + API)** — ✅
+  > **Request:** R102
+  > **Files:** `backend/app/Http/Controllers/Web/TransportController.php` 🆕 · `backend/resources/views/pages/transport.blade.php` 🆕 · `backend/app/Http/Controllers/Api/TransportDirectoryController.php` 🆕 · `backend/app/Http/Controllers/Api/ProfileController.php` · `backend/resources/views/{layouts/app,pages/privacy}.blade.php` · `backend/routes/{web,api}.php` · `docs/dpdp/privacy-policy.md` · `backend/tests/Feature/TransportDirectoryTest.php` 🆕
+  > **Comment:** Owner chose one combined directory: all active drivers listed with an Online/Offline badge (from `driver_availability`), filterable by transport category, with a **public phone + call button** (owner explicitly accepted the PII trade-off). `GET /api/v1/transport` endpoint for the app. Privacy copy updated to state that driver contact numbers appear in this public directory.
+  > **Notes:** `— 2026-09-18: DELIVERED — public `/transport` (premium cards: name, base district, online chip, work tags, `tel:` call button; filter pills; nav link "Transport & errands") and `GET /api/v1/transport` (drivers + phone + is_online + categories + `meta.categories`). List shows all active drivers, online first (encrypted name sorted after decrypt). Privacy policy copy (docs + page) now discloses the public driver number. 5 tests; live-verified end-to-end (demo driver set phone + categories via API, then appeared on /transport with the call button). Backend 205 tests green; Pint clean; assets published.`
+
+### M19 · Region reference data — status: ✅ (1/1 top-level tasks)
+
+- [x] **M19.1 · Real localities for Dimapur, Kohima, Chümoukedima & Niuland (additive seed)** — ✅
+  > **Request:** R103
+  > **Files:** `backend/database/seeders/DistrictLocalitySeeder.php` · `backend/tests/Feature/DistrictLocalitySeederTest.php` 🆕
+  > **Comment:** Owner request: "add the names of all localities in Dimapur, Kohima, Chumoukedima and Niuland … make it editable in admin dashboard." The seeder now carries the recognised localities for those four districts (administrative circles, towns and villages, taken from the district administrations' published lists — not invented) and is **additive/idempotent**: each district/locality is `firstOrCreate`d, so re-running after appending names adds only the new ones and never touches admin-edited rows (rename/deactivate/delete-by-hand are preserved). The remaining 12 districts keep their headquarters. Admin editing already exists (M4.1/M9.1): comma multi-add, rename and the Active tick per locality.
+  > **Notes:** `— 2026-09-18: DELIVERED — 206 localities added on the dev DB (Dimapur 29, Kohima 58, Chümoukedima 50, Niuland 73), all active so they appear in the driver base picker and `/locations`. Sources: Dimapur district divisions, Kohima & Niuland district administration village lists, Chümoukedima/Wikipedia divisions. 3 tests (coverage, idempotent re-run, admin edit preserved). Backend 208 tests green; Pint clean; live `/api/v1/locations` verified.` `— 2026-09-24: PRODUCTION VERIFIED — DistrictLocalitySeeder run on Hostinger; districts/localities populate pickers and `/api/v1/locations` on shekuthi.in.`
+
+### M20 · Production readiness — status: 🔄 (2/3 top-level tasks)
+
+- [x] **M20.1 · App parity for the directory & role-profile features** — ✅
+  > **Request:** R104
+  > **Files:** `mobile/lib/features/directory/{directory_repository,workers_directory_screen,transport_directory_screen}.dart` 🆕 · `mobile/lib/features/profile/role_profile_repository.dart` 🆕 · `mobile/lib/features/driver/work_profile/driver_work_profile_screen.dart` 🆕 · `mobile/lib/features/worker/profile/worker_profile_screen.dart` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `mobile/test/directory_repository_test.dart` 🆕
+  > **Comment:** Owner request 2026-09-18: "all the changes made please let it reflect in app also." The app now mirrors the recent web/API work: a public **Skilled workers** directory (filter by trade, no contact PII), a **Transport & errands** directory (online badge + public call button via `url_launcher`), a **Driver work profile** (name, public phone, transport/errand categories) and a **Skilled worker profile** (name, phone, skill categories + custom work) — all against the existing API. Localities (M19) already reach the app through `/locations`. Both login paths already surface the pending-volunteer approval message from the API.
+  > **Notes:** `— 2026-09-18: DELIVERED — repository + 2 directory screens + shared RoleProfile repo + 2 role-profile screens; router routes `/workers`, `/transport`, `/driver/work`, `/worker/profile`; home shortcuts added. flutter analyze 0 issues; flutter test 13/13 green (3 new directory repository tests).`
+- [x] **M20.2 · Production readiness audit (website + app)** — ✅
+  > **Request:** R105
+  > **Comment:** Owner request: "check if the website and app is ready for production." Review outcome recorded below.
+  > **Notes:** `— 2026-09-18: WEBSITE — substantially ready: production env template with APP_DEBUG=false + database session/cache/queue drivers; HSTS + strict CSP, token-only CORS, rate limits, encrypted PII, DPDP export/deletion, retention sweeps (M7); security checklist and deploy runbook complete; asset publishing fixed (M15.5); 208 backend tests green. BLOCKERS before go-live: (1) **Q7** host confirmation — PHP version pin + cron entry (gates automatic retention + scheduled jobs and the live deploy itself, M8.4); (2) **Q13** brand name/logo/palette — needed for favicon, OG image and store assets (M0.7/M8.5); (3) **Q17** `vendor/` handling for the deploy flow (M8.8); (4) the deploy itself has not been executed (M8.4). Not blockers: Q9 media stays local disk until needed; admin MFA is an accepted recorded decision.`
+  > **Notes (app):** `— 2026-09-18: APP — feature-complete for the core flows (auth, catalog, booking, errands, driver base/availability/jobs, volunteer visits, notifications, donations, profiles, and now the directories), and the API/site base URLs are `--dart-define` configurable. NOT store-ready in this environment: there is **no Android SDK or signing keystore here**, so no release APK can be built or signed (M1.2 has always been analyze/test-verified only); **FCM_SERVER_KEY is empty**, so push is inbox-only; Play Store assets depend on Q13. Tracked as M20.3.`
+- [ ] **M20.3 · App release hardening** — ⬜
+  > **Request:** R106
+  > **Files:** `mobile/android/` · `mobile/lib/core/network/api_client.dart` · `mobile/README.md` · `docs/deploy/` 🆕
+  > **Comment:** What the app still needs for a store build: a release signing keystore + `signingConfigs` wired into `android/app/build.gradle`, `--dart-define` production values (API_BASE_URL / SITE_BASE_URL / FCM), an FCM server key on the backend, an app icon + name from Q13, and a signed AAB. Needs a machine with the Android SDK (not this environment). Target: after M20.2's website blockers (Q7/Q13).`
+  > **Audit note:** — 2026-10-05: Android SDK is now available and M51 debug APK builds/runs. Production build still uses com.example.listingplatform and debug signing in build.gradle.kts. No firebase_messaging dependency/client token registration exists in the mobile app; push delivery needs client integration plus backend credentials. Supplied Android launcher icon is done; production signing/AAB and physical-device checks remain.
+
+### M21 · Sales reporting & peer-to-peer affiliate commissions — status: 🔄 (2/3 top-level tasks)
+
+> **The model (owner's steer): the platform takes no commission and no fee, and no money moves through it. The vendor/driver sets the terms and settles directly with the buyer and the affiliate. These features only *record* what the parties agreed — a trust-based, peer-to-peer ledger.** Audit finding that prompted this: referral *signups* were attributed (M9.3) but `recordConversion` was never called, so conversions and any earnings were permanently zero.
+
+- [x] **M21.1 · Vendor sales report (monthly / quarterly / yearly) + PDF** — ✅
+  > **Request:** R107
+  > **Files:** `backend/app/Services/VendorSalesReport.php` 🆕 · `backend/app/Http/Controllers/Web/VendorReportController.php` 🆕 · `backend/resources/views/reports/vendor-sales.blade.php` 🆕 · `backend/app/Http/Controllers/Web/DashboardController.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/composer.json`/`composer.lock` · `backend/routes/web.php` · `backend/tests/Feature/VendorSalesReportTest.php` 🆕
+  > **Comment:** A "Sales" card on the vendor dashboard with this month / quarter / year totals and a **Download PDF report** button (dompdf, added as the project's PDF renderer — vendor/ is committed so the host needs no composer). "Sales" = bookings the vendor marked **Completed** (honest: fulfilled and settled directly); the report states plainly that the platform holds no money. Periods use a new `bookings.completed_at` stamped on the completed transition.
+  > **Notes:** `— 2026-09-18: DELIVERED — completed_at + report service + PDF view + route `/dashboard/reports/sales`; dashboard card. 3 tests; live PDF verified (application/pdf attachment, %PDF). Backend 216 tests green; Pint clean.`
+- [x] **M21.2 · Peer-to-peer affiliate commissions (vendors + drivers)** — ✅
+  > **Request:** R108
+  > **Files:** `backend/database/migrations/2026_09_18_000008_add_sales_and_affiliate_fields.php` 🆕 · `backend/app/Models/{Referral,ReferralEvent,Booking,Errand}.php` · `backend/app/Services/{ReferralService,BookingService}.php` · `backend/app/Http/Controllers/Web/{ReferralController,BookingController}.php` 🆕 · `backend/resources/views/dashboard/_affiliate.blade.php` 🆕 · `backend/app/Http/Controllers/Web/DashboardController.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/AffiliateCommissionTest.php` 🆕
+  > **Comment:** Vendors **and drivers** create affiliate codes and **set the commission per code** — a percentage of the order value or a fixed amount, their choice. A guest arriving via `/ref/{code}` or a shared `?ref=` link carries the code into their booking; when the booking is **completed** the conversion is credited with the commission **snapshotted** (so later edits never rewrite history). No payout is processed — the owner settles with the affiliate directly; the dashboard shows credited conversions and the commission total. Codes are now owned by a user (`owner_user_id`, vendor or driver) rather than a vendor only.
+  > **Notes:** `— 2026-09-18: DELIVERED — migration (owner_user_id + commission_type/value on referrals; order_value/amount_inr on referral_events; referral_code on bookings/errands; completed_at on bookings, vendor_id nullable, existing codes backfilled to their vendor's user); ReferralService generateCode(owner, type, value) + recordConversion(order value) + statsForOwner; BookingService credits on completion and stamps completed_at; web ReferralController + shared dashboard affiliate card (list codes + create form) for vendor and driver; legacy vendor `stats()` kept so M6.3 callers/tests pass. 5 tests; backend 216 tests green; Pint clean; live dashboard verified.` `— 2026-09-19: MODEL CORRECTION (owner) — the platform must not auto-credit a commission. A completed order now records the conversion as **pending**; the owner (vendor/driver) reviews it and **approves or declines** it themselves ("only if they know the marketer personally"), because they pay the marketer directly and the platform moves no money. Only approved conversions count toward commission; the dashboard shows the commission amount, the number of orders/rides through each code, the approved total and a pending-approval queue with Approve/Decline. Migration 000009 adds status/approved_by/approved_at to referral_events; ReferralService gains approveConversion/rejectConversion; owner-only guard on the actions. 7 tests; backend 218 tests green; Pint clean; live-verified.`
+- [ ] **M21.3 · App: affiliate commission UI + driver errand attribution** — ⬜
+  > **Request:** R109
+  > **Files:** `mobile/lib/features/vendor/referrals/` · `mobile/lib/features/driver/` · `backend/app/Http/Controllers/Api/{ReferralController,ErrandController}.php`
+  > **Comment:** The app's vendor referral screen predates commissions — surface `commission_type`/`commission_value` and let vendors/drivers set them, and show credited commission. Driver-side conversions also need an attribution path: errands already accept a `referral_code` on the API but no client captures one yet (the web `/ref/{code}` session is browser-only), so a driver's code is not auto-credited from the app until an in-app accept/refer capture exists. Terms: same peer-to-peer model — recorded, never paid by the platform.
+  > **Audit note:** — 2026-10-05: App referral screen exposes codes/counters only; no commission management or driver errand referral attribution. Milestone/header corrected to in progress because only 2/3 tasks are complete.
+
+### M22 · Blog / community stories — status: ✅ (2/2 top-level tasks)
+
+- [x] **M22.1 · Blog: admin authoring + public pages** — ✅
+  > **Request:** R110
+  > **Files:** `backend/database/migrations/2026_09_19_000001_create_posts_table.php` 🆕 · `backend/app/Models/Post.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/PostController.php` 🆕 · `backend/app/Http/Controllers/Web/PostController.php` 🆕 · `backend/app/Http/Controllers/Api/PostController.php` 🆕 · `backend/resources/views/{admin/posts/index,admin/posts/form,pages/blog,pages/post}.blade.php` 🆕 · `backend/resources/views/layouts/{admin,app}.blade.php` · `backend/routes/{web,api}.php` · `backend/tests/Feature/{AdminPostTest,BlogTest,PostApiTest}.php` 🆕
+  > **Comment:** Owner request: "a blog section where admin can write about new businesses or farms that sell agro products to promote them." Admins write/publish stories (draft or published) with a cover image (shared WebP validator), an optional link to a vendor, and an optional excerpt; the public site gets `/blog` + `/blog/{slug}` (published only, drafts 404). Body is plain text rendered escaped with line breaks preserved (no raw HTML — XSS-safe). A read-only API lets the app show stories later.
+  > **Notes:** `— 2026-09-19: DELIVERED — posts table + Post model (slug, excerpt fallback, published scope); `/admin/posts` CRUD (create/edit/delete, publish stamps `published_at`, cover stored as WebP, featured-vendor select) with nav link; public `/blog` index (cards) + `/blog/{slug}` article with a "Visit <shop>" link; `GET /api/v1/posts` + `/api/v1/posts/{slug}`; app nav link added. 10 tests; backend 228 tests green; Pint clean; live-verified end-to-end (admin created a story → listed on /blog → article + API).`
+- [x] **M22.2 · App: community stories reader** — ✅
+  > **Request:** R111
+  > **Files:** `mobile/lib/features/blog/{blog_repository,stories_screen,story_screen}.dart` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `backend/app/Http/Controllers/Api/PostController.php` · `mobile/test/blog_repository_test.dart` 🆕
+  > **Comment:** Consume `GET /api/v1/posts` in a simple list + detail screen, reachable from home. Follow-up to M22.1; the API ships with it.
+  > **Notes:** `— 2026-09-19: DELIVERED — list + detail screens (cover, date, featured business, body, and the visit photo grid), `/stories` + `/stories/:slug` routes and a home card; the API payload now returns the story `images` so verification-story photos render in the app. 2 repository tests; flutter analyze 0 issues, 15/15 tests green.`
+
+### M23 · Dedicated PG / rentals / homestays section — status: ✅ (1/1 top-level tasks)
+
+- [x] **M23.1 · Stays section: web search page + API + app shortcut** — ✅
+  > **Request:** R112
+  > **Files:** `backend/app/Http/Controllers/Web/StayController.php` 🆕 · `backend/resources/views/pages/stays.blade.php` 🆕 · `backend/app/Http/Controllers/Api/StayController.php` 🆕 · `backend/app/Http/Controllers/Web/HomeController.php` · `backend/resources/views/pages/home.blade.php` · `backend/resources/views/layouts/app.blade.php` · `backend/routes/{web,api}.php` · `backend/tests/Feature/{StayTest,StayApiTest}.php` 🆕 · `mobile/lib/features/catalog/catalog_screen.dart` · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart`
+  > **Comment:** Owner request: "a separate section category for PG/rental/homestay so users can search that section directly." A dedicated `/stays` page lists accommodation only (category `rental_homestay`) with its own search, area (district + locality grouped by district) and price filters; nav link "PG & stays"; a home-page section promotes the latest stays. Read-only `GET /api/v1/stays` mirrors it for the app, and the app's catalog accepts an `initialCategory` so a "PG, rentals & homestays" home shortcut opens it pre-filtered.
+  > **Notes:** `— 2026-09-19: DELIVERED — StayController (web) + reuse of the shared product-card; Api\StayController with the same filters; home section + nav; app `CatalogScreen(initialCategory:)` + `/stays` route + home card. Fixed the `gte:min_price` rule (it failed when min was absent) with an explicit max/min check in both controllers. 5 backend tests; backend 233 tests green; Pint clean; flutter analyze 0 issues, 13/13 tests; live-verified (created a homestay via the API → listed on /stays → returned by /api/v1/stays).`
+
+### M24 · About page & content — status: ✅ (1/1 top-level tasks)
+
+- [x] **M24.1 · Rewrite the About page around the stakeholders and the full feature set** — ✅
+  > **Request:** R113
+  > **Files:** `backend/resources/views/pages/about.blade.php` · `plan.md`
+  > **Comment:** Owner request: frame the platform as connecting farmers, logistics, buyers and resellers and helping all stakeholders, and list everything the platform does. About now opens on that mission, has a "Who it helps" section (farmers/sellers, buyers, resellers, collectors & drivers, skilled workers, volunteers), a "What you can do here" section listing the real functions (catalog search, the PG/rentals/homestays section, the worker and transport directories, guest booking with MOQ, transport & errands, verified badges, owner-approved affiliate commissions, sales records + PDF, UPI donations, the blog), and an expanded "What we do not do" (no commission, no on-platform transactions, no forced accounts, no location tracking — Q8). Copy is plain and specific; no invented figures.
+  > **Notes:** `— 2026-09-19: DELIVERED — page + meta description rewritten; live `/about` verified 200.` `— 2026-09-19: POSITIONING CORRECTION (owner) — the platform is a connector, not a gatekeeper or guarantor, and it does not vouch for anyone. Rewrote the hero ("it is a connector … not a party to any deal … does not vouch for anyone"), the buyer/reseller/skilled-worker/volunteer cards (dealings and terms are between the parties), and replaced the badge card with "An on-site visit record … not a guarantee from us". "What we do not do" now leads with "We do not vouch for anyone" and "We are not a party to any deal". The volunteer card states they keep the visit fee as their allowance and gain experience. Added the same qualifier to the public listing page's verified/fee line ("a volunteer's on-site visit record — context to weigh up, not a platform guarantee").`
+
+### M25 · Verification: volunteer questionnaire + signed story — status: 🔄 (2/3 top-level tasks)
+
+- [x] **M25.1 · Platform questionnaire + volunteer-signed verification story + badge details** — ✅
+  > **Request:** R114
+  > **Files:** `backend/database/migrations/2026_09_19_000002_add_verification_story_fields.php` 🆕 · `backend/app/Support/VerificationQuestionnaire.php` 🆕 · `backend/app/Http/Controllers/Api/VerificationQuestionnaireController.php` 🆕 · `backend/app/Services/VerificationReviewService.php` · `backend/app/Models/{Post,Badge,VerificationVolunteer}.php` · `backend/app/Http/Controllers/Api/VolunteerController.php` · `backend/resources/views/pages/{post,listing}.blade.php` · `backend/routes/api.php` · `backend/tests/Feature/VerificationStoryTest.php` 🆕
+  > **Comment:** Owner request: volunteers ask a **questionnaire the platform provides**, take photos, and once approved the verification becomes a **blog story with the volunteer's photos**; the story + images are what vouch for the listing, not the platform. Every verified badge carries the **volunteer's details** (name and photo) of who went to the site. The platform only shares what the volunteer recorded; the volunteer is the verifier.
+  > **Notes:** `— 2026-09-19: DELIVERED — `App\Support\VerificationQuestionnaire` (6 fixed questions) exposed at `GET /api/v1/verification-questionnaire`; on approval `VerificationReviewService` now publishes a **story authored by the volunteer** (body = questionnaire answers + notes, images = the volunteer's evidence photos, cover = first photo, linked to the vendor) and the badge snapshots the volunteer's name **and photo** plus `post_id`. Volunteer profile API accepts `photo_path` (their own upload only). The listing's "Verified by" now links to the story, and the story page renders the visit photo gallery. Migration adds `posts.images`, `badges.volunteer_photo`/`post_id`, `verification_volunteers.photo_path`. 3 new tests; backend 236 tests green; Pint clean; live questionnaire endpoint verified.`
+- [x] **M25.2 · App: volunteer questionnaire + verification story reader** — ✅
+  > **Request:** R115
+  > **Files:** `mobile/lib/features/volunteer/{volunteer_repository,verification_report_screen}.dart` · `mobile/lib/features/blog/*` (story reader)
+  > **Comment:** Render the platform questionnaire in the app's site-visit report (from `GET /api/v1/verification-questionnaire`), let the volunteer set a profile photo, and show the verification story (and the badge's volunteer photo) from the blog API. Follow-up to M25.1.
+  > **Notes:** `— 2026-09-19: DELIVERED — the report screen fetches the platform questionnaire and submits `checklist` as `{question_id: yes/no}` (replacing the two hardcoded checkboxes); verification stories are readable in the app via the stories reader (M22.2), including the visit photos. Volunteer **profile photo upload in the app** remains: the API accepts `photo_path` but no app UI sets it — tracked as M25.3.`
+- [ ] **M25.3 · App: volunteer profile photo upload** — ⬜
+  > **Request:** R116
+  > **Files:** `mobile/lib/features/volunteer/` (profile screen) · `mobile/lib/features/profile/` (media upload reuse)
+  > **Comment:** Upload an avatar through `POST /media` (directory `avatars`) and save it to the volunteer profile `photo_path`, so the badge/story snapshot carries the volunteer's photo. The backend already validates and snapshots it (M25.1).
+  > **Audit note:** — 2026-10-05: Volunteer UI still has no profile photo picker/upload; API support alone does not complete the app feature.
+
+### M26 · Legal pages & DPDP compliance — status: ✅ (3/3 top-level tasks)
+
+- [x] **M26.1 · Terms, Privacy and Disclaimer pages (env-driven legal identity)** — ✅
+  > **Request:** R117
+  > **Files:** `backend/config/legal.php` 🆕 · `backend/resources/views/pages/{terms,privacy,disclaimer}.blade.php` · `backend/app/Http/Controllers/Web/PageController.php` · `backend/routes/web.php` · `backend/resources/views/layouts/app.blade.php`
+  > **Comment:** Full Terms & Conditions (18 sections: connector-not-a-party, eligibility 18+, acceptable use, bookings, logistics, verification, referrals, donations, liability, jurisdiction), a rewritten DPDP-shaped Privacy Policy (data collected, purposes, consent, public fields incl. the driver's public number, sharing, retention, security, storage, all six data-principal rights, children, cookies, grievance), and a Disclaimer (no vouching, verification is a record not a guarantee, no warranty, no professional advice, liability). Every operator-specific value is env-driven in `config/legal.php` and renders as a clearly-marked placeholder until set. Footer links added.
+- [x] **M26.2 · DPDP consent capture at registration + compliance docs** — ✅
+  > **Request:** R118
+  > **Files:** `backend/app/Services/RegistrationService.php` · `backend/resources/views/auth/register.blade.php` · `docs/dpdp/consent-notice.md` 🆕 · `docs/launch/compliance.md` 🆕 · `backend/tests/Feature/LegalComplianceTest.php` 🆕
+  > **Comment:** Registration now requires an explicit acceptance (server-enforced `accepted` rule for API and web) and writes a `consents` row with the notice version and purpose. The consent notice text is documented, and a DPDP-to-implementation checklist plus the remaining owner inputs are recorded in `docs/launch/compliance.md`.
+- [x] **M26.3 · App: consent at sign-up + legal links** — ✅
+  > **Request:** R119
+  > **Files:** `mobile/lib/features/auth/{register_screen,auth_controller,auth_repository}.dart` · `mobile/lib/features/profile/profile_screen.dart`
+  > **Comment:** The app's register screen has a required 18+ / Terms+Privacy checkbox passed through to the API, and the profile screen links to the Terms, Privacy and Disclaimer pages on the website.
+
+### M27 · Production audit (2026-09-19) — status: 🔄 (4/8 top-level tasks)
+
+> Method: for each source requirement and feature, trace docs → DB → API → web → app and flag broken links and unhandled obligations. Verdict: **not production ready yet** — the core commerce/logistics/verification flows work end to end, but a registerable role is non-functional, one source requirement is unreachable from any client, the DPDP export is incomplete, and host/brand/app-signing decisions remain.
+
+- [x] **M27.1 · Collector role is non-functional (or remove it)** — ✅ (resolved by M28.1/M28.3)
+  > **Request:** R120
+  > **Files:** `backend/app/Http/Controllers/Api/{DriverBaseController,DriverAvailabilityController,LogisticsController}.php` · `backend/app/Services/JobMatchingService.php` · `backend/app/Models/LogisticsJob.php` · `mobile/lib/features/driver/`
+  > **Comment:** collectors can register (M1.4 writes a `driver_availability` row) but `DriverBaseController`/`DriverAvailabilityController` reject any role that is not `driver`, `JobMatchingService` only ever matches `ROLE_DRIVER`, `logistics_jobs.collector_id` is never assigned, and no client has a collector screen. A collector account is a dead end. Decide: implement the pickup(collector)→delivery(driver) legs, or stop offering collector at registration.
+  > **Notes:** `— 2026-09-19: RESOLVED (decision) — the owner chose a collection-specific collector, not a driver leg: collectors are signed to a sub-division and move farm produce to a hub. M28.1 gives them a real role + sign-in gate, M28.3 assigns `logistics_jobs.collector_id`, M28.4 gives them a screen. Collectors stay out of the driver base/availability flow by design.`
+  > **Status note:** counted as closed by the current causal audit; M28 code and tests exercise assignment, sign-in gate, job matching and collector actions.
+- [ ] **M27.2 · Vendor pickup/delivery request has no client** — ⬜
+  > **Request:** R121
+  > **Files:** `backend/app/Http/Controllers/Web/…` · `mobile/lib/features/vendor/`
+  > **Comment:** `POST /logistics/jobs` exists (M4.4) but no web or app screen calls it, so "a farmer can connect to logistics to pick up items" (local-market.md) is unreachable. The app side is M13.3; the website side is missing. Add a request form on a booking.
+  > **Notes:** `— 2026-09-19: PARTIAL — M28.5 gives the **farm-produce collection** leg a client on both web and app. The booking-linked pickup/delivery request (driver flow) is still without a client (M13.3 app, website pending).`
+- [ ] **M27.3 · Volunteer report cannot attach evidence photos (app/web)** — ⬜
+  > **Request:** R122
+  > **Files:** `mobile/lib/features/volunteer/verification_report_screen.dart` · `backend/app/Http/Controllers/Api/VerificationController.php`
+  > **Comment:** the M25.1 story is built from a verification's `evidence` photos, but the app's report screen submits notes/checklist/geo only (no photo picker), and the website has no report form. So the "story with the volunteer's photos" cannot currently be produced by any client. Add image upload via `POST /media` and send the paths as `evidence`.
+  > **Progress:** — 2026-10-05: App evidence capture/upload completed and verified under M5.2. Website report/evidence submission form remains missing; R122 stays open.
+- [x] **M27.4 · DPDP data export is incomplete** — ✅
+  > **Request:** R123
+  > **Files:** `backend/app/Services/DataExportService.php`
+  > **Comment:** export returns only the user row + consents. The right to access covers all personal data: bookings, errands, referrals/events, verifications/evidence, media, device tokens, notifications. Extend the export map (kept in one service).
+  > **Resolved:** — 2026-10-05: Completed in M7.2; see its implementation owners, verification and documented ownership/hosting boundaries. Full backend 281 tests / 1210 assertions; app 44 tests, analyzer and Pint clean.
+- [x] **M27.5 · Missing consent rows: errand contact + notifications** — ✅
+  > **Request:** R124
+  > **Files:** `backend/app/Http/Controllers/Api/ErrandController.php` · `backend/app/Http/Controllers/Api/DeviceTokenController.php`
+  > **Comment:** M7.1 states consent is captured at errand request and notification opt-in, but neither writes a `consents` row (booking does). Add `errand_contact` and `notifications` consent rows at those points.
+  > **Resolved:** — 2026-10-05: Completed in M7.1; see its implementation owners, verification and documented ownership/hosting boundaries. Full backend 281 tests / 1210 assertions; app 44 tests, analyzer and Pint clean.
+- [x] **M27.6 · Data deletion does not cover all PII** — ✅
+  > **Request:** R125
+  > **Files:** `backend/app/Services/DataDeletionService.php`
+  > **Comment:** deletion anonymizes the user, vendor and badges. Registered users' errand rows (`customer_id`) keep encrypted contact data, and media/device tokens/notifications are not cleared. Extend the deletion so erasure is end to end, per M7.3.
+  > **Resolved:** — 2026-10-05: Completed in M7.3; see its implementation owners, verification and documented ownership/hosting boundaries. Full backend 281 tests / 1210 assertions; app 44 tests, analyzer and Pint clean.
+- [ ] **M27.7 · Listing does not link to its verification story (app API)** — ⬜
+  > **Request:** R126
+  > **Files:** `backend/app/Http/Resources/ProductResource.php` · `mobile/lib/features/catalog/listing_detail_screen.dart`
+  > **Comment:** the web listing links "Verified by …" to the story; the API returns `is_verified`/`verified_by` but not the story slug, so the app shows a badge with no way to read the record. Add the story slug to the resource and link it.
+- [ ] **M27.8 · Website catalog lacks area/price filters** — ⬜
+  > **Request:** R127
+  > **Files:** `backend/app/Http/Controllers/Web/CatalogController.php` · `backend/resources/views/pages/catalog.blade.php`
+  > **Comment:** `/stays` has area + price filters; the general catalog still only searches `q`/`category` although the API supports district/locality/price. Minor parity gap.
+
+> **Already tracked, not duplicated here:** M13.1 app listing edit · M13.3 app vendor pickup UI · M14.2 web notifications inbox · M21.3 app commission UI + errand referral capture · M25.3 app volunteer photo upload. M14.1 admin listing moderation is delivered in M45.2.
+> **Launch blockers (external/owner):** Q7 host confirmation + deploy not run (M8.4) · Q13 brand (M0.7) · `FCM_SERVER_KEY` unset (push inbox-only) · app release signing requires an Android SDK machine (M20.3) · legal identity env values unset (`LEGAL_*`) · no git remote (repo is a single point of failure).
+
+### M28 · Collectors & reseller farm produce — status: ✅ (5/5 top-level tasks)
+
+- [x] **M28.1 · Collector role: one per sub-division, signed by admin** — ✅
+  > **Request:** R128
+  > **Files:** `backend/database/migrations/2026_09_19_000003_add_collector_and_collection_fields.php` 🆕 · `backend/app/Models/CollectorAssignment.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/CollectorController.php` 🆕 · `backend/resources/views/admin/collectors/index.blade.php` 🆕 · `backend/app/Http/Controllers/Api/CollectorController.php` 🆕 · `backend/app/Http/Controllers/{Web/MemberAuthController,Api/AuthController}.php` · `backend/app/Http/Controllers/Web/Admin/LocalityController.php` · `backend/resources/views/{layouts/admin,admin/localities/index}.blade.php` · `backend/routes/{web,api}.php` · `backend/tests/Feature/CollectorAssignmentTest.php` 🆕
+  > **Comment:** Owner: collectors collect farm products from the other districts and bring them to the hub districts (Dimapur/Kohima/Chümoukedima); collectors do **not** do delivery or errands, and they are **not** the driver flow. A **locality is a sub-division**; admin assigns one collector per sub-division (manual signing) from the dashboard. A collector cannot sign in until assigned (mirrors volunteer approval). Removes the collector from the driver base/availability flows conceptually — their base is their assigned sub-division.
+  > **Notes:** `— 2026-09-19: DELIVERED — `collector_assignments` (unique `user_id`, unique `locality_id`, `is_active`, `assigned_by`); `districts.is_hub`; admin Collectors page (assign/revoke) + hub checkbox on Localities; both web and API sign-in gate unassigned collectors with "awaiting assignment to a sub-division" (403 via API). Two new tests: assignment gates sign-in; only one collector holds a sub-division.`
+- [x] **M28.2 · Farm produce (reseller) category + public section** — ✅
+  > **Request:** R129
+  > **Files:** `backend/app/Models/Product.php` · `backend/app/Http/Requests/ListingRequest.php` · `backend/app/Http/Controllers/Web/ResellerProduceController.php` 🆕 · `backend/resources/views/pages/reseller-produce.blade.php` 🆕 · `backend/app/Http/Controllers/Api/ResellerProduceController.php` 🆕 · `backend/app/Http/Controllers/Web/HomeController.php` · `backend/resources/views/pages/home.blade.php` · `backend/resources/views/components/product-card.blade.php` · `backend/resources/views/pages/listing.blade.php` · `backend/routes/{web,api}.php` · `backend/resources/views/layouts/app.blade.php` · `mobile/lib/features/catalog/catalog_screen.dart` · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `backend/tests/Feature/ResellerProduceTest.php` 🆕
+  > **Comment:** Owner: a separate farm-produce listing category for resellers so both farmers and resellers benefit. New `Product::CATEGORY_FARM_RESELLER` with its own public section (parallel to PG/stays) plus an API feed; listing validation switches to `Product::CATEGORIES` as the single source of listing categories.
+  > **Notes:** `— 2026-09-19: DELIVERED — `/reseller-produce` (area + price filters, hub note, empty state) and `GET /api/v1/reseller-produce` (returns hub districts in meta); nav + home section; category chips/labels on web cards, breadcrumb, app catalog chip, `/farm-produce` route and home card; validation now uses `Product::CATEGORIES`. Test: the section lists farm-reseller produce only.`
+- [x] **M28.3 · Farm-produce collection jobs + hub districts** — ✅
+  > **Request:** R130
+  > **Files:** `backend/database/migrations/2026_09_19_000003_add_collector_and_collection_fields.php` 🆕 · `backend/app/Models/{District,LogisticsJob}.php` · `backend/app/Services/JobMatchingService.php` · `backend/app/Http/Controllers/Api/CollectionController.php` 🆕 · `backend/routes/api.php` · `backend/tests/Feature/CollectionJobTest.php` 🆕
+  > **Comment:** Extend `logistics_jobs` with a `collect_produce` type: pickup at the farm's locality → drop at a **hub district** the admin marks (Dimapur/Kohima/Chümoukedima by default). Assigned to that sub-division's collector (no driver leg), who accepts and completes it; the vendor sets the fee paid directly to the collector (platform takes nothing). Adds `districts.is_hub` (admin-editable) and `logistics_jobs.{drop_district_id,fee_inr}`.
+  > **Notes:** `— 2026-09-19: DELIVERED — `JobMatchingService::collectorFor()` matches the active assignment (no online state); `POST /collections` (vendor, farm-reseller listing only, hub-only destination, auto-assigns the sub-division's collector) plus collector `GET /collections`, `accept`, `status` (in_progress/completed/cancelled). Hub districts seeded. Tests: full request→accept→complete flow, and farm-produce-to-hub validation.`
+- [x] **M28.4 · App: collector screens (assignment + collection jobs)** — ✅
+  > **Request:** R131
+  > **Files:** `mobile/lib/features/collector/{collector_repository,collector_home_screen}.dart` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `mobile/test/collector_repository_test.dart` 🆕
+  > **Comment:** Collector dashboard: assigned sub-division, incoming collection jobs, accept/progress actions. Not the driver flow.
+  > **Notes:** `— 2026-09-19: DELIVERED — `/collector` shows the signed sub-division and collections there with Accept / Mark collected / Mark dropped; `_parse fee as string-or-number` (API serializes the decimal as a string). 4 repository tests; flutter analyze 0 issues, 19/19 tests green.`
+- [x] **M28.5 · App + web: vendor requests a farm-produce collection** — ✅
+  > **Request:** R132
+  > **Files:** `mobile/lib/features/vendor/collections/collection_request_screen.dart` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `backend/resources/views/dashboard/index.blade.php` · `backend/app/Http/Controllers/Web/{DashboardController,CollectionController}.php` · `backend/routes/web.php` · `backend/tests/Feature/CollectionJobTest.php`
+  > **Comment:** Let a vendor request collection of a farm-produce listing to a hub, choosing the destination hub and offering a fee. Closes the M27.2 "no client" gap for collections.
+  > **Notes:** `— 2026-09-19: DELIVERED — vendor dashboard card lists farm-reseller listings + hubs, shows past collections and posts `dashboard.collections.store`; app `/collections/new` screen (listing + hub + fee + address). Test: the website dashboard renders the form and the POST creates a collect_produce job.`
+
+---
+
+### M29 · Open-source distribution — status: ✅ (2/2 top-level tasks)
+
+- [x] **M29.1 · Publish to GitHub under MIT + About-page contribution note** — ✅
+  > **Request:** R133
+  > **Files:** `LICENSE` 🆕 · `backend/config/branding.php` · `backend/.env.example` · `backend/resources/views/pages/about.blade.php` · `backend/tests/Feature/AboutPageTest.php` 🆕 · `plan.md`
+  > **Comment:** Owner: open the source so others can use it or contribute. MIT license (code; CC is for content, not software), repo at `github.com/openlogic75-cloud/listingplatform`, and an About-page section stating the source is free to use under MIT and inviting contributions, linking to the repo.
+  > **Notes:** `— 2026-09-19: DELIVERED — initial history pushed to `origin/main` (README/LICENSE from GitHub's stub merged, project README kept). `-- 2026-09-19: About page gained an "Open source" section; the repo URL is env-driven (`SOURCE_REPO_URL`, `config('branding.repository_url')`) with the GitHub URL as default. 1 test (page renders the configured repo link); Pint clean.`
+- [x] **M29.2 · About page: AI-built disclosure** — ✅
+  > **Request:** R134
+  > **Files:** `backend/resources/views/pages/about.blade.php` · `backend/tests/Feature/AboutPageTest.php` · `plan.md`
+  > **Comment:** Owner: add a short disclaimer that the project was built with AI using opencode, with GLM and DeepSeek as the language models. State it plainly and note it is not a claim of correctness.
+  > **Notes:** `— 2026-09-19: DELIVERED — About page "Built with AI" section names opencode and the GLM and DeepSeek models and says AI-assisted is not a guarantee of correctness. Test asserts the disclosure renders.`
+
+---
+
+### M30 · Media limits & optimisation — status: ✅ (1/1 top-level tasks)
+
+- [x] **M30.1 · 2 MB cap, downscale + WebP on upload, max 4 listing photos** — ✅
+  > **Request:** R135
+  > **Files:** `backend/app/Support/UploadValidator.php` · `backend/app/Models/Product.php` · `backend/app/Http/Requests/{ListingRequest,UpdateListingRequest}.php` · `backend/app/Http/Controllers/Web/VendorListingController.php` · `backend/resources/views/dashboard/listing-form.blade.php` · `backend/public/js/listing-form.js` · `mobile/lib/features/vendor/listings/listing_edit_screen.dart` · `backend/tests/Feature/{MediaUploadTest,ListingsTest}.php` · `plan.md`
+  > **Comment:** Owner: keep shared-hosting resource use and disk low. Reduce the upload cap to 2 MB, downscale source images to a 1600 px long side before the existing WebP encode (so stored images are smaller, not just converted), and cap a listing at 4 photos (single source of truth `Product::MAX_IMAGES`). Applies to the shared validator, so listing photos, QR and evidence all get the smaller output. Resource cost is one decode+resize+encode per upload; stored size drops to roughly 80–250 KB per photo.
+  > **Notes:** `— 2026-09-19: DELIVERED — `MAX_KILOBYTES` 5120→2048; `MAX_OUTPUT_DIMENSION` 1600 with `imagescale` (bicubic, alpha preserved) before WebP q82; `Product::MAX_IMAGES = 4` used by ListingRequest/UpdateListingRequest, web photos/remove_photos + total-on-edit guard, app picker and the listing-form copy/JS. 3 new tests (2 MB rejection, downscale 3000×2000→1600×1067, >4 images rejected); backend 251 passed, Flutter analyze 0 / 19 tests green.`
+
+---
+
+### M31 · Third-party asset hygiene — status: ✅ (1/1 top-level tasks)
+
+- [x] **M31.1 · Untrack third-party art/reference docs; credit owners + source links** — ✅
+  > **Request:** R136
+  > **Files:** `.gitignore` · `ATTRIBUTION.md` 🆕 · `README.md` · `mobile/assets/icons/README.md` 🆕 · `plan.md`
+  > **Comment:** Owner: the icon, illustration, image and `UX/`/`ui deisgns/` files are not the owner's work (some downloaded, source forgotten). Do not distribute them in the repo: untrack and gitignore them (keep local copies so development still runs), add `ATTRIBUTION.md` crediting the original owners with source links, and note how to restore them. History purge (they remain in existing commits) is a separate decision.
+  > **Notes:** `— 2026-09-19: DELIVERED — untracked 7,675 files (Tabler icons, unDraw + Flowbite illustrations, 9 UX skills, 7 UI design docs, `backend/public/img/*.svg`); local copies kept. Sources traced: Tabler (MIT), unDraw, Flowbite, designmd.ai (Genesis/Verdana/WattVision, MIT), designmd.app (website templates, CC BY 4.0), jakubkrehel/skills, ehmo/platform-design-skills, sleekdotdesign/agent-skills, mattpocock/skills, Leonxlnx/taste-skill; brand-guidelines, ip-as-logo, mobile-android-design, minimalist-ui marked unconfirmed rather than guessed. `ATTRIBUTION.md` lists each with links and enumerates the exact files used; README updated; per-folder `README.md` attribution in `backend/public/icons/`, `backend/public/img/` and `mobile/assets/icons/` names the files to restore and keeps the pubspec asset path valid in a clone. Site still serves 200. **Not yet purged from git history — see open note.**`
+  > **Open:** the files remain in earlier commits and therefore in the pushed history. A history rewrite (`git filter-repo`) + force-push is needed to remove them; not done here because it rewrites shared history.
+
+---
+
+### M32 · Shekuthi brand + Hostinger deployment readiness — status: ✅ (2/2 top-level tasks; brand defaults and audit/runbook complete; release operations tracked separately)
+
+- [x] **M32.1 · Rename public platform branding to Shekuthi and set shekuthi.in defaults** — ✅
+  > **Request:** R137
+  > **Files:** `backend/config/{app,branding}.php` · `backend/.env.example` · `backend/.env.production.example` · `mobile/lib/{app.dart,core/branding/app_brand.dart,core/network/api_client.dart,features/home/home_screen.dart}` · `mobile/android/app/src/main/AndroidManifest.xml` · `mobile/ios/Runner/Info.plist` · `mobile/pubspec.yaml` · `backend/tests/Feature/AboutPageTest.php` · `README.md` · `backend/README.md` · `mobile/README.md` · `backend/composer.json` · `plan.md`
+  > **Comment:** Owner decision: the public platform name is **Shekuthi** and the website/API will be hosted at `https://shekuthi.in`. Keep internal package/repository identifiers stable; change user-facing branding and production URL defaults only.
+- [x] **M32.2 · Hostinger shared-hosting deployment audit + launch runbook** — ✅
+  > **Request:** R138
+  > **Files:** `backend/.env.production.example` · `docs/deploy/hostinger.md` · `docs/launch/checklist.md` · `docs/decisions/Q7-hosting.md` · `plan.md`
+  > **Comment:** Verify PHP 8.2+, required extensions (including GD for image resize/WebP and DOM for PDF), MySQL, document root, storage symlink, HTTPS, cron, mail, legal identity, backups, and production caches. Verdict must distinguish code readiness from owner/host-dependent launch readiness.
+  > **Notes:** `— 2026-09-19: DELIVERED — local PHP 8.3.6 passed platform checks; required extensions present; config/route/view caches and scheduler listing passed; backend 251 tests / 930 assertions, Flutter analyze clean and 19/19 tests; deployment guide now names Shekuthi, `shekuthi.in`, exact env/cron/extension requirements, and smoke tests. The live domain currently returns Hostinger HTTP 404, so host setup is not complete.`
+
+---
+
+### M33 · Contact, grievance and peer-to-peer responsibility copy — status: ✅ (2/2 top-level tasks)
+
+- [x] **M33.1 · Add Shekuthi contact and grievance details** — ✅
+  > **Request:** R139
+  > **Files:** `backend/config/legal.php` · `backend/.env.example` · `backend/.env.production.example` · `backend/app/Http/Controllers/Web/PageController.php` · `backend/resources/views/{layouts/app,pages/about,pages/contact}.blade.php` 🆕 · `backend/routes/web.php` · `backend/tests/Feature/ContactAndLegalTest.php` 🆕 · `docs/launch/compliance.md` · `plan.md`
+  > **Comment:** Owner supplied `contact@shekuthi.in` as the public contact/grievance address and `K Hika Zhimomi` as the grievance officer. Show the details on About, Contact and legal surfaces.
+- [x] **M33.2 · Add rate-compliance and peer-to-peer responsibility disclaimer** — ✅
+  > **Request:** R140
+  > **Files:** `backend/resources/views/pages/disclaimer.blade.php` · `backend/tests/Feature/ContactAndLegalTest.php` · `docs/launch/compliance.md` · `plan.md`
+  > **Comment:** State that users must follow applicable district, state, local-jurisdiction and municipal rate rules where prescribed; users are responsible for their rates, permits, taxes and agreements. Shekuthi is only a peer-to-peer connector, not a seller, broker, payment processor or guarantor, to the extent permitted by law.
+  > **Notes:** `— 2026-09-19: DELIVERED — contact@shekuthi.in and K Hika Zhimomi are configured as the public contact/grievance details; `/contact`, About, Privacy, Terms and Disclaimer expose them. Disclaimer now states that users must follow applicable local rate rules and that Shekuthi is only a peer-to-peer connector. 2 tests / 22 assertions passed.`
+
+---
+
+### M34 · Responsive UI fluidity audit — status: ✅ (1/1 top-level tasks)
+
+- [x] **M34.1 · Audit website and Flutter layouts across viewport sizes** — ✅
+  > **Request:** R141
+  > **Files:** `backend/resources/css/app.css` · `backend/public/css/app.css` · `mobile/lib/` · `plan.md`
+  > **Comment:** Check narrow phone, tablet and desktop widths for horizontal overflow, clipped controls, fixed-width content, keyboard/input behavior and scroll ownership. Fix only concrete issues; record any residual risk that needs a real browser/device walkthrough.
+  > **Notes:** `— 2026-09-19: DELIVERED — static audit found the public navigation could overflow narrow screens after adding Contact; navigation now wraps and stacks below 768px, then published with `php artisan assets:publish`. Flutter screens use scrollable parents, `Expanded`/`Flexible` or `Wrap` for responsive content; no fixed-width viewport overflow found. Residual risk: full visual confirmation still needs browser widths and physical device/keyboard walkthroughs.`
+
+---
+
+### M35 · Modern responsive public search/filter UI — status: ✅ (1/1 top-level tasks)
+
+- [x] **M35.1 · Replace brittle public filter rows with responsive labeled filter cards** — ✅
+  > **Request:** R142
+  > **Files:** `backend/resources/css/app.css` · `backend/public/css/app.css` · `backend/resources/views/pages/{catalog,stays,reseller-produce}.blade.php` · `plan.md`
+  > **Comment:** Owner: the PG/rentals/homestays search must be fluid, and the same modern treatment should apply to the catalog and farm-produce filters. Use visible labels, full-width controls, responsive grid collapse, clear action grouping and no narrow-screen overflow.
+  > **Notes:** `— 2026-09-19: DELIVERED — public filter forms now use labeled controls, a surface/border/shadow filter card, responsive grid columns, full-width inputs/selects, grouped actions and 2-column/1-column phone collapse. Applied to `/stays`, `/catalog` and `/reseller-produce`; CSS published. 12 focused assertions and full backend 253 tests passed; Flutter analyze clean, 19/19 tests.`
+
+---
+
+### M36 · Clean sharp typography and UI pass — status: ✅ (1/1 top-level tasks)
+
+- [x] **M36.1 · Apply lighter typography, sharper radii and crisp surfaces across web/app** — ✅
+  > **Request:** R143
+  > **Files:** `backend/resources/css/{tokens,app,admin-tokens,admin}.css` · `backend/public/css/` · `mobile/lib/core/theme/{tokens,app_theme}.dart` · `plan.md`
+  > **Comment:** Owner: use a clean, sharp visual language with thinner fonts and slimmer controls while preserving contrast, focus states and 48px touch targets. Publish website CSS and keep web/app tokens aligned.
+  > **Notes:** `— 2026-09-19: DELIVERED — website/admin now use Inter Tight with lighter emphasis, sharper 2/6/8px public radii, 4/8px admin radii, flatter shadows and crisp borders; Flutter uses Inter Tight, lighter app-bar/button weights and 6/8px control/card radii. CSS published. Backend 253 tests, Pint clean; Flutter analyze clean, 19/19 tests.`
+
+---
+
+### M37 · Mobile website app-like shell — status: ✅ (1/1 top-level tasks)
+
+- [x] **M37.1 · Add compact mobile header and bottom navigation** — ✅
+  > **Request:** R144
+  > **Files:** `backend/resources/views/layouts/app.blade.php` · `backend/resources/css/app.css` · `backend/public/css/app.css` · `plan.md`
+  > **Comment:** Owner: when viewed at phone widths, the website should feel like a native mobile app rather than only a squeezed desktop page. Keep desktop navigation intact; mobile gets a compact top bar, account action, fixed bottom tabs and safe-area/content spacing.
+  > **Notes:** `— 2026-09-19: DELIVERED — mobile widths now use a compact Shekuthi header, account action and fixed Home/Browse/Stays/Farm/Account tabs with safe-area padding; desktop navigation remains unchanged. Contact/form/filter pages retain content clearance above the tab bar. Routes and focused legal tests pass.`
+
+---
+
+### M38 · Admin password change with email OTP — status: ✅ (1/1 top-level tasks)
+
+- [x] **M38.1 · OTP-confirmed admin password change** — ✅
+  > **Request:** R145
+  > **Files:** `backend/database/migrations/` 🆕 · `backend/app/Models/PasswordChangeOtp.php` 🆕 · `backend/app/Mail/AdminPasswordOtpMail.php` 🆕 · `backend/resources/views/emails/admin-password-otp.blade.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/PasswordController.php` 🆕 · `backend/resources/views/admin/password.blade.php` 🆕 · `backend/resources/views/layouts/admin.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/AdminPasswordTest.php` 🆕 · `plan.md`
+  > **Comment:** Owner wants `contact@shekuthi.in` to be the initial admin login and a temporary password that can be changed from the admin dashboard. Password changes require a six-digit email OTP, expiry and attempt limits; the temporary password is never stored in code.
+  > **Notes:** `— 2026-09-19: DELIVERED — `/admin/password` sends a hashed-OTP confirmation email, expires codes after 10 minutes, limits attempts to five, consumes the code once and updates the password only after confirmation. SMTP for `contact@shekuthi.in` must be configured in production. 2 tests / 15 assertions passed.` `— 2026-09-24: PRODUCTION VERIFIED — Hostinger SMTP delivery confirmed and the OTP password-change flow works end-to-end for the admin account.`
+
+---
+
+### M39 · About-page AI attribution update — status: ✅ (1/1 top-level tasks)
+
+- [x] **M39.1 · Name OpenCode and the LLMs used in the About disclosure** — ✅
+  > **Request:** R146
+  > **Files:** `backend/resources/views/pages/about.blade.php` · `backend/tests/Feature/AboutPageTest.php` · `plan.md`
+  > **Comment:** Update the existing AI-built disclosure to name OpenCode and GPT, GLM and DeepSeek as the language models used during development.
+  > **Notes:** `— 2026-09-19: DELIVERED — About now names the OpenCode agent and GPT, GLM and DeepSeek language models. Regression test updated.`
+
+---
+
+### M40 · Android APK build and live API verification — status: ✅ (1/1 top-level tasks)
+
+- [x] **M40.1 · Build release APK and verify the live Shekuthi API surface** — ✅
+  > **Request:** R147
+  > **Files:** `mobile/` · `docs/deploy/hostinger.md` · `plan.md`
+  > **Comment:** Build the Flutter release APK with the Shekuthi API/site defaults, run analysis/tests, check the Android SDK and signing state, and smoke-test public API endpoints. APK sideload readiness and Play Store signing readiness must be reported separately.
+  > **Notes:** `— 2026-09-19: DELIVERED — live `/`, `/api/v1/locations`, `/api/v1/posts`, `/api/v1/stays` and `/api/v1/reseller-produce` returned HTTP 200; Flutter analyze clean and 19/19 tests passed. Built `mobile/build/app/outputs/flutter-apk/app-release.apk` (56.7 MB, SHA-256 `c1b12e1731022633408b7915bdc05d0f945d7dfe71e436b2f2679649debcb7b8`), compile/target SDK 36, application label Shekuthi, API/site compiled to `https://shekuthi.in`. APK is v2-signed with the Android debug certificate; a private release keystore is still required for Play Store publishing.`
+
+---
+
+### M41 · Flutter bottom navigation shell — status: ✅ (1/1 top-level tasks)
+
+- [x] **M41.1 · Add persistent app navigation and Back action** — ✅
+  > **Request:** R148
+  > **Files:** `mobile/lib/core/navigation/app_shell.dart` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/test/` · `plan.md`
+  > **Comment:** Owner wants bottom navigation for Home and Back. Main app routes use a shared Material navigation shell with Home, Browse, Farm, Account and Back destinations; login/register remain focused screens outside the shell.
+  > **Notes:** `— 2026-09-19: DELIVERED — ShellRoute wraps the main app routes with Material NavigationBar; login/register stay outside it. Flutter analyze clean, 19/19 tests passed. Rebuilt APK is 57.0 MB with SHA-256 `536e731773fac72e921a6a44ade00ee7ba5a0519cd36f7adce6ef4a2c8d8e82a` and includes the navigation shell.`
+
+---
+
+### M42 · Navigation inset fix + causal functional audit — status: ✅ (2/2 top-level tasks)
+
+- [x] **M42.1 · Make bottom navigation safe-area aware across phones** — ✅
+  > **Request:** R149
+  > **Files:** `mobile/lib/core/navigation/app_shell.dart` · `plan.md`
+  > **Comment:** Owner reports Home/Back navigation overlap on some phones. Wrap the bottom navigation in the device safe area and verify its content is not obscured by Android gesture/navigation insets.
+- [x] **M42.2 · Audit plan requirements through data, logic, API, web, app and tests** — ✅
+  > **Request:** R150
+  > **Files:** `docs/launch/functional-audit.md` 🆕 · `plan.md`
+  > **Comment:** Trace each plan milestone to its causal chain and record verified paths, partial paths, launch blockers and residual risks. Do not claim authenticated/device-only flows are verified from static tests alone.
+  > **Notes:** `— 2026-09-19: DELIVERED — audit document records working causal chains, M27 open gaps and production/device residual risks. SafeArea now wraps the Flutter NavigationBar; Flutter analyze/tests pass. Rebuilt APK includes the fix (57.0 MB, SHA-256 `cfd48257b4be7f95af78824e82339e5cc3c42c104cf4878e1f50d74f36f3017b`). Physical phone verification remains an external follow-up.`
+
+---
+
+### M43 · Mobile auth network diagnostics — status: ✅ (1/1 top-level tasks)
+
+- [x] **M43.1 · Show useful registration/login API and connection errors** — ✅
+  > **Request:** R151
+  > **Files:** `mobile/lib/features/auth/auth_controller.dart` · `mobile/test/` · `plan.md`
+  > **Comment:** The app currently turns connection, TLS, server and validation failures into the same “check your connection” text. Preserve field/server errors and show a useful Shekuthi API connectivity message for true network failures.
+  > **Notes:** `— 2026-09-19: DELIVERED — auth errors now distinguish API validation/status errors, connection failures, timeouts and certificate failures. Flutter analyze clean, 19/19 tests passed; rebuilt APK is 57.0 MB with SHA-256 `0c2ef9b8c8d2ab968446c0c97044dcb9a5e1de8baa7b7f2abef7f260233cf21d`.`
+
+---
+
+### M44 · Android release network permission — status: ✅ (1/1 top-level tasks)
+
+- [x] **M44.1 · Add INTERNET permission to the main Android manifest** — ✅
+  > **Request:** R152
+  > **Files:** `mobile/android/app/src/main/AndroidManifest.xml` · `mobile/` · `plan.md`
+  > **Comment:** The debug manifest had `INTERNET`, but the release APK manifest did not. Add it to the main manifest so release builds can reach the Shekuthi API.
+  > **Notes:** `— 2026-09-19: DELIVERED — main manifest now includes `android.permission.INTERNET`; a fresh 57.0 MB release APK contains the permission, uses the Shekuthi API defaults, and passes Flutter analyze/tests. SHA-256 `72f932f153dca8913ad2e4b0c617903e44e5e0d57bba28e577ce20af0f61bd40`.`
+
+---
+
+### M45 · Email verification + listing approval — status: ✅ (2/2 top-level tasks)
+
+- [x] **M45.1 · Make registration require email-link verification** — ✅
+  > **Request:** R153
+  > **Files:** `backend/app/Models/User.php` · `backend/app/Services/RegistrationService.php` · `backend/app/Http/Controllers/{Api/RegistrationController,Api/AuthController,Web/MemberAuthController,Web/EmailVerificationController,Api/EmailVerificationController}.php` 🆕 · `backend/resources/views/auth/verify-email.blade.php` 🆕 · `backend/routes/{web,api}.php` · `backend/config/app.php` · `backend/.env.example` · `backend/.env.production.example` · `mobile/lib/features/auth/{auth_repository,auth_controller,register_screen}.dart` · `backend/tests/Feature/{EmailVerificationTest,RegistrationTest}.php` · `plan.md`
+  > **Comment:** Registration sends a signed verification link; unverified users cannot log in or use protected API/member routes. SMTP must be configured for delivery. Existing test runs may disable the production gate through `REQUIRE_EMAIL_VERIFICATION=false` in PHPUnit only.
+- [x] **M45.2 · Require admin approval before a new listing becomes active** — ✅
+  > **Request:** R154
+  > **Files:** `backend/app/Models/Product.php` · `backend/app/Http/Controllers/{Api/ListingController,Web/VendorListingController,Web/Admin/ListingModerationController}.php` 🆕 · `backend/app/Http/Requests/UpdateListingRequest.php` · `backend/resources/views/{admin/listings/index,dashboard/index,dashboard/listing-form}.blade.php` · `backend/routes/{web,api}.php` · `backend/tests/Feature/{ListingApprovalTest,ListingsTest}.php` · `plan.md`
+  > **Comment:** Vendor-created listings enter `pending`; only admin approval changes them to `active`. Public catalog queries already expose active listings only. Vendor status controls cannot bypass moderation.
+  > **Notes:** `— 2026-09-19: DELIVERED — production registration returns a verification-pending response and sends Laravel's signed email link; unverified users are blocked by web/API middleware. Vendor-created and vendor-edited products enter `pending`; admin `/admin/listings` can approve or reject them. Listing image uploads require explicit public-visibility consent. Backend 259 tests / 976 assertions; Flutter analyze clean, 19/19 tests. Release build at that point was debug-signed; later M44 fixed INTERNET permission.` `— 2026-09-24: PRODUCTION VERIFIED — Hostinger SMTP delivery confirmed (verification/OTP mail path works).`
+
+---
+
+### M46 · Current function inventory and plan reconciliation — status: ✅ (1/1 top-level tasks)
+
+- [x] **M46.1 · Append current function inventory, evidence and open gaps** — ✅
+  > **Request:** R155
+  > **Files:** `plan.md` · `docs/launch/functional-audit.md`
+  > **Comment:** Reconcile completed/pending milestone summaries with current code, map every major product function across DB/logic/API/web/app/tests, and record current automated/live evidence plus unresolved security, parity and production work.
+  > **Notes:** `— 2026-09-24: DELIVERED — §10–11 index public pages, auth/email verification, vendor/listing moderation and image consent, booking, logistics, worker/volunteer, donations/referrals, DPDP, admin and app functions with key paths, automated/live evidence and open gaps; detailed causal audit in docs/launch/functional-audit.md. Backend 259 tests / 976 assertions; Flutter analyze clean, 19/19 tests; listed public routes/API feeds HTTP 200. Audit found a critical risk: decrypted account exports are written to public storage with guessable filenames; isolate export files and require authenticated/expiring downloads before public launch.`
+
+---
+
+### M47 · Protect data export files — status: ✅ (1/1 top-level tasks)
+
+- [x] **M47.1 · Store exports privately and limit download exposure/retention** — ✅
+  > **Request:** R156
+  > **Files:** `backend/app/Services/DataExportService.php` · `backend/app/Http/Controllers/Api/{DataExportController,DataExportDownloadController}.php` 🆕 · `backend/routes/api.php` · `backend/app/Console/Commands/RetentionSweep.php` · `backend/tests/Feature/{DpdpTest,RetentionSweepTest}.php` · `docs/launch/functional-audit.md` · `plan.md`
+  > **Comment:** Audit finding: exports include decrypted PII but were saved under the public storage disk with predictable user/time filenames and public URLs. Move to private local storage, deliver only through a short-lived signed URL, and delete expired export artifacts while retaining the minimal request audit row.
+  > **Notes:** `— 2026-09-24: DELIVERED — new exports use UUID filenames on the private disk with 10-minute signed download links; retention sweep removes expired private exports and immediately purges legacy public-disk exports. Dpdp/retention tests cover private download, unsigned-URL rejection and legacy cleanup. After deploy, run the exports sweep once and verify old URLs 404.`
+
+---
+
+### M48 · Vendor delayed listing deletion — status: ✅ (1/1 top-level tasks)
+
+- [x] **M48.1 · Delete option after 7 days unpublished (vendor products only)** — ✅
+  > **Request:** R157
+  > **Files:** `backend/database/migrations/` 🆕 · `backend/app/Models/Product.php` · `backend/app/Http/Controllers/Web/{VendorListingController,Admin/ListingModerationController}.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/ListingDeletionTest.php` 🆕 · `plan.md`
+  > **Comment:** Owner scope: vendor `Product` listings only (worker/driver profiles stay separate). Drafts deletable anytime; inactive/archived listings show Delete after 7 days unpublished (`unpublished_at`, backfilled from `updated_at`). Deletion is refused while booking items reference the product (`restrictOnDelete`); own image files + media rows are removed with the listing. API destroy keeps archive behavior.
+  > **Notes:** `— 2026-09-24: DELIVERED — migration adds `unpublished_at` with backfill; status changes (web, API update, admin approve/reject) maintain it without resetting the clock on re-edits. Dashboard shows Delete when eligible, otherwise a 7-day hint. 7 tests; full suite 268 passed / 1012 assertions.`
+
+### M49 · Skill tracking migration — status: ✅ (1/1 top-level tasks)
+
+- [x] **M49.1 · Populate skill plan and request files from the current project** — ✅
+  > **Request:** R158
+  > **Files:** `plan.md` · `SKILL/plan-template/resources/plan.md` · `SKILL/plan-template/resources/request.md` · `AGENTS.md`
+  > **Comment:** Migrate existing task IDs, statuses, file ownership, decisions, change log and function inventories into the skill tracking files; add permanent request links for every task/subtask. Preserve root tracker for the owner to delete later. Request ticks require owner confirmation and are not inferred from historical completion. — 2026-10-05: started documentation migration; user-selected tracking location overrides the skill's root-file default. Verify lossless history and complete unique request mapping; no application code changes or runtime tests required.
+
+
+> Migration verification — 2026-10-05: all original task entries, dated history, decisions and function inventories preserved; each task and named subtask mapped to one unique request. Historical completion is inherited, not re-tested today. Documentation integrity checks pass; no UI/API/CLI behavior changed.
+
+### M50 · Merge remaining skill-folder metadata — status: ✅ (1/1 top-level tasks)
+
+- [x] **M50.1 · Merge README and ignore rules into root and remove SKILL folder** — ✅
+  > **Request:** R159
+  > **Files:** `README.md` · `.gitignore` · `SKILL/README.md` · `SKILL/.gitignore` · `AGENTS.md` · `plan-template/resources/plan.md` · `plan-template/resources/request.md`
+  > **Comment:** Preserve root project documentation and ignore rules, merge remaining SKILL metadata, remove the explicitly requested SKILL directory, and correct active tracking pointers after the owner moved plan-template to the root. Preserve task history and existing plan/request files. — 2026-10-05: started; documentation-only validation, no runtime tests needed. — 2026-10-05: completed; root README content and ignore patterns preserved, all merged README links resolve, unique request links verified, and only the two known legacy files removed.
+
+### M51 · Supplied logo, listing-first app and remaining-work review — status: ✅ (3/3 top-level tasks)
+
+- [x] **M51.1 · Adopt owner-supplied olive logo in app and website** — ✅
+  > **Request:** R160
+  > **Files:** `assets/logo/shekuthi_icon.svg` (read-only input) · `mobile/assets/brand/logo.png` · `mobile/lib/core/branding/app_brand.dart` · `mobile/lib/core/widgets/app_logo.dart` · `mobile/android/app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher.png` · `backend/public/img/logo.svg` · `backend/public/img/favicon.png` · `plan-template/resources/plan.md`
+  > **Comment:** Use supplied SVG unchanged on website, rasterize for existing Flutter Image asset and Android launcher sizes; use same supplied mark in both themes, retain accessible wordmark. Assume owner-supplied brand asset is authorized project artwork, not third-party reference material. No palette redesign or iOS release work. — 2026-10-05: started.
+  > **Notes:** — 2026-10-05: completed and verified. Supplied SVG preserved byte-for-byte in website logo; PNG rasterized for Flutter and five Android launcher densities. Emulator Home logo checked in light/dark; existing website/catalog tests pass (7 tests, 37 assertions). Same logo in both themes; current theme palette retained. Website asset changes are local, not deployed.
+
+- [x] **M51.2 · Show listings on Home with bottom category selection** — ✅
+  > **Request:** R161
+  > **Files:** `mobile/lib/features/home/home_screen.dart` · `mobile/lib/features/catalog/catalog_screen.dart` · `mobile/lib/features/catalog/catalog_controller.dart` · `mobile/lib/core/navigation/app_shell.dart` · `mobile/lib/core/router/app_router.dart` · `mobile/lib/core/theme/tokens.dart` · `mobile/test/home_navigation_test.dart` · `plan-template/resources/plan.md`
+  > **Comment:** Home opens the live catalog with no category restriction; bottom Categories opens all/traditional/agro/stays/farm choices plus public service directories. Keep existing role/service links reachable in More. Reuse search, area filters, detail and pagination; show loading skeleton, explicit empty/error/retry and load-more states. Verify navigation/category reset, light/dark, focus, pressed, loading/empty/error, narrow-screen and text-scale behavior; build, install and open on emulator against production API. — 2026-10-05: started; no fabricated production listings.
+  > **Notes:** — 2026-10-05: completed and verified. Flutter analyze clean; full suite 30/30 passes (11 new widget/controller tests). APK debug build succeeds and installed/opened on emulator-5554 against https://shekuthi.in/api/v1. Verified Home/category menu/filtered screen in emulator, including dark mode and safe-area navigation; tests cover populated/empty/error/retry/paging, narrow 320px layout at 2x text in both themes with area controls, disabled locality, focus/hover/pressed navigation, skeleton at 10% speed, and stale category responses. Live catalog is empty; test fixtures stay out of production. Emulator left on Home in light theme. Physical-device/release checks remain M20.3.
+
+- [x] **M51.3 · Reconcile remaining milestones with current implementation** — ✅
+  > **Request:** R162
+  > **Files:** `plan-template/resources/plan.md` · `plan-template/resources/request.md`
+  > **Comment:** Review existing unfinished task scopes and actual owning files; append an evidence-based remaining-work summary and dated corrections without deleting historical notes. Distinguish missing implementation from release/production verification gates; do not build unrelated milestones. — 2026-10-05: started.
+  > **Notes:** — 2026-10-05: completed and verified. Reviewed unfinished tasks against owning code, latest deployment notes and functional audit; appended §11 with evidence and separate implementation/release gates. No unrelated milestone built; historical completion claims remain dated. Q13 logo portion advanced; final palette and release assets still open.
+
+### M52 · Reconcile built milestones and completion marks — status: ✅ (1/1 top-level tasks)
+
+- [x] **M52.1 · Verify built work and synchronize milestone/task/request completion** — ✅
+  > **Request:** R163
+  > **Files:** `plan-template/resources/plan.md` · `plan-template/resources/request.md`
+  > **Comment:** Owner asks to check already-built work and mark milestones done where implemented. Review task scopes against routes/services/screens/assets and existing state-walk evidence; verify backend/Flutter suites; recalculate milestone counts by permanent task ID (not misplaced section position). Mark fully delivered milestone headings done, retain actual implementation/verification gaps, and synchronize request ticks per this explicit owner instruction. Keep dated historical notes; no product implementation changes. — 2026-10-05: started. — 2026-10-05: completed status audit; 268 backend tests / 1012 assertions and 30 Flutter tests pass. GD loaded only for this test process from checksum-verified Ubuntu package extracted under /tmp. Separate isolated demo-seeder probe failed accept_terms, recorded under reopened M16.1. No product code changed.
+
+### M53 · Mandatory approval and annual listing renewal — status: ✅ (3/3)
+
+- [x] **M53.1 · Enforce admin approval and one-year publication** — ✅
+  > **Request:** R165
+  > **Files:** backend/app/Models/Product.php · backend/database/migrations/2026_10_05_000001_add_listing_lifecycle_to_products.php · backend/app/Services/ListingLifecycleService.php · backend/app/Http/Controllers/Api/ListingController.php · backend/app/Http/Controllers/Web/VendorListingController.php · backend/app/Http/Controllers/Web/Admin/ListingModerationController.php · backend/app/Http/Controllers/Api/CatalogController.php · backend/app/Http/Controllers/Web/ListingController.php · backend/app/Services/BookingService.php · backend/tests/Feature/ListingLifecycleTest.php · backend/tests/Feature/ListingsTest.php · backend/tests/Feature/WebVendorListingTest.php · backend/app/Http/Controllers/Web/BookingController.php
+  > **Comment:** Every create/edit/publication request needs admin review, even when the legacy approval flag is false or the caller is admin. Pause/archive remain possible. Approval starts one calendar year; expired products are hidden and unbookable even before cron. Legacy active rows require fresh review at migration because no approval timestamp exists. — 2026-10-05: started. — 2026-10-05: completed and verified locally; 293 backend tests / 1320 assertions, 51 Flutter tests, analyzer zero issues, touched PHP Pint clean. API/public booking boundaries, moderation and legacy migration/rollback verified.
+
+- [x] **M53.2 · Expire, warn and automatically remove unrenewed listings** — ✅
+  > **Request:** R166
+  > **Files:** backend/app/Services/ListingLifecycleService.php · backend/app/Notifications/ListingExpiryNotification.php · backend/app/Models/BookingItem.php · backend/app/Console/Commands/ListingLifecycleSweep.php · backend/routes/console.php · backend/tests/Feature/ListingLifecycleTest.php · docs/decisions/listing-lifecycle.md
+  > **Comment:** Inactivate at approved_at + one calendar year; delete 30 days later unless renewal awaits approval. Default warnings: expiry and seven days before deletion, email plus existing in-app inbox. Persist independent channel acknowledgments, retry failures, and defer deletion until a seven-day final warning was accepted by both channels. Soft-delete and scrub listing content, retaining only the row needed for order integrity; remove exclusive listing photo files. Dry-run makes no changes. Host cron/mail verification remains Q7/M8.4. — 2026-10-05: timing question sent; default adopted if unanswered after reasonable opportunity. — 2026-10-05: expiry plus seven-day warning schedule adopted after no selection; completed with independent mail/inbox retries, late-scheduler deferral, exact expiry/deletion boundaries, inert dry-run, failure exit code, shared-file preservation and booking tombstones verified. Test mail transport only; host SMTP/cron remain Q7/M8.4.
+
+- [x] **M53.3 · Vendor renewal in app and website** — ✅
+  > **Request:** R167
+  > **Files:** backend/app/Http/Controllers/Api/ListingController.php · backend/app/Http/Controllers/Web/VendorListingController.php · backend/app/Http/Resources/ProductResource.php · backend/routes/api.php · backend/routes/web.php · backend/resources/views/dashboard/index.blade.php · backend/resources/views/dashboard/listing-form.blade.php · mobile/lib/features/vendor/listings/listing_edit_screen.dart · mobile/lib/features/catalog/catalog_repository.dart · mobile/lib/features/vendor/listings/listings_repository.dart · mobile/lib/features/vendor/listings/listings_controller.dart · mobile/lib/features/vendor/listings/listings_screen.dart · mobile/test/listing_lifecycle_test.dart · backend/tests/Feature/ListingLifecycleTest.php · docs/decisions/listing-lifecycle.md
+  > **Comment:** Owner/admin-authorized renewal submits the expired listing to review, suspending automatic deletion while pending. Approval begins a new year. Rejected renewals get a new 30-day warning window. Show correct moderation/expiry states and removal dates, label submission as review, handle busy/errors. Verify local app states, build and open emulator; no production sweep or real messages. — 2026-10-05: started. — 2026-10-05: completed locally: owner/foreign/anonymous/deleted/invalid renewal and rate-limit states pass; app expiry, pending, busy/disabled, failure, retry, loading, empty, hover/focus/pressed and light/dark at 2x text walked in widget tests. Website forms/dashboard rendered through HTTP tests and inherited shared button states reviewed; new renewal/submission actions use 44px base button targets. Creation forms explain mandatory approval without misleading draft/publication controls. Final debug APK built, installed and opened in emulator; production backend unchanged.
+
+### M54 · Driver vehicle selection before directory listing — status: ✅ (1/1)
+
+- [x] **M54.1 · Select and display a vehicle category** — ✅
+  > **Request:** R168
+  > **Files:** backend/database/migrations/2026_10_05_000002_add_vehicle_category_to_users.php · backend/app/Models/User.php · backend/app/Services/DataDeletionService.php · backend/app/Http/Controllers/Api/ProfileController.php · backend/app/Http/Controllers/Web/DriverProfileController.php · backend/app/Http/Controllers/Api/TransportDirectoryController.php · backend/app/Http/Controllers/Web/TransportController.php · backend/resources/views/dashboard/index.blade.php · backend/resources/views/pages/transport.blade.php · backend/tests/Feature/DriverVehicleCategoryTest.php · backend/tests/Feature/DriverTransportTest.php · backend/tests/Feature/TransportDirectoryTest.php · mobile/lib/features/profile/role_profile_repository.dart · mobile/lib/features/driver/work_profile/driver_work_profile_screen.dart · mobile/lib/features/directory/directory_repository.dart · mobile/lib/features/directory/transport_directory_screen.dart · mobile/test/driver_vehicle_category_test.dart · docs/decisions/driver-vehicle-category.md
+  > **Comment:** Require a single vehicle type before saving driver directory work: two-wheeler, three-wheeler, car, van, pickup, truck. Keep vehicle choice separate from offered services. Persist and return it through the existing profile API; app/web work-profile selectors have no fabricated default, and public listings display the selected category. Legacy unclassified drivers remain hidden from Transport & errands until they choose; dispatch/availability rules are outside scope. Driver-only validation and no partial updates on rejection. — 2026-10-05: started; applying plan-template workflow.
+
+  > **Completed:** — 2026-10-05: Required allow-listed app/web vehicle selection, server-supplied options, saved preselection, driver-only validation and directory eligibility/display implemented. Legacy rows remain null and hidden until an explicit selection. Owner profile/export includes the category; erasure clears it. Vehicle choice stays separate from work services and does not change dispatch matching. 297 backend tests / 1407 assertions and 57 Flutter tests pass; analyzer zero issues, touched PHP Pint clean, git diff check clean. Widget walkthrough covers default/empty-options/loading/error/retry/required/save/busy/disabled/hover/focus/pressed and light/dark at 2x text; web form and directory rendering/validation covered by HTTP tests with existing shared design styles. Debug APK built, installed and opened in emulator. Backend migration/production rollout remain M8.4/Q7.
+
+### M55 · Fluid role interfaces and workflow verification — status: ✅ (5/5)
+
+- [x] **M55.1 · Verify all role capabilities and boundaries** — ✅
+  > **Request:** R169
+  > **Files:** backend/tests/Feature/RoleWorkflowAuditTest.php · docs/audits/role-workflows-2026-10-05.md
+  > **Comment:** Audit guest, vendor, driver, collector, volunteer, skilled worker and administrator entry points, owned actions and forbidden role actions; use isolated fixtures and existing workflow suites. Record verified capabilities, fixes, remaining feature gaps and production limitations. Do not fabricate completion of previously unfinished milestones. — 2026-10-05: started using plan-template.
+  > **Completed:** — 2026-10-05: All six registered roles plus guests audited with isolated fixtures and existing workflow suites; 304 backend tests / 1527 assertions pass. Role capability evidence and remaining gaps recorded in docs/audits/role-workflows-2026-10-05.md.
+
+- [x] **M55.2 · Fluid role layouts and spacing** — ✅
+  > **Request:** R170
+  > **Files:** mobile/lib/core/widgets/role_loading.dart · mobile/lib/features/driver/driver_dashboard_screen.dart · mobile/lib/features/collector/collector_home_screen.dart · mobile/lib/features/volunteer/volunteer_home_screen.dart · mobile/lib/features/vendor/profile/vendor_profile_screen.dart · mobile/lib/features/worker/profile/worker_profile_screen.dart · mobile/test/role_layout_audit_test.dart · mobile/test/role_fixture.dart
+  > **Comment:** Walk role dashboards/forms at narrow portrait, landscape and 2x text in light/dark; fix overflow, constrain sheets and use existing spacing tokens. Include collector queue headers, volunteer training/actions and driver base picker. Add meaningful layout/interactions tests, handle errors and busy states discovered in affected role screens. — 2026-10-05: started; driver base sheet currently has an unbounded Column and volunteer training header has unbounded text.
+  > **Completed:** — 2026-10-05: Portrait/landscape, light/dark, 2x text, 30 long driver locality names and keyboard insets verified; affected role network-error states remain usable. Shared loading feedback, wrapping headings and token spacing verified with 95 passing Flutter tests and clean analyzer; emulator debug app installed/opened. Widget snapshots check geometry; physical-device release validation remains M20.3.
+
+- [x] **M55.3 · Show only usable role tools and protect navigation** — ✅
+  > **Request:** R171
+  > **Files:** mobile/lib/core/navigation/role_access.dart · mobile/lib/core/router/app_router.dart · mobile/lib/features/home/home_screen.dart · mobile/lib/features/auth/login_screen.dart · mobile/test/role_navigation_test.dart · mobile/test/home_navigation_test.dart
+  > **Comment:** Central role-path rules shared by menu and router. Guests retain public browse/tracking; signed-in roles see their own workspaces and private inbox/account. Redirect unauthenticated protected paths to login, foreign-role paths to More; retain safe intended destination after sign-in. Add an admin link to the existing website console rather than unsupported app workflows. Bound long account names and preserve consistent card spacing. — 2026-10-05: started; all role shortcuts currently visible to everyone and router has no role guards.
+  > **Completed:** — 2026-10-05: Role-only menus and private-route redirects verified for guest/vendor/driver/collector/volunteer/worker/admin; router remains stable across authentication. Login preserves the safe authorized destination. Existing Home tests now expect guests to have public tools and provider-owned router disposal; analyzer and suite pass.
+
+- [x] **M55.4 · Driver job and errand acceptance through completion** — ✅
+  > **Request:** R172
+  > **Files:** backend/app/Services/DriverWorkService.php · backend/app/Services/JobMatchingService.php · backend/app/Http/Controllers/Api/LogisticsController.php · backend/app/Http/Controllers/Api/ErrandController.php · backend/tests/Feature/DriverWorkLifecycleTest.php · mobile/lib/features/driver/work_queue.dart · mobile/lib/features/driver/driver_jobs_screen.dart · mobile/lib/features/errand/driver_errands_screen.dart · mobile/lib/features/driver/driver_dashboard_screen.dart · mobile/test/driver_work_lifecycle_test.dart
+  > **Comment:** Queues include own assigned/accepted/in-progress work and eligible unassigned work; completion remains reachable after acceptance. Enforce current assignment, base/service-area eligibility and allowed state transitions under row locks; drivers cannot steal another assignment or take collector jobs. App accept/start/complete actions wrap at enlarged text, disable while busy and surface errors. Driver dashboard links to errands as well as jobs. — 2026-10-05: started; queues currently select only requested records, app only offers Accept, backend errand acceptance can overwrite another driver and status can regress.
+  > **Completed:** — 2026-10-05: Assigned work stays visible offline and can be accepted, started and completed. Row-locked ownership/transition guards, disabled-driver matching, collector-job exclusion and repeat-progress behavior tested. UI loading/empty/error/retry/busy and hover/focus/pressed controls tested at 2x light/dark. Backend/full app suites, Pint and analyzer pass.
+
+- [x] **M55.5 · Preserve role profile data and handle missing profiles** — ✅
+  > **Request:** R173
+  > **Files:** backend/app/Http/Controllers/Api/ProfileController.php · backend/app/Http/Controllers/Web/DashboardController.php · backend/resources/views/dashboard/index.blade.php · backend/tests/Feature/RoleWorkflowAuditTest.php
+  > **Comment:** Audit exposed volunteer dashboard null-profile crash and worker contact-only updates clearing advertised services/service areas. Missing volunteer profiles show empty reports without querying others' records; partial profile updates preserve omitted worker fields while explicit null clears them. — 2026-10-05: discovered during M55.1; started.
+  > **Completed:** — 2026-10-05: Missing volunteer profiles render safely with no unassigned report exposure; worker contact-only updates preserve services/areas and explicit null clearing remains supported. Regression tests and full backend suite pass.
+
+### M56 · Home search and location spacing — status: ✅ (1/1)
+
+- [x] **M56.1 · Separate search from location filters** — ✅
+  > **Request:** R174
+  > **Files:** mobile/lib/features/catalog/catalog_screen.dart
+  > **Comment:** Increase the vertical gap between Home search and district/locality fields using existing spacing tokens. Keep existing filter behavior. — 2026-10-05: started; current top inset is only Spacing.xs (4 dp), crowding field labels and the search shadow. Verify with existing Home layout tests, analyzer, debug build and emulator visual check; no new test needed for this token-only spacing adjustment.
+  > **Completed:** — 2026-10-05: Location filter top gap increased from Spacing.xs (4 dp) to Spacing.xl (24 dp); 11 existing Home tests pass including narrow light/dark 2x text and interactive states, analyzer clean, debug APK rebuilt/installed/opened. Emulator screenshot visually confirms separation from search shadow.
+
+### M57 · Bottom navigation on every app screen — status: ✅ (3/3)
+
+- [x] **M57.1 · Keep bottom navigation on all routes** — ✅
+  > **Request:** R175
+  > **Files:** mobile/lib/core/router/app_router.dart · mobile/lib/core/navigation/app_shell.dart · mobile/test/all_screen_navigation_test.dart
+  > **Comment:** Extend the existing single shell to sign-in and registration so every app page keeps Home, Categories, More, Account and Back. Preserve role guards, safe-area insets and pushed-page Back behavior. Keep navigation outside scrolling content and visible above the keyboard; authentication/volunteer/inbox pages select Account. Dialogs and modal sheets remain temporary overlays, not app pages. Verify route coverage and narrow/light/dark/keyboard interactions with isolated fixtures, analyzer/build and emulator. — 2026-10-05: started; auth routes currently bypass the shell.
+  > **Completed:** — 2026-10-05: All 36 route/role combinations share exactly one fixed five-destination shell, including login/register. Account selection covers authentication, volunteer and inbox screens. Keyboard inset keeps the menu above the keyboard; destination taps dismiss input focus. Pushed-screen Back and root fallback verified. Full Flutter suite: 98 tests pass; analyzer clean; debug APK rebuilt, installed and opened. Emulator sign-in and actual keyboard screenshots visually checked; left on Home.
+
+- [x] **M57.2 · Keep compact page content usable with the fixed menu** — ✅
+  > **Request:** R176
+  > **Files:** mobile/lib/features/auth/register_screen.dart · mobile/lib/features/catalog/catalog_screen.dart · mobile/test/all_screen_navigation_test.dart
+  > **Comment:** Navigation verification at 320 dp and 2x text exposed registration dropdown label overflow and Home empty/error content exceeding its result viewport. Expand dropdowns with bounded labels and make empty/error result content scrollable; preserve all form/filter behavior. — 2026-10-05: added from failing navigation state walk; existing unrelated layout defects tracked before editing.
+  > **Completed:** — 2026-10-05: Registration dropdowns expand within available width and long role labels are bounded. Catalog empty/error results scroll within the remaining viewport. Narrow 320 dp light/dark 2x text and navigation tests pass; existing Home loading/empty/error/retry, hover/focus/pressed and slow-motion checks pass in the 98-test suite. No filter or form behavior changed.
+
+- [x] **M57.3 · Emulator smoke test after navigation delivery** — ✅
+  > **Request:** R177
+  > **Files:** `plan-template/resources/plan.md` · `plan-template/resources/request.md`
+  > **Comment:** — 2026-10-05: Owner requested opening and testing the app. Launch pos_test, install current debug APK, walk guest Home/Categories/More/Account, registration and keyboard/Back navigation; run Flutter tests and analyzer. Read-only product interactions; no live account creation or mutations.
+
+  > **Verified:** — 2026-10-05: Current debug APK installed and opened in pos_test. Home empty state, category sheet, More page, sign-in, registration, keyboard above-menu placement and Back exercised visually. Full Flutter suite passes (98 tests); analyzer clean. Android System UI briefly stalled during cold boot and recovered after Wait; authenticated/live write flows were not exercised. App left open on Home.
+
+### M58 · Catalog optimization and SSH update instructions — status: ✅ (2/2)
+
+- [x] **M58.1 · Bound catalog serialization queries** — ✅
+  > **Request:** R178
+  > **Files:** `backend/app/Models/Product.php` · `backend/app/Http/Controllers/Api/CatalogController.php` · `backend/app/Http/Resources/ProductResource.php` · `backend/tests/Feature/CatalogTest.php`
+  > **Comment:** — 2026-10-05: Batch-load active product badges and resolve verification fee once per request rather than per listing. Preserve JSON, revocation and current-fee behavior; no persistent response caching. Verify query counts and existing catalog/verification suites.
+  > **Verified:** — 2026-10-05: Catalog regression proves one badge query and one fee read for 12 listings, with correct revoked/verified/fee states and subsequent fee updates/null. Full backend suite passes: 308 tests / 1570 assertions with temporary GD extension; scoped Pint passes. Additive activeBadge relation preserves lazy-access callers; request-local fee reuse deliberately avoids persistent/static cache invalidation. No UI or database schema changes.
+
+- [x] **M58.2 · Document SSH website updates** — ✅
+  > **Request:** R179
+  > **Files:** `docs/deploy/hostinger.md`
+  > **Comment:** — 2026-10-05: Document upload-first SSH update sequence, production optimized dependencies, migrations, assets and configuration/route/view caches; preserve server environment and public_html layout. Host credentials/path unavailable: use explicit placeholders. No live deployment authorized or performed.
+  > **Verified:** — 2026-10-05: SSH/update command blocks pass bash syntax check. Documented live-recorded PHP 8.2 path, Composer/path placeholders, production storage/environment preservation, failure stop and separate public_html asset publishing. Instructions reviewed against existing host runbook; live execution remains M8.4 and is not part of this documentation task.
+
+### M59 · Logo-derived green, white and black brand kit — status: 🔄
+
+- [ ] **M59.1 · Apply approved logo palette across website and app** — 🔄
+  > **Request:** R180
+  > **Files:** `backend/resources/css/{tokens,admin-tokens,app,admin}.css` · `backend/public/css/{tokens,admin-tokens,app,admin}.css` · `mobile/lib/core/theme/{tokens,app_theme}.dart` · `mobile/test/tokens_test.dart` · `docs/design/brand-kit.md` · `docs/design/tokens.md`
+  > **Comment:** — 2026-10-05: Owner selects logo green #008000, white #FFFFFF and black #000000 only. Retain neutral blends/opacity for hierarchy; replace blue/indigo/red/amber styling with token-driven green/monochrome roles. Explicit mobile light/dark scheme prevents generated hue drift. Status meaning remains in text/icons. Logo reference read-only. Verify contrast, existing light/dark interaction/layout tests, analyzer, CSS publication and APK build; document approved kit.
+  > **Verification:** — 2026-10-05: Palette implemented across Flutter and all four website/dashboard CSS source and served files; brand-kit documented. 99 Flutter tests pass, analyzer clean; 24 website/auth/catalog tests / 111 assertions pass. Theme tests verify green-or-neutral roles and AA contrast; emulator Home visually checked. APK built. Browser renderer unavailable (no browser tool/Chromium/Playwright), so full website visual state walk remains outstanding and M59.1 stays 🔄 per definition of done. No production deployment. Owner palette approval supersedes Q13 color uncertainty; no third-party reference edited.
+
+### M60 · Local website and app preview — status: ✅ (1/1)
+
+- [x] **M60.1 · Serve isolated local website/API and emulator app** — ✅
+  > **Request:** R181
+  > **Files:** `plan-template/resources/plan.md` · `plan-template/resources/request.md`
+  > **Comment:** — 2026-10-05: Owner requests local app/website review before live update. Serve repository backend on port 8000 with isolated SQLite database in /tmp, log-only mail and local URLs; seed reference/demo accounts into local database only. Build/install debug app with emulator host API 10.0.2.2. Keep live site/data unchanged; provide URLs and local login details. Runtime artifacts are not committed.
+  > **Verified:** — 2026-10-05: Local SQLite migrations/reference seed/demo seed pass; server running on port 8000, browser opened. Home and catalog API return 200; emulator app rebuilt/installed/opened with API_BASE_URL=http://10.0.2.2:8000/api/v1 and SITE_BASE_URL=http://10.0.2.2:8000; server logs confirm app catalog/location requests. Email verification disabled only in local runtime, mail log-only; no live mutations or committed environment edits. Local database: /tmp/shekuthi-preview.sqlite. Existing emulator auth may need sign-out because local accounts differ. — Corrected PHP router working directory to backend/public after initial HTML fatal response; confirmed catalog JSON {data: [], meta: ...} and retried emulator. Local preview has no seeded listings; demo accounts and reference areas only.
+
+### M61 · Original hill-village and produce homepage illustration — status: ✅ (2/2)
+
+- [x] **M61.1 · Replace homepage hero art with branded original SVG** — ✅
+  > **Request:** R182
+  > **Files:** `backend/public/img/hill-village-produce.svg` · `backend/resources/views/pages/home.blade.php`
+  > **Comment:** — 2026-10-05: Owner requests original vector illustration of a hill village and farm produce, using logo green #008000, white, black and neutral gray only. Replace homepage hero image with accessible alt text, preserve responsive sizing; leave third-party art/reference files untouched. Render SVG for visual QA, validate XML/palette and verify local homepage markup/asset responses. No raster image generation needed for native SVG.
+  > **Completed:** — 2026-10-05: Original 560×420 SVG (~5.3 KB): terraced hills, village homes, woven produce basket, greens/radishes/squash/corn; only approved green/white/black/gray fills. Homepage image and alt text replaced, intrinsic size/responsive CSS retained. XML/palette and local homepage replacement checks pass; homepage/asset HTTP responses verified; six AssetPublish/Stay tests / 17 assertions pass. Firefox renders inspected for artwork and actual homepage at 1440px desktop and 390px mobile: no clipping or overflow. Static illustration has no interactive/loading/error states; existing layout/colors unchanged. Prior artwork left untouched; no live deployment.
+
+- [x] **M61.2 · Simplify landscape using reference inspiration** — ✅
+  > **Request:** R183
+  > **Files:** `backend/public/img/hill-village-produce.svg` · `ATTRIBUTION.md`
+  > **Comment:** — 2026-10-05: Owner supplies Vecteezy landscape emblem as inspiration and requests attribution; strengthen rolling hills and minimalist landscape shapes, preserve village/produce context and use only #008000/#FFFFFF/#000000. Reference is not copied or distributed. Record supplied link and unverified creator/license honestly; original SVG remains project work. Validate XML/palette and desktop/mobile render.
+  > **Completed:** — 2026-10-05: Black mountain silhouettes and white peak cutouts added behind green rolling terraces; all gray fills removed. Village/harvest retained. Vecteezy search listing identifies Dylan Ramjee and Free License/Attribution Required; full page fetch unavailable, so inspiration based on supplied reference description and broad landscape style, no tracing/source asset copying. Creator/source/use recorded in ATTRIBUTION.md. SVG XML and exact three-color palette checks pass; actual local homepage desktop 1440px and mobile 390px Firefox renders visually checked. Static asset-only revision: no extra automated test needed beyond XML/palette/local rendering checks.
+
+### M62 · Brand-color image vector conversion — status: ✅ (1/1)
+
+- [x] **M62.1 · Trace supplied landscape into a true SVG** — ✅
+  > **Request:** R184
+  > **Files:** `scratch/brand-landscape-traced.svg` · `ATTRIBUTION.md` · `.gitignore`
+  > **Comment:** — 2026-10-05: Owner requests conversion of supplied WhatsApp landscape JPEG to actual vector paths with logo green/white/black. Create local ignored derivative only, retain mountain/village and farm/fence composition; no embedded raster. Source authorship/license unknown, so do not commit derivative or replace homepage. Validate XML/palette, render and provide local artifact.
+  > **Completed:** — 2026-10-05: Converted at 800×800 tracing resolution to closed vector contours with black/green paths and white background (~310 KB). Color separation retains pale mountains/highlights and farm/crop/fence detail; small isolated specks removed. XML and exact palette checks pass; no image element or raster payload. Firefox-rendered preview visually inspected. Texture is flattened to three colors, not watercolor gradients. Local derivative ignored; source provenance recorded. No homepage replacement or production change.
+
+- [ ] **M62.2 · Use traced SVG on local homepage** — 🚫 superseded by M62.3
+  > **Request:** R185
+  > **Files:** `backend/public/img/brand-landscape-traced.svg` · `backend/resources/views/pages/home.blade.php` · `.gitignore` · `ATTRIBUTION.md`
+  > **Comment:** — 2026-10-05: Owner explicitly requests replacing homepage hero with generated traced SVG. Copy local derivative to runtime public image path; keep it ignored/uncommitted under asset isolation rule. Update accessible alt text; preserve layout. Verify local HTTP serving and desktop/mobile renders. No live upload.
+
+- [x] **M62.3 · Use supplied landscape with transparent background** — ✅
+  > **Request:** R186
+  > **Files:** `backend/public/img/home-landscape-cutout.png` · `backend/resources/views/pages/home.blade.php` · `.gitignore` · `ATTRIBUTION.md`
+  > **Comment:** — 2026-10-05: Owner supersedes traced SVG request with supplied 20261005_183123_0000.png; remove exterior white background using imagegen while preserving image content/color and interior sky. Replace local homepage art, ignore derivative per asset isolation; verify alpha and desktop/mobile rendering. No live deployment.
+  > **Completed:** — 2026-10-05: Built-in imagegen cutout created; 1254×1254 RGBA alpha range 0–255 verified. Prompt: remove exterior white canvas, preserve hills/sky/fields/building and original colors. Homepage references ignored PNG with accurate intrinsic dimensions and alt text. Desktop 1440px/mobile 390px Firefox renders inspected; six homepage tests / 17 assertions pass. Prior SVG remains on disk; source provenance recorded; no production upload.
+
+### M63 · GitHub publication and Git-based Hostinger update — status: 🔄
+
+- [ ] **M63.1 · Commit and push current tracked implementation** — 🔄
+  > **Request:** R187
+  > **Files:** Existing M49–M62 tracked file lists and implementation changes · `docs/deploy/hostinger.md` · `plan-template/resources/{plan,request}.md`
+  > **Comment:** — 2026-10-05: Owner explicitly requests GitHub push and SSH Git update instructions. Publish accumulated implementation/docs/tests to origin/main after checks; exclude local image derivatives, asset references, environment/secrets and local runtime DB. Document fast-forward updates from repo root, preserving host environment/storage and separate public_html assets. Illustration requires one separate upload because asset-isolation policy forbids committing it.
+
+## 6 · Open questions and decisions
+
+
+> Decided questions keep their row (never delete — history). Record the chosen answer as a dated note here + an ADR in `docs/decisions/`.
+
+| Q# | Question | Status | Decision / options | Affects |
+|----|----------|--------|--------------------|---------|
+| Q1 | How do bookings settle? | ✅ decided 2026-09 (default) | **Option A: offline settlement** (cash/bank/UPI direct) — platform never touches money; `settled_offline=true` on bookings. B (gateway) deferred to a later milestone if ever needed | M3.1, M6.3 |
+| Q2 | Android framework | ✅ decided 2026-09 | **Flutter**, single role-based app | M1.2 |
+| Q3 | App / website split | ✅ decided 2026-09 | All roles in one app; website browse-only, no registration | M1.4, M2.4 |
+| Q4 | Donations model | ✅ decided 2026-09 | UPI ID + QR image, admin-uploaded; no gateway at launch | M6.1, M6.2 |
+| Q5 | MOQ semantics | ✅ decided 2026-09 | **Per-item** enforced at booking creation (qty ≥ product.moq); stock caps the maximum when set; stock is not auto-decremented (vendors manage it) — revisit if reservation is needed | M3.1, M1.3e |
+| Q6 | Volunteer TA/DA funding | ✅ decided 2026-09-18 | **Verification fee** (admin-set in the settings dashboard) paid by the vendor directly to the visiting volunteer — platform never touches the money; fee snapshot stored on the badge. See ADR `docs/decisions/Q6-verification-fee.md` | M5.1, M5.4, M5.3 |
+| Q7 | Hostinger limits | ⏸️ open | PHP version, cron availability, storage/S3 — decides queues, jobs, deploys. `— 2026-09-05: shared-hosting constraints decided (no Redis → database cache/session/queue drivers; synchronous jobs); ADR docs/decisions/Q7-hosting.md; cron + PHP pin still unconfirmed with host` `— 2026-09-18: cron decision (best practice) — use Laravel scheduler, ONE host cron entry `* * * * * php artisan schedule:run`; APP_CRON_ENABLED defaults OFF (safe: no automatic data deletion until explicitly enabled); manual `php artisan retention:sweep --dry-run` fallback documented in M7.5/M8.4. Host-side line registered at deploy (M8.4).` `— 2026-09-19: local PHP 8.3.6/platform checks pass; actual Hostinger plan PHP/extensions, document root, storage symlink, cron and backups remain host-side gates. shekuthi.in currently returns Hostinger 404.` | M1.1, M7.5, M8.1, M8.4, M32.2 |
+| Q7 | Hostinger limits | ⏸️ open | PHP version, cron availability, storage/S3 — decides queues, jobs, deploys. `— 2026-09-05: shared-hosting constraints decided (no Redis → database cache/session/queue drivers; synchronous jobs); ADR docs/decisions/Q7-hosting.md; cron + PHP pin still unconfirmed with host` `— 2026-09-18: cron decision (best practice) — use Laravel scheduler, ONE host cron entry `* * * * * php artisan schedule:run`; APP_CRON_ENABLED defaults OFF (safe: no automatic data deletion until explicitly enabled); manual `php artisan retention:sweep --dry-run` fallback documented in M7.5/M8.4. Host-side line registered at deploy (M8.4).` `— 2026-09-19: local PHP 8.3.6/platform checks pass; actual Hostinger plan PHP/extensions, document root, storage symlink, cron and backups remain host-side gates. shekuthi.in currently returns Hostinger 404.` | M1.1, M7.5, M8.1, M8.4, M32.2 |
+| Q8 | Maps & geocoding | ✅ decided 2026-09-18 | **No map SDK, no geocoding, no ETA, no live GPS.** Users only see which drivers are **online now** in which locality, from `driver_availability` + `rider_base_operations`. See ADR `docs/decisions/Q8-maps.md` | M4.6, M1.2 |
+| Q9 | Media storage | ⏸️ open | Local disk first; Hostinger Object Storage (S3-compatible) later? | M2.3 |
+| Q10 | Region, currency, language | ✅ decided 2026-09-18 | **India, Nagaland only** (both platform regions and launch). Currency ₹. English + Nagamese/local dialects as copy needs. No multi-region logic anywhere — districts/localities carry IDs (already the pattern). See ADR `docs/decisions/Q10-region.md` | M8.4, M8.5, M4.1 |
+| Q11 | Website UI template | ✅ decided 2026-09 | **minimalist-swiss-design.md** adopted; tokens in `backend/public/css/tokens.css`; ADR `docs/decisions/Q11-website-template.md` | M0.1, M0.4 |
+| Q12 | Dashboard UI system | ✅ decided 2026-09 | **genesis-DESIGN.md** adopted; tokens in `backend/public/css/admin-tokens.css`; ADR `docs/decisions/Q12-dashboard-system.md` | M0.2, M0.4 |
+| Q13 | Brand: name, logo, palette | ⏸️ open | **Name decided: Shekuthi (2026-09-19).** — 2026-10-05 (M59.1): owner approves logo green #008000, white and black for app and website; palette decided. Remaining brand collateral scope stays open. Playbooks: ip-as-logo / brandkit / brand-guidelines — 2026-10-05: owner-supplied assets/logo/shekuthi_icon.svg adopted in app/web and Android launcher under M51.1; palette/collateral remain open. | M0.7, M32.1 |
+| Q14 | Android min/target SDK | ✅ decided 2026-09 | Flutter defaults (minSdk 21); ADR `docs/decisions/Q14-android-sdk.md` | M1.2, M0.3 |
+| Q15 | Website registration scope | ✅ decided 2026-09-18 | **Web registration shipped for all registerable roles** (M8.6, owner request); buyers stay anonymous. M2.1's "(Q15 still open)" is closed by this | M2.1, M8.6 |
+| Q16 | Wireframes before screens? | 🚫 dropped 2026-09-18 | All role UIs shipped without a wireframe pass and passed state-walk reviews; not revisited unless a redesign lands | M2–M6 UI tasks |
+| Q17 | `vendor/` directory in git | ✅ decided 2026-09-19 | **`.gitignore` it** — verified `backend/vendor/` is ignored and untracked (0 tracked files) — and run `composer install --no-dev` on deploy (already documented in the Hostinger runbook). M8.8's earlier wording ("vendor is committed") was inaccurate. | M8.8, M8.4 |
+
+---
+
+
+## 7 · Change log
+
+> One row per completed task or notable change. Newest first.
+
+| Date | Task ID | Change | Files touched |
+|------|---------|--------|---------------|
+| 2026-10-05 | M62.3 · Transparent landscape homepage | Imagegen background removal, RGBA verified, desktop/mobile layout and six tests pass; supersedes traced SVG homepage selection. | `backend/public/img/home-landscape-cutout.png` · `backend/resources/views/pages/home.blade.php` · `.gitignore` · `ATTRIBUTION.md` |
+| 2026-10-05 | M62.1 · Supplied image to vector | True contour-path SVG in three brand colors; XML/palette/no-raster and rendered preview checked; derivative locally ignored. | `scratch/brand-landscape-traced.svg` · `.gitignore` · `ATTRIBUTION.md` |
+| 2026-10-05 | M61.2 · Landscape inspiration and attribution | Added black mountain silhouettes/white cutouts, removed gray; credited supplied Vecteezy reference; XML/palette and desktop/mobile visual checks pass. | `backend/public/img/hill-village-produce.svg` · `ATTRIBUTION.md` |
+| 2026-10-05 | M61.1 · Hill village and produce SVG | Original brand-palette hero art replaces farmer illustration; XML, local serving, desktop/mobile renders and six homepage tests pass. | `backend/public/img/hill-village-produce.svg` · `backend/resources/views/pages/home.blade.php` |
+| 2026-10-05 | M60.1 · Local preview | Isolated local DB with demo users; website opened, HTTP 200 verified; emulator built against local API and connected. | `plan-template/resources/{plan,request}.md` |
+| 2026-10-05 | M59.1 · Brand palette implementation | Logo green/white/black applied to app and website/dashboard tokens; served CSS published, tests/analyzer/build pass. Website browser state walk outstanding; task remains in progress. | `mobile/lib/core/theme/{tokens,app_theme}.dart` · `mobile/test/tokens_test.dart` · `backend/{resources,public}/css/{tokens,admin-tokens,app,admin}.css` · `docs/design/{brand-kit,tokens}.md` |
+| 2026-10-05 | M58.1–M58.2 · Catalog queries and SSH updates | Batch badges/request-local fees; 308 tests / 1570 assertions, Pint and command syntax pass; deployment instructions added, no live deployment. | `backend/app/Models/Product.php` · `backend/app/Http/{Controllers/Api/CatalogController,Resources/ProductResource}.php` · `backend/tests/Feature/CatalogTest.php` · `docs/deploy/hostinger.md` |
+| 2026-10-05 | M57.3 · Emulator smoke test | Installed/opened debug APK; guest navigation, auth forms and keyboard visually checked; 98 tests and analyzer pass. Cold-boot System UI stall recovered. | `plan-template/resources/{plan,request}.md` |
+| 2026-10-05 | M16.1 · Demo seeder repair | Synthetic member payload accepts terms through RegistrationService; fresh/repeat seeding, consent, credential reset, profile repair and default-seed isolation verified (14 tests / 85 assertions); scoped Pint passes. | `backend/database/seeders/DemoAccountsSeeder.php` · `backend/tests/Feature/DemoAccountsSeederTest.php` |
+| 2026-10-05 | M57.1 · All-screen bottom menu | Auth routes moved inside one shell; keyboard-aware fixed menu, role selection and Back verified; 98 tests and analyzer pass; emulator built/opened. | `mobile/lib/core/{router/app_router.dart,navigation/app_shell.dart}` · `mobile/test/all_screen_navigation_test.dart` |
+| 2026-10-05 | M57.2 · Compact content with fixed menu | Expanded registration dropdowns and scrollable catalog empty/error states; narrow large-text/light/dark checks pass. | `mobile/lib/features/{auth/register_screen.dart,catalog/catalog_screen.dart}` · `mobile/test/all_screen_navigation_test.dart` |
+| 2026-10-05 | M56.1 · Home filter spacing | Increased search-to-location gap to 24 dp; 11 Home tests, analyzer, debug build and emulator visual check pass. | `mobile/lib/features/catalog/catalog_screen.dart` |
+| 2026-10-05 | M55.1 | All six registered roles plus guests audited with isolated fixtures and existing workflow suites; 304 backend tests / 1527 assertions pass. Role capability evidence and remaining gaps recorded in docs/audits/role-workflows-2026-10-05.md. | See task owning files and `docs/audits/role-workflows-2026-10-05.md` |
+| 2026-10-05 | M55.2 | Portrait/landscape, light/dark, 2x text, 30 long driver locality names and keyboard insets verified; affected role network-error states remain usable. Shared loading feedback, wrapping headings and token spacing verified with 95 passing Flutter tests and clean analyzer; emulator debug app installed/opened. Widget snapshots check geometry; physical-device release validation remains M20.3. | See task owning files and `docs/audits/role-workflows-2026-10-05.md` |
+| 2026-10-05 | M55.3 | Role-only menus and private-route redirects verified for guest/vendor/driver/collector/volunteer/worker/admin; router remains stable across authentication. Login preserves the safe authorized destination. Existing Home tests now expect guests to have public tools and provider-owned router disposal; analyzer and suite pass. | See task owning files and `docs/audits/role-workflows-2026-10-05.md` |
+| 2026-10-05 | M55.4 | Assigned work stays visible offline and can be accepted, started and completed. Row-locked ownership/transition guards, disabled-driver matching, collector-job exclusion and repeat-progress behavior tested. UI loading/empty/error/retry/busy and hover/focus/pressed controls tested at 2x light/dark. Backend/full app suites, Pint and analyzer pass. | See task owning files and `docs/audits/role-workflows-2026-10-05.md` |
+| 2026-10-05 | M55.5 | Missing volunteer profiles render safely with no unassigned report exposure; worker contact-only updates preserve services/areas and explicit null clearing remains supported. Regression tests and full backend suite pass. | See task owning files and `docs/audits/role-workflows-2026-10-05.md` |
+| 2026-10-05 | M54.1 · Driver vehicle categories | Driver vehicle required before Transport & errands directory listing; app/web selectors and public labels, export/erasure continuity, validation and legacy gating verified. 297 backend / 57 app tests; analyzer/Pint clean; emulator app rebuilt/opened. | Owned user/migration/profile/directory/view files and tests; `docs/decisions/driver-vehicle-category.md` |
+| 2026-10-05 | M53.1 · Mandatory moderation and annual publication | Approval bypass removed; timestamps, migration legacy review/rollback and immediate expiry guards verified. | `backend/app/Models/Product.php`, `backend/app/Services/ListingLifecycleService.php`, controllers, migration and owned tests |
+| 2026-10-05 | M53.2 · Scheduled warnings and removal | Expiry + seven-day email/inbox warnings, independent retries, late-run safety, dry-run/failure counts, scrubbed booking tombstones and exclusive image removal verified. | `backend/app/Services/ListingLifecycleService.php`, `backend/app/Notifications/ListingExpiryNotification.php`, command, scheduler, `backend/app/Models/BookingItem.php`, tests and lifecycle ADR |
+| 2026-10-05 | M53.3 · Owner renewal and approval UI | App/web renewal, deadlines, pending states and mandatory submission copy; 293 PHP tests / 1320 assertions, 51 app tests, analyzer/Pint, debug APK installed/opened. | Owned API/resources/routes, dashboard/form views, app catalog/listing files, tests, `docs/decisions/listing-lifecycle.md` |
+| 2026-10-05 | M5.7 · Verification photo limits | Four photos and 500 KB per evidence image, enforced in app/report/upload/shared validator, including existing oversized media. Boundary/retry/state checks pass. | `backend/app/{Models/Verification.php,Support/UploadValidator.php,Http/Controllers/Api/MediaController.php,Http/Controllers/Api/VerificationController.php}` · `backend/tests/Feature/VerificationTest.php` · `mobile/lib/features/volunteer/verification_report_screen.dart` · `mobile/test/verification_report_screen_test.dart` |
+| 2026-10-05 | M7.1 · Complete purpose-consent capture | Explicit errand/push permission, atomic version/time capture, owner-scoped grants/list/revoke, push revocation and token ownership; app unchecked consent gating and retry states verified. | `backend/app/Http/Controllers/Api/{ConsentController,ErrandController,DeviceTokenController}.php` · `backend/app/Services/{AccountDataScope,NotificationService}.php` · `backend/tests/Feature/{DpdpTest,NotificationTest,LogisticsTest,ServiceAreaTest}.php` · `mobile/lib/features/errand/{errand_request_screen,errand_repository}.dart` · `mobile/test/errand_consent_test.dart` |
+| 2026-10-05 | M7.2 · Complete private account export | All registered-account role/activity/media data mapped with portable file contents; participant/credential boundaries and private admin rerun marker verified. | `backend/app/Services/{AccountDataScope,DataExportService}.php` · `backend/app/Http/Controllers/Web/Admin/DataRequestController.php` · `backend/tests/Feature/AccountDataLifecycleTest.php` · `docs/security/account-data.md` |
+| 2026-10-05 | M7.3 · Complete application account erasure | Role/activity/media/export cleanup, access disablement, preserved anonymized integrity, other-user isolation, storage-failure retry and legacy file coverage verified. Host backup/restore operations remain Q7/M8.4. | `backend/app/Services/{AccountDataScope,DataDeletionService}.php` · `backend/app/Http/Middleware/EnsureActiveAccount.php` · `backend/app/Http/Controllers/Api/DataExportDownloadController.php` · `backend/bootstrap/app.php` · `backend/routes/{api,web}.php` · `backend/tests/Feature/AccountDataLifecycleTest.php` · `docs/security/account-data.md` |
+| 2026-10-05 | M27.4–M27.6 · Resolve matching privacy audit gaps | Closed through M7.1–M7.3 without duplicate implementations. Full backend 281 tests / 1210 assertions; Flutter 44 tests; analyzer/Pint clean; APK rebuilt and opened. | `plan-template/resources/{plan,request}.md` |
+| 2026-10-05 | M5.2 · Complete verification evidence app flow | Up to eight visit photos, previews/removal and retry reuse; shared volunteer-scoped evidence upload, versioned public-photo permission and complete draft response. Full backend 271 tests / 1046 assertions; Flutter 39 tests; analyzer/Pint clean; debug APK built and opened in emulator. | `backend/app/Http/Controllers/Api/{MediaController,VerificationController}.php` · `backend/app/Models/Consent.php` · `backend/tests/Feature/VerificationTest.php` · `mobile/lib/features/volunteer/{verification_report_screen,volunteer_repository}.dart` · `mobile/test/{verification_report_screen,volunteer_repository}_test.dart` · `plan-template/resources/{plan,request}.md` |
+| 2026-09-24 | — · Production verification (SMTP/OTP/region) | **Production confirmations from the live Hostinger session.** Hostinger SMTP delivery verified; admin OTP password-change flow works end-to-end; `DistrictLocalitySeeder` run in production and districts/localities verified. Site serves over HTTPS on PHP 8.2 (SSH uses `/opt/alt/php82/usr/bin/php`); migrations applied; `APP_KEY`/`PII_INDEX_KEY` set; `public_html/storage` symlink verified with a live file check. Still pending: commit + deploy the private-export fix (M47, currently uncommitted working-tree changes), run the legacy-export cleanup sweep, cron/backup/FCM confirmation, legal identity values, and Play Store signing. | `plan.md` |
+| 2026-09-24 | M48.1 · Vendor delayed listing deletion | **Vendors can permanently delete a listing after it has been unpublished for 7 days.** Drafts deletable anytime; inactive/archived rows show Delete once `unpublished_at` is 7+ days old (backfilled from `updated_at`; status changes maintain it without resetting on re-edit). Deletion refuses listings referenced by orders and removes the vendor's image files + media rows. **7 new tests; full suite 268 passed / 1012 assertions.** | `backend/database/migrations/2026_09_24_000001_add_unpublished_at_to_products_table.php` 🆕 · `backend/app/Models/Product.php` · `backend/app/Http/Controllers/Web/{VendorListingController,Admin/ListingModerationController}.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/ListingDeletionTest.php` 🆕 · `plan.md` |
+| 2026-09-24 | M47.1 · Private data exports | **Decrypted exports no longer sit on the public disk.** New exports use UUID filenames on private storage with 10-minute signed download links; the retention sweep deletes expired private exports and immediately purges legacy public-disk exports while keeping the request audit row. After deploy, run the exports sweep and verify old URLs 404. | `backend/app/Services/DataExportService.php` · `backend/app/Http/Controllers/Api/{DataExportController,DataExportDownloadController}.php` · `backend/routes/api.php` · `backend/app/Console/Commands/RetentionSweep.php` · `backend/tests/Feature/{DpdpTest,RetentionSweepTest}.php` · `plan.md` |
+| 2026-09-24 | M46.1 · Current function inventory and plan reconciliation | **Audited the plan against implementation and evidence.** Appended §11 function lookup and updated `docs/launch/functional-audit.md` for M45 email verification, listing approval and image consent; recorded 259 backend tests / 976 assertions, Flutter analyzer + 19 tests, and live public endpoint checks. Reconciled app worker profile/admin moderation as complete. Flagged a **critical export exposure risk**: decrypted data export is stored on public disk with guessable filenames; protect it before public launch. DPDP deletion/consent, evidence capture, story link, ordinary pickup, listing deletion and other parity/operations gaps remain explicit. | `plan.md` · `docs/launch/functional-audit.md` |
+| 2026-09-19 | M45 · Email verification + listing approval | **Registration now requires email verification before account use.** Signed links are emailed through SMTP, unverified web/API users are blocked, and the app reports the verification-pending state. New and edited vendor listings are `pending` until admin approval at `/admin/listings`; public catalog remains active-only; listing image upload requires explicit public-visibility consent in production. **259 backend tests / 976 assertions**, Flutter analyze 0 / 19 tests; APK rebuilt with the behavior, 57.0 MB, SHA-256 `af1c5dc61270da1222db00df9da66570d69ca86475c7f5b6e47ebccad43295db`. | `backend/database/migrations/2026_09_19_000004_create_password_change_otps_table.php` · `backend/app/{Models/User.php,Models/Consent.php,Services/RegistrationService.php,Models/Product.php,Middleware/EnsureEmailIsVerified.php,Http/Controllers/Api/{AuthController,RegistrationController,EmailVerificationController,ListingController,ConsentController}.php,Http/Controllers/Web/{MemberRegistrationController,MemberAuthController,EmailVerificationController,VendorListingController,Admin/ListingModerationController}.php}` · `backend/routes/{web,api}.php` · `backend/resources/views/{auth/verify-email.blade.php,admin/listings/index.blade.php,dashboard/listing-form.blade.php}` · `backend/tests/Feature/{EmailVerificationTest,ListingApprovalTest}.php` · `mobile/lib/features/auth/{auth_repository,auth_controller,register_screen}.dart` · `mobile/android/app/src/main/AndroidManifest.xml` · `plan.md` |
+| 2026-09-19 | M44.1 · Android release network permission | **Fixed release APK network access.** The `INTERNET` permission was present only in the debug manifest, so release APKs could not reach Shekuthi despite phone connectivity. Added it to the main manifest and rebuilt the APK; `aapt` confirms the permission. New APK SHA-256: `72f932f153dca8913ad2e4b0c617903e44e5e0d57bba28e577ce20af0f61bd40`. | `mobile/android/app/src/main/AndroidManifest.xml` · `plan.md` |
+| 2026-09-19 | M43.1 · Mobile auth network diagnostics | **Improved registration/login error reporting.** The app now shows validation messages from the API and distinguishes connection, timeout, certificate and HTTP server failures instead of always saying “check your connection”. Rebuilt APK: 57.0 MB, SHA-256 `0c2ef9b8c8d2ab968446c0c97044dcb9a5e1de8baa7b7f2abef7f260233cf21d`. | `mobile/lib/features/auth/auth_controller.dart` · `plan.md` |
+| 2026-09-19 | M42 · Navigation inset fix + causal functional audit | **Fixed bottom navigation overlap risk** by wrapping the Flutter NavigationBar in `SafeArea(top: false)` and documented a causal audit from schema/logic through API/web/app/test evidence. Audit confirms core listing, booking, collection, legal and public-content paths, while keeping M27 DPDP, evidence, verification-story, pickup, parity, production and device gaps explicit. Rebuilt APK includes the fix: 57.0 MB, SHA-256 `cfd48257b4be7f95af78824e82339e5cc3c42c104cf4878e1f50d74f36f3017b`. | `mobile/lib/core/navigation/app_shell.dart` · `docs/launch/functional-audit.md` 🆕 · `plan.md` |
+| 2026-09-19 | M41.1 · Flutter bottom navigation shell | **Added persistent mobile navigation.** Main app routes now use a shared Material bottom bar with Home, Browse, Farm, Account and Back destinations; authentication screens remain focused outside the shell. Rebuilt Shekuthi APK: 57.0 MB, SHA-256 `536e731773fac72e921a6a44ade00ee7ba5a0519cd36f7adce6ef4a2c8d8e82a`. Flutter analyze clean, 19/19 tests. | `mobile/lib/core/navigation/app_shell.dart` 🆕 · `mobile/lib/core/router/app_router.dart` · `plan.md` |
+| 2026-09-19 | M40.1 · Android APK build + live API verification | **Built a Shekuthi release APK** against `https://shekuthi.in` after installing a local JDK 17, Android SDK 36, build tools and NDK/CMake. APK: `mobile/build/app/outputs/flutter-apk/app-release.apk`, 56.7 MB, SHA-256 `c1b12e1731022633408b7915bdc05d0f945d7dfe71e436b2f2679649debcb7b8`. Live public API endpoints returned HTTP 200; Flutter analyze clean and 19/19 tests passed. The APK is valid for sideload testing but uses the Android debug certificate; Play Store release signing remains separate. | `plan.md` |
+| 2026-09-19 | M39.1 · About-page AI attribution update | **Expanded the About-page AI disclosure** to name the OpenCode coding agent and GPT, GLM and DeepSeek language models used during development. | `backend/resources/views/pages/about.blade.php` · `backend/tests/Feature/AboutPageTest.php` · `plan.md` |
+| 2026-09-19 | M38.1 · Admin password change with email OTP | **Added secure admin password changes.** `/admin/password` sends a six-digit OTP to the logged-in admin email; codes are hashed, expire after 10 minutes, allow five attempts and are single-use. New password hashes are stored only with the pending challenge until the OTP is confirmed. Initial `contact@shekuthi.in` admin creation remains a one-time SSH/Tinker operation; configure Hostinger SMTP before using email confirmation. 2 tests / 15 assertions. | `backend/database/migrations/2026_09_19_000004_create_password_change_otps_table.php` 🆕 · `backend/app/Models/PasswordChangeOtp.php` 🆕 · `backend/app/Mail/AdminPasswordOtpMail.php` 🆕 · `backend/resources/views/emails/admin-password-otp.blade.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/PasswordController.php` 🆕 · `backend/resources/views/admin/password.blade.php` 🆕 · `backend/resources/views/layouts/admin.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/AdminPasswordTest.php` 🆕 · `plan.md` |
+| 2026-09-19 | M37.1 · Mobile website app-like shell | **Mobile website now behaves more like a native app.** At phone widths the desktop navigation becomes a compact top bar with an account action plus a fixed bottom tab bar for Home, Browse, Stays, Farm and Account; content and footer reserve safe-area/tab space. Desktop navigation remains unchanged. | `backend/resources/views/layouts/app.blade.php` · `backend/resources/css/app.css` · `backend/public/css/app.css` · `plan.md` |
+| 2026-09-19 | M36.1 · Clean sharp typography and UI pass | **Applied a cleaner, sharper visual language.** Website and admin surfaces now use Inter Tight, lighter heading/control weights, sharper radii, flatter shadows and crisp borders; Flutter uses Inter Tight with lighter app-bar/button weights and smaller control/card radii. Served CSS published. **253 backend tests / 942 assertions**, Pint clean; Flutter analyze 0 / 19 tests. | `backend/resources/css/{tokens,app,admin-tokens,admin}.css` · `backend/public/css/` · `mobile/lib/core/theme/{tokens,app_theme}.dart` · `plan.md` |
+| 2026-09-19 | M35.1 · Modern responsive public search/filter UI | **Reworked public filter forms for fluid layouts.** `/stays` (PG/rentals/homestays), `/catalog` and `/reseller-produce` now use visible labels, responsive filter cards, full-width controls, grouped Search/Clear actions and mobile 2-column/1-column collapse. Served CSS republished. **253 backend tests / 942 assertions**, Pint clean; Flutter analyze 0 / 19 tests. | `backend/resources/css/app.css` · `backend/public/css/app.css` · `backend/resources/views/pages/{catalog,stays,reseller-produce}.blade.php` · `plan.md` |
+| 2026-09-19 | M34.1 · Responsive UI fluidity audit | **Responsive audit completed.** The website navigation now wraps and stacks below 768px instead of overflowing narrow screens; served CSS was republished. Flutter layouts were statically checked for scrollable parents, `Expanded`/`Flexible`/`Wrap` usage and fixed-width overflow. No additional mobile overflow was found. Residual risk: final browser-width and physical-device/keyboard walkthrough still required. | `backend/resources/css/app.css` · `backend/public/css/app.css` · `mobile/lib/` · `plan.md` |
+| 2026-09-19 | M33 · Contact, grievance and peer-to-peer responsibility copy | **Added Shekuthi contact and grievance details.** `contact@shekuthi.in` and grievance officer `K Hika Zhimomi` are now defaults in legal config/env examples and appear on `/contact`, About, Privacy, Terms and Disclaimer surfaces. Disclaimer now states that applicable district/state/local/municipal rate rules remain the users' responsibility and Shekuthi is only a peer-to-peer connector; no rates or money are set/held by the platform. 2 tests / 22 assertions. | `backend/config/legal.php` · `backend/.env.example` · `backend/.env.production.example` · `backend/app/Http/Controllers/Web/PageController.php` · `backend/resources/views/{layouts/app,pages/about,pages/contact,pages/disclaimer}.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/ContactAndLegalTest.php` 🆕 · `docs/launch/compliance.md` · `plan.md` |
+| 2026-09-19 | M32 · Shekuthi + Hostinger readiness | **Public brand renamed to Shekuthi and production defaults target `https://shekuthi.in`.** User-facing web/app names, Android label, iOS display name, app title and documentation updated; internal package identifiers intentionally remain stable. Flutter release defaults now target the Shekuthi API/site while local development can still override them with `--dart-define`. Hostinger runbook updated with the deployment verdict, PHP/extensions (including GD and DOM), document-root/storage guidance, exact production env/cron/mail/legal requirements, cache commands and smoke tests. **Verdict: code is compatible with shared hosting, but public deployment is not ready until the Hostinger/owner launch gates are completed; the current domain returns Hostinger 404.** Backend 251 tests / 930 assertions; Flutter analyze clean, 19/19 tests. | `backend/config/{app,branding}.php` · `backend/.env.example` · `backend/.env.production.example` · `backend/composer.json` · `backend/tests/Feature/AboutPageTest.php` · `mobile/lib/{app.dart,core/branding/app_brand.dart,core/network/api_client.dart,features/home/home_screen.dart}` · `mobile/android/app/src/main/AndroidManifest.xml` · `mobile/ios/Runner/Info.plist` · `mobile/pubspec.yaml` · `README.md` · `backend/README.md` · `mobile/README.md` · `docs/deploy/hostinger.md` · `docs/launch/checklist.md` · `docs/decisions/Q7-hosting.md` · `plan.md` |
+| 2026-09-19 | M31.1 · Third-party asset hygiene | **Third-party art and reference docs removed from the repo and credited.** Untracked 7,675 files that are not our work — the Tabler icon sets, unDraw and Flowbite illustrations, `backend/public/img/*.svg`, the nine `UX/*_SKILL.md` and seven `ui deisgns/**` documents — and gitignored those paths; local copies stay on disk so development is unaffected. New `ATTRIBUTION.md` credits each owner with source links and a restore note: Tabler (MIT), unDraw, Flowbite, designmd.ai (Genesis/Verdana/WattVision, MIT), designmd.app (website templates, CC BY 4.0), jakubkrehel/skills, ehmo/platform-design-skills, sleekdotdesign/agent-skills, mattpocock/skills, Leonxlnx/taste-skill; four files marked source-unconfirmed rather than guessed. README updated; `mobile/assets/icons/README.md` placeholder keeps the pubspec asset path valid in a clone. Note: files still exist in earlier commits — a history rewrite is tracked as an open item. | `.gitignore` · `ATTRIBUTION.md` 🆕 · `README.md` · `mobile/assets/icons/README.md` 🆕 · `plan.md` |
+| 2026-09-19 | M30.1 · Media limits & optimisation | **2 MB cap, downscale + WebP, max 4 photos per listing.** Upload cap cut 5 MB → 2 MB in the shared validator, which now also **downscales the long side to 1600 px** (bicubic, alpha preserved) before the existing WebP q82 encode — so stored files are genuinely smaller, not just converted. Listings are capped at **4 photos** via one source of truth (`Product::MAX_IMAGES`) enforced in the API requests, the web form (including a total-on-edit guard) and the app picker; form copy/JS updated. Applies to all uploads (listing photos, UPI QR, verification evidence). 3 new tests; **backend 251 passed / 929 assertions**, Pint clean; Flutter analyze 0 / 19 tests. | `backend/app/Support/UploadValidator.php` · `backend/app/Models/Product.php` · `backend/app/Http/Requests/{ListingRequest,UpdateListingRequest}.php` · `backend/app/Http/Controllers/Web/VendorListingController.php` · `backend/resources/views/dashboard/listing-form.blade.php` · `backend/public/js/listing-form.js` · `mobile/lib/features/vendor/listings/listing_edit_screen.dart` · `backend/tests/Feature/{MediaUploadTest,ListingsTest}.php` · `plan.md` |
+| 2026-09-19 | M29.2 · AI-built disclosure | **About page discloses that the project was built with AI.** New "Built with AI" section: built with the AI coding tool **opencode**, using the **GLM** and **DeepSeek** language models; states plainly that AI-assisted is not a claim of correctness — the same tests and review apply and mistakes are possible. Test asserts the disclosure renders. | `backend/resources/views/pages/about.blade.php` · `backend/tests/Feature/AboutPageTest.php` · `plan.md` |
+| 2026-09-19 | M29 · Open source | **Published to GitHub under MIT; About page invites use and contribution.** Added the MIT `LICENSE` and pushed the full history to `github.com/openlogic75-cloud/listingplatform` (public). About page gains an "Open source" section: the source is free to use, study and build on under MIT, and contributions/bug reports are welcome, with a link to the repository. Repo URL is env-driven (`SOURCE_REPO_URL` → `config('branding.repository_url')`), defaulting to the GitHub repo. | `LICENSE` 🆕 · `backend/config/branding.php` · `backend/.env.example` · `backend/resources/views/pages/about.blade.php` · `plan.md` |
+| 2026-09-19 | M28 · Collectors & reseller farm produce | **Collector role made real + farm-produce reseller section + collections.** A collector is an admin-signed role for exactly one sub-division (locality) and cannot sign in until assigned; collectors move farm produce from the sub-division to an admin-marked hub district (Dimapur/Kohima/Chümoukedima seeded) and do **not** do the driver delivery/errand flow. New `collector_assignments` (one per locality + user), `districts.is_hub`, `logistics_jobs.{collect_produce,drop_district_id,fee_inr}`. New `Product::CATEGORY_FARM_RESELLER` with public `/reseller-produce` section + API feed, a home section and app `/farm-produce`. Collection jobs auto-assign to the sub-division's collector via `JobMatchingService::collectorFor()`; vendor requests from the web dashboard and app `/collections/new`, collector accepts → collected → dropped; **the fee is paid directly to the collector, platform takes nothing**. Also resolves M27.1 (collector dead end) and the collection side of M27.2. 9 new backend tests (246 passed / 906 assertions), Pint clean; 4 new app repository tests (analyze 0, 19/19). Run `php artisan migrate`. | `backend/database/migrations/2026_09_19_000003_add_collector_and_collection_fields.php` 🆕 · `backend/app/Models/{CollectorAssignment,District,LogisticsJob,Product,User}.php` · `backend/app/Services/JobMatchingService.php` · `backend/app/Http/Controllers/Web/{ResellerProduceController,CollectionController,DashboardController,Admin/CollectorController,Admin/LocalityController,MemberAuthController}.php` · `backend/app/Http/Controllers/Api/{ResellerProduceController,CollectorController,CollectionController,AuthController}.php` · `backend/app/Http/Requests/ListingRequest.php` · `backend/resources/views/{pages/reseller-produce.blade.php,admin/collectors/index.blade.php,admin/localities/index.blade.php,layouts/app.blade.php,layouts/admin.blade.php,dashboard/index.blade.php,components/product-card.blade.php,pages/home.blade.php,pages/listing.blade.php}` · `backend/routes/{web,api}.php` · `backend/tests/Feature/{CollectorAssignmentTest,ResellerProduceTest,CollectionJobTest}.php` 🆕 · `mobile/lib/features/collector/{collector_repository,collector_home_screen}.dart` 🆕 · `mobile/lib/features/vendor/collections/collection_request_screen.dart` 🆕 · `mobile/lib/features/catalog/catalog_screen.dart` · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `mobile/test/collector_repository_test.dart` 🆕 · `plan.md` |
+| 2026-09-19 | M27 · Production audit | **Cause→effect audit of every requirement.** Verdict: not production ready. Findings filed as M27.1–M27.8: **collector role is a dead end** (registerable but base/availability reject non-drivers, matcher ignores collectors, no UI); **vendor pickup request has no client** (API only); **volunteer report can't attach evidence photos**, so the M25 story can't get photos; **DPDP export returns only user+consents**; **no consent rows for errand contact or notifications**; **deletion doesn't clear all PII** (errand contacts, media, tokens); no listing→story link in the API; web catalog lacks area/price filters. Existing app gaps already tracked (M13.1/M13.3/M14.1/M14.2/M21.3/M25.3). Launch blockers: Q7 deploy, Q13 brand, FCM key, app signing, `LEGAL_*` unset, no git remote. | `plan.md` |
+| 2026-09-19 | — · Repo recovery & flatten | **Disk pressure (94% full) truncated 31 git objects and the last commit**, breaking `git commit` (`bad object HEAD`). Repaired by deleting the empty objects, rebuilding the index from the working tree and re-creating the affected commits; then **flattened the repository into a single clean commit** (identical 8,114 tracked files; full history preserved in §7) after confirming `git status` clean, `git fsck` clean, `git gc` and a **full clone** succeed. Old `.git` backed up outside the repo. Also verified `backend/vendor/` is gitignored and untracked → **Q17 decided** (`.gitignore` + `composer install --no-dev`), closing M8.8. | `.git` (re-initialised) · `plan.md` |
+| 2026-09-19 | M22.2 + M25.2 · App stories + questionnaire | **App: stories reader and the platform visit questionnaire.** New blog feature (repository + `/stories` list + `/stories/:slug` detail with cover, date, featured business, body and the **visit photo grid**) with a home card; the blog API now returns `images`. The volunteer site-visit report fetches the platform questionnaire (`GET /api/v1/verification-questionnaire`) and submits `checklist` as `{question_id: yes/no}`, replacing two hardcoded checkboxes — so an approved visit's story carries the real answers. 2 new repository tests; **flutter analyze 0 issues, 15/15 tests**; backend 240 tests green, Pint clean. Volunteer photo upload in the app filed as M25.3. | `mobile/lib/features/blog/{blog_repository,stories_screen,story_screen}.dart` 🆕 · `mobile/lib/features/volunteer/{volunteer_repository,verification_report_screen}.dart` · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `mobile/test/blog_repository_test.dart` 🆕 · `backend/app/Http/Controllers/Api/PostController.php` · `plan.md` |
+| 2026-09-19 | M26 · Legal & DPDP compliance | **Terms, Privacy and Disclaimer pages + DPDP consent.** Full Terms (18 sections), DPDP-shaped Privacy (rights, retention, security, public fields, grievance) and Disclaimer (no vouching, verification is a record not a guarantee); operator details are env-driven (`config/legal.php`) and show a placeholder until set; footer links added. **Registration now requires explicit acceptance** (server-enforced) and records a `consents` row with the notice version; the app register screen has the 18+/Terms checkbox and the profile links to the legal pages. Consent notice + DPDP→implementation checklist in `docs/`. 4 new tests; **backend 240 tests green, Pint clean, flutter analyze 0/13**, assets published. | `backend/config/legal.php` 🆕 · `backend/resources/views/pages/{terms,privacy,disclaimer}.blade.php` · `backend/app/Http/Controllers/Web/PageController.php` · `backend/routes/web.php` · `backend/resources/views/layouts/app.blade.php` · `backend/resources/views/auth/register.blade.php` · `backend/app/Services/RegistrationService.php` · `backend/tests/Feature/LegalComplianceTest.php` 🆕 · `docs/dpdp/consent-notice.md` 🆕 · `docs/launch/compliance.md` 🆕 · `mobile/lib/features/auth/{register_screen,auth_controller,auth_repository}.dart` · `mobile/lib/features/profile/profile_screen.dart` · `plan.md` |
+| 2026-09-19 | M25.1 · Questionnaire + signed story | **The volunteer is the verifier.** Platform-provided visit questionnaire (`GET /api/v1/verification-questionnaire`, 6 questions); on admin approval the visit becomes a **blog story authored by the volunteer** with their evidence photos and answers (linked to the vendor), and the badge snapshots the volunteer's **name + photo** and links to the story (`badges.post_id`). Volunteer profile accepts a photo (own uploads only). Listing "Verified by" links to the story; story page shows the photo gallery. Migration adds `posts.images`, `badges.volunteer_photo`/`post_id`, `verification_volunteers.photo_path`. 3 new tests; **backend 236 tests green, Pint clean**; live questionnaire verified. | `backend/database/migrations/2026_09_19_000002_add_verification_story_fields.php` 🆕 · `backend/app/Support/VerificationQuestionnaire.php` 🆕 · `backend/app/Http/Controllers/Api/{VerificationQuestionnaireController,VolunteerController}.php` · `backend/app/Services/VerificationReviewService.php` · `backend/app/Models/{Post,Badge,VerificationVolunteer}.php` · `backend/resources/views/pages/{post,listing}.blade.php` · `backend/routes/api.php` · `backend/tests/Feature/VerificationStoryTest.php` 🆕 · `plan.md` |
+| 2026-09-19 | M24.1 · Positioning correction | **The platform is a connector, not a gatekeeper — no vouching** (owner). About rewritten: hero says it is a connector and not a party to any deal; buyer/reseller/worker/volunteer cards make clear dealings and terms are between the parties; the badge card is now "an on-site visit record … not a guarantee from us"; "What we do not do" leads with "We do not vouch for anyone" and "We are not a party to any deal"; volunteers "keep the visit fee as their allowance and gain experience". Same qualifier added to the listing page's verified/fee line. Live `/about` 200; backend 233 tests green. | `backend/resources/views/pages/about.blade.php` · `backend/resources/views/pages/listing.blade.php` · `plan.md` |
+| 2026-09-19 | M24.1 · About page rewrite | **About rewritten around the stakeholders and the full feature set** (owner request): mission (farmers/sellers, logistics, buyers, resellers), "Who it helps" (6 stakeholder cards), "What you can do here" (catalog search, PG/rentals/stays section, worker & transport directories, guest booking with MOQ, transport & errands, verified badges, owner-approved affiliates, sales records + PDF, UPI donations, blog) and "What we do not do" (no commission, no on-platform transactions, no forced accounts, no location tracking/Q8). Live `/about` 200; backend 233 tests green. | `backend/resources/views/pages/about.blade.php` · `plan.md` |
+| 2026-09-19 | M23.1 · Stays section | **Dedicated PG / rentals / homestays section** (owner request). Web `/stays` lists accommodation only with search + district/locality (grouped) + price filters; nav "PG & stays"; home-page section of the latest stays. `GET /api/v1/stays` for the app, and the app catalog accepts an `initialCategory` so a home shortcut opens it pre-filtered. Fixed the `gte:min_price` rule that errored when min was absent. 5 tests; **backend 233 tests green, Pint clean, flutter analyze 0/13 tests**; live-verified. | `backend/app/Http/Controllers/Web/StayController.php` 🆕 · `backend/resources/views/pages/stays.blade.php` 🆕 · `backend/app/Http/Controllers/Api/StayController.php` 🆕 · `backend/app/Http/Controllers/Web/HomeController.php` · `backend/resources/views/{pages/home,layouts/app}.blade.php` · `backend/routes/{web,api}.php` · `backend/tests/Feature/{StayTest,StayApiTest}.php` 🆕 · `mobile/lib/features/catalog/catalog_screen.dart` · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `plan.md` |
+| 2026-09-19 | M22.1 · Blog / community stories | **Blog for promoting farms & businesses** (owner request). Admin CRUD at `/admin/posts` (draft/published, cover image via the shared WebP validator, optional featured vendor + excerpt, publish stamps `published_at`); public `/blog` (cards) and `/blog/{slug}` article with a "Visit <shop>" link; read-only `GET /api/v1/posts` for the app. Body stored as plain text, rendered escaped with line breaks (no raw HTML). Nav links on both layouts. 10 tests; **backend 228 tests green, Pint clean**; live end-to-end verified. | `backend/database/migrations/2026_09_19_000001_create_posts_table.php` 🆕 · `backend/app/Models/Post.php` 🆕 · `backend/app/Http/Controllers/{Web/Admin/PostController,Web/PostController,Api/PostController}.php` 🆕 · `backend/resources/views/{admin/posts/index,admin/posts/form,pages/blog,pages/post}.blade.php` 🆕 · `backend/resources/views/layouts/{admin,app}.blade.php` · `backend/routes/{web,api}.php` · `backend/tests/Feature/{AdminPostTest,BlogTest,PostApiTest}.php` 🆕 · `plan.md` |
+| 2026-09-19 | M21.2 · Commission approval model | **Correction to the affiliate model (owner):** the platform must not auto-credit a commission — the owner decides, since they know the marketer personally and pay them directly. A completed order records the conversion as **pending**; the owner **approves or declines** it on the dashboard. Only approved conversions count toward commission; the card shows the commission amount, orders/rides per code, the approved total, and a pending-approval queue. Nothing moves through the platform. 2 new tests (owner approve/decline, non-owner forbidden); **backend 218 tests green, Pint clean**; live-verified code creation. | `backend/database/migrations/2026_09_18_000009_add_approval_to_referral_events.php` 🆕 · `backend/app/Models/ReferralEvent.php` · `backend/app/Services/ReferralService.php` · `backend/app/Http/Controllers/Web/ReferralController.php` · `backend/resources/views/dashboard/_affiliate.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/AffiliateCommissionTest.php` · `plan.md` |
+| 2026-09-18 | M21.2 · Affiliate commissions | **Peer-to-peer affiliate commissions, vendors + drivers.** Audit found `recordConversion` was never called (conversions always zero); now a completed booking credits the code it was booked through, with the commission snapshotted (`order_value` + `amount_inr`). Owners set the commission **per code** — percent or fixed. Referral codes are owned by a user (`owner_user_id`), so drivers can run them too; vendor_id made nullable with existing codes backfilled. Web create/list card on the dashboard for vendor and driver. **No money moves** — recorded only. 5 tests (percent, fixed, web create vendor, web create driver, role guard); **backend 216 tests green, Pint clean**. | `backend/database/migrations/2026_09_18_000008_add_sales_and_affiliate_fields.php` 🆕 · `backend/app/Models/{Referral,ReferralEvent,Booking,Errand}.php` · `backend/app/Services/{ReferralService,BookingService}.php` · `backend/app/Http/Controllers/Web/{ReferralController,BookingController,DashboardController}.php` 🆕 · `backend/resources/views/dashboard/{index,_affiliate}.blade.php` 🆕 · `backend/routes/web.php` · `backend/tests/Feature/AffiliateCommissionTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M21.1 · Vendor sales report | **Vendor dashboard sales card (month/quarter/year) + PDF download.** "Sales" = completed bookings (honest, settled directly); new `bookings.completed_at` drives the periods. Added dompdf as the PDF renderer (vendor committed — no composer on the host). 3 tests; live PDF verified. **Backend 216 tests green, Pint clean, assets published.** | `backend/app/Services/VendorSalesReport.php` 🆕 · `backend/app/Http/Controllers/Web/{VendorReportController,DashboardController}.php` 🆕 · `backend/resources/views/reports/vendor-sales.blade.php` 🆕 · `backend/resources/views/dashboard/index.blade.php` · `backend/composer.json` · `backend/composer.lock` · `backend/vendor/**` · `backend/routes/web.php` · `backend/tests/Feature/VendorSalesReportTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M20.2 · Production readiness audit | **Reviewed both surfaces.** Website: substantially ready (prod env template, security hardening, DPDP, assets publishing, 208 tests) — go-live blocked only by **Q7** (host PHP/cron) and **Q13** (brand), with **Q17** affecting the deploy flow; deploy itself not run (M8.4). App: feature-complete for core flows and URL-configurable, but **not buildable to a release here** (no Android SDK/keystore) and push needs an FCM key → M20.3. Findings recorded in the M20.2 task. | `plan.md` |
+| 2026-09-18 | M20.1 · App parity | **The app now mirrors the recent web/API features** (owner request). Added a directory feature (repository + **Skilled workers** and **Transport & errands** screens; transport has an online badge and a public call button), a shared `RoleProfileRepository`, and **Driver work profile** + **Skilled worker profile** screens for categories/custom work. New routes `/workers`, `/transport`, `/driver/work`, `/worker/profile` and home shortcuts. **flutter analyze 0 issues; flutter test 13/13 green.** | `mobile/lib/features/directory/*` 🆕 · `mobile/lib/features/profile/role_profile_repository.dart` 🆕 · `mobile/lib/features/driver/work_profile/*` 🆕 · `mobile/lib/features/worker/profile/*` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `mobile/test/directory_repository_test.dart` 🆕 · `plan.md` |
+| 2026-09-18 | M19.1 · Real localities seed | **206 localities seeded for Dimapur (29), Kohima (58), Chümoukedima (50) and Niuland (73)** from the districts' published administrative lists (owner request; not invented). Seeder is now additive/idempotent — re-running adds only new names and preserves admin edits; remaining districts keep HQ only. Admin editing unchanged (comma multi-add / rename / Active tick). 3 tests; **backend 208 tests green, Pint clean**; live `/api/v1/locations` verified. | `backend/database/seeders/DistrictLocalitySeeder.php` · `backend/tests/Feature/DistrictLocalitySeederTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M18.2 · Transport directory | **Public Transport & errands directory** at `/transport`: all active drivers with an Online/Offline badge, filterable by transport category, each with a **public `tel:` call button** (owner accepted the PII trade-off; privacy copy updated). `GET /api/v1/transport` for the app. 5 tests; live-verified end-to-end. | `backend/app/Http/Controllers/Web/TransportController.php` 🆕 · `backend/resources/views/pages/transport.blade.php` 🆕 · `backend/app/Http/Controllers/{Api/TransportDirectoryController,Api/ProfileController}.php` · `backend/resources/views/{layouts/app,pages/privacy}.blade.php` · `backend/routes/{web,api}.php` · `docs/dpdp/privacy-policy.md` · `backend/tests/Feature/TransportDirectoryTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M18.1 · Transport categories | **Separate transport/errand categories** (admin-managed, 10 seeded) + driver ticks and public contact phone. Worker/skills admin screens share one generic category view (`admin/categories/index.blade.php`); the skills view was folded into it. Driver dashboard gained a "Work you provide" card; API `PUT /profile` handles driver categories. 8 tests; **backend 205 tests green, Pint clean**. | `backend/database/migrations/2026_09_18_000007_create_transport_categories_tables.php` 🆕 · `backend/app/Models/{TransportCategory,User}.php` · `backend/database/seeders/{TransportCategorySeeder,DatabaseSeeder}.php` · `backend/app/Http/Controllers/Web/{Admin/TransportCategoryController,Admin/SkillCategoryController,DriverProfileController,DashboardController}.php` · `backend/app/Http/Controllers/Api/ProfileController.php` · `backend/resources/views/{admin/categories/index,dashboard/index,layouts/admin}.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/{AdminTransportCategoryTest,DriverTransportTest}.php` 🆕 · `plan.md` |
+| 2026-09-18 | M17.3 · Worker directory | **Public skilled-worker directory** at `/workers` (category filter pills, premium cards: name, district, skill tags, custom-work snippet; nav link) + `GET /api/v1/workers?category_id=` for the app. Only active workers are listed; retired categories hidden. **Decision: contact PII is not exposed** — a request/contact flow is future work. 5 tests; live end-to-end verified; **backend 192 tests green, Pint clean**. | `backend/app/Http/Controllers/Web/WorkerController.php` 🆕 · `backend/resources/views/pages/workers.blade.php` 🆕 · `backend/app/Http/Controllers/Api/WorkerDirectoryController.php` 🆕 · `backend/resources/views/layouts/app.blade.php` · `backend/resources/css/app.css` · `backend/routes/{web,api}.php` · `backend/tests/Feature/WorkerDirectoryTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M17.2 · Skill categories | **Skilled workers tick categories or add custom work** (owner request). Admin-managed `skill_categories` table (seeded with 18 trades, active flag) + pivot to worker profiles; admin screen at `/admin/skills` (comma multi-add, rename, retire) + nav; worker dashboard/tick checkboxes + "Other work you provide" free text; API `PUT /profile` accepts `skill_category_ids` and returns the categories. 8 tests; **backend 187 tests green, Pint clean**. | `backend/database/migrations/2026_09_18_000006_create_skill_categories_tables.php` 🆕 · `backend/app/Models/{SkillCategory,WorkerProfile}.php` · `backend/database/seeders/{SkillCategorySeeder,DatabaseSeeder}.php` · `backend/app/Http/Controllers/Web/Admin/SkillCategoryController.php` 🆕 · `backend/resources/views/admin/skills/index.blade.php` 🆕 · `backend/app/Http/Controllers/{Web/WorkerProfileController,Api/ProfileController,Web/DashboardController}.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/resources/views/layouts/admin.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/{WorkerSkillsTest,AdminSkillCategoryTest}.php` 🆕 · `plan.md` |
+| 2026-09-18 | M17.1 · Volunteer approval | **Volunteers now register as pending and need admin approval to sign in** (owner request). Migration adds `verification_volunteers.verification_status` (pending/approved/rejected) + reviewer/timestamp, backfilling existing rows to approved; registration creates pending; both web and API login block unapproved volunteers; new `/admin/volunteers` queue (approve/reject + recently reviewed) with nav entry. Demo seeder ships an approved and a pending volunteer. 6 tests; **backend 179 tests green, Pint clean**. | `backend/database/migrations/2026_09_18_000005_add_approval_status_to_verification_volunteers_table.php` 🆕 · `backend/app/Models/VerificationVolunteer.php` · `backend/app/Services/RegistrationService.php` · `backend/app/Http/Controllers/{Web/MemberAuthController,Api/AuthController}.php` · `backend/app/Http/Controllers/Web/Admin/VolunteerController.php` 🆕 · `backend/resources/views/admin/volunteers/index.blade.php` 🆕 · `backend/resources/views/layouts/admin.blade.php` · `backend/routes/web.php` · `backend/database/seeders/DemoAccountsSeeder.php` · `backend/tests/Feature/VolunteerApprovalTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M12.4 · Web vendor bookings | **Vendor bookings now visible and actionable on the website**: `/dashboard/bookings` lists code, guest contact (tel link), items with quantity/price snapshots and notes, with only the allowed next-step buttons (from `BookingService::TRANSITIONS`) — the one lifecycle is shared with the app. Ownership via `BookingPolicy`. Vendor dashboard gained a Bookings stat + link. Also fixed a shared gap: the layout never rendered `session('status')`, so all prior "saved" confirmations were invisible — added a flash alert + `.alert.success`. 6 tests; **backend 173 tests green, Pint clean**; assets published; live 200. | `backend/app/Http/Controllers/Web/VendorBookingController.php` 🆕 · `backend/resources/views/dashboard/bookings.blade.php` 🆕 · `backend/app/Http/Controllers/Web/DashboardController.php` · `backend/resources/views/{dashboard/index,layouts/app}.blade.php` · `backend/resources/css/app.css` · `backend/routes/web.php` · `backend/tests/Feature/WebVendorBookingTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M12.3 · Web vendor profile | **Vendors can edit their shop profile on the website** (name, phone, shop name, description; category/district stay registration-time) via a prefilled "Shop profile" card. Phone uniqueness extracted to the shared `App\Rules\UniquePhone` (reused by the skilled-worker form). 4 tests; **backend 167 tests green, Pint clean**; assets published. | `backend/app/Http/Controllers/Web/VendorProfileController.php` 🆕 · `backend/app/Rules/UniquePhone.php` 🆕 · `backend/app/Http/Controllers/Web/WorkerProfileController.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/WebVendorProfileTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M12.2 · Web listing actions | **Publish / pause / archive straight from the vendor dashboard** (`PUT /dashboard/listings/{product}/status`, row buttons with `.btn-sm`); per-photo removal already shipped in M12.1. 3 tests; **backend 163 tests green, Pint clean**. | `backend/app/Http/Controllers/Web/VendorListingController.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/resources/css/app.css` · `backend/routes/web.php` · `backend/tests/Feature/WebVendorListingTest.php` · `plan.md` |
+| 2026-09-18 | M15.3 · Web worker profile | **Skilled-worker profile editable on the website** (was app-only). Form for name/phone/services matching `PUT /profile`; blind-index phone uniqueness guard added (the API profile update lacked one). Collector keeps a read-only card. 5 tests; **backend 160 tests green, Pint clean**; assets published; live 200. | `backend/app/Http/Controllers/Web/WorkerProfileController.php` 🆕 · `backend/resources/views/dashboard/index.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/WebWorkerProfileTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M15.2 · Web driver base | **Drivers can set their base of operation on the website** (was app-only, same class of dead-end as the vendor bug). District select + locality check-options reusing the shared `ActiveLocality` rule and API constraints (active district, ≤5, pairing); JS filters by district, clears stale picks and caps at five; server re-validates. 7 tests; **backend 160 tests green, Pint clean**; assets published; live 200. | `backend/app/Http/Controllers/Web/DriverBaseController.php` 🆕 · `backend/app/Http/Controllers/Web/DashboardController.php` · `backend/resources/views/dashboard/index.blade.php` · `backend/resources/css/app.css` · `backend/public/js/driver-base.js` 🆕 · `backend/routes/web.php` · `backend/tests/Feature/WebDriverBaseTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M15.5 · Publish CSS + cache-bust (bug fix) | **"New listing UI is still the same" root-caused**: served `public/css/` copies were stale since 05:56 (app.css 11 KB served vs 24 KB source) — this project has no node build, so all CSS edits from M8.9 onward were invisible in the browser while markup tests passed. Added `php artisan assets:publish` (resources/css → public/css), `App\Support\AssetVersion::url()` (mtime `?v=`) on every stylesheet/script link, a deploy-runbook step, and `AssetPublishTest`. Published all 4 stylesheets; live-verified the served CSS now contains `.dash-*`/`qty-stepper` and links carry `?v=`. **Backend 148 tests green, Pint clean.** | `backend/app/Console/Commands/PublishAssets.php` 🆕 · `backend/app/Support/AssetVersion.php` 🆕 · `backend/resources/views/**` (5 layouts + 2 pages) · `backend/tests/Feature/AssetPublishTest.php` 🆕 · `docs/deploy/hostinger.md` · `plan.md` |
+| 2026-09-18 | M15.4 · Modern booking form | **Guest booking form rebuilt as a modern card** (owner request): white surface + shadow, "No account needed" pill, normal-case labels, two-column name/phone grid (collapses on mobile), quantity stepper clamped to MOQ/stock, live estimated total (price × qty), full-width primary CTA. `.field` inputs unified to 44px/radius-md/accent focus ring. Progressive enhancement — no-JS fallback intact. New test (stepper + estimate 180×2=360.00 + badge + script); **backend 146 tests green, Pint clean**; live 200 verified. | `backend/resources/views/pages/listing.blade.php` · `backend/resources/css/app.css` · `backend/public/js/booking-form.js` 🆕 · `backend/tests/Feature/WebBookingTest.php` · `plan.md` |
+| 2026-09-18 | M15.1 · Premium member UI | **Member dashboards rebuilt on a shared premium layer** (owner request): `.dash-*` design components from website tokens — page head + role pill, stat cards, listing/report rows with thumbnails + status chips, tag rows, empty states, and a two-column premium form (sectioned grid, photo dropzone with live count, sticky publish column). Applied to vendor (stats/listings), driver (availability + base), volunteer (visit stats + reports), skilled worker/collector (profile + services). New volunteer dashboard test; driver base copy corrected. **Backend 145 tests green, Pint clean**; live 200s verified for vendor dashboard/form and all role dashboards. Filed M15.2 (web driver base) and M15.3 (web worker profile edit) as remaining dead-ends. | `backend/resources/css/app.css` · `backend/resources/views/dashboard/index.blade.php` · `backend/resources/views/dashboard/listing-form.blade.php` · `backend/public/js/listing-form.js` · `backend/app/Http/Controllers/Web/DashboardController.php` · `backend/tests/Feature/WebDashboardTest.php` · `plan.md` |
+| 2026-09-18 | M12.1 · Web vendor listings (bug fix) | **"Vendor cannot create listing" root-caused**: the web dashboard had no listing UI at all — it told vendors to use the app (`dashboard/index.blade.php:29`). Added website vendor listing **create + edit** (`/dashboard/listings/new`, `POST /dashboard/listings`, `/{product}/edit`, `PUT`) reusing the API's FormRequests (rules never fork) and the shared upload validator (WebP). Ownership via `ProductPolicy`; dashboard gained a "New listing" button + Edit links; a CSP-safe script swaps rental/stock fields by category. 7 new tests; **backend 144 tests green, Pint clean**; live smoke created a listing with a `.webp` photo visible in the catalog. Audit (cause→effect, per role journey) also found and filed: M12.2–M12.4 (web archive/profile/bookings), M13.1–M13.3 (app listing edit, skilled-worker profile, pickup requests), M14.1–M14.2 (admin listing moderation, web notifications). | `backend/app/Http/Controllers/Web/VendorListingController.php` 🆕 · `backend/resources/views/dashboard/listing-form.blade.php` 🆕 · `backend/resources/views/dashboard/index.blade.php` · `backend/public/js/listing-form.js` 🆕 · `backend/resources/css/app.css` · `backend/routes/web.php` · `backend/tests/Feature/WebVendorListingTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | M11.1 · WebP uploads | **Media uploads now convert to WebP (quality 82)** in the shared validator — one GD pass, so payload-stripping and compression are the same step. Alpha preserved; UPI QR opts out and stays lossless PNG. Measured **64% smaller** live (1.15 MB JPEG → 410 KB), stored file verified RIFF/WEBP. New uploads only. 4 new/updated tests (PNG/JPEG→WebP, WebP stays WebP, alpha survives, QR stays PNG). **Backend 137 tests green, Pint clean.** | `backend/app/Support/UploadValidator.php` · `backend/app/Http/Controllers/Web/Admin/DonationSettingsController.php` · `backend/tests/Feature/{MediaUploadTest,DonationReferralTest}.php` · `plan.md` |
+| 2026-09-18 | M10.3 · Skilled-worker rename | **Role renamed in storage and labels** (owner decision): migration `worker` → `skilled_worker`, `User::ROLE_SKILLED_WORKER`, registration rules, profile match arms, factory, web register card, dashboard summary, privacy blade + DPDP copy, README, app role list/labels + login copy. `WorkerProfile`/`worker_profiles` names unchanged. New test rejects the legacy `worker` value. **Backend 133 tests green, Pint clean, flutter analyze 0/10 tests**; migration applied to dev DB; /register verified. | `backend/database/migrations/2026_09_18_000004_rename_worker_role_to_skilled_worker.php` 🆕 · `backend/app/Models/User.php` · `backend/app/Services/RegistrationService.php` · `backend/app/Http/Controllers/Api/ProfileController.php` · `backend/database/factories/UserFactory.php` · `backend/resources/views/{auth/register,dashboard/index,pages/privacy}.blade.php` · `mobile/lib/features/auth/{auth_repository,login_screen}.dart` · `backend/tests/Feature/{RegistrationTest,ProfileTest,WebRegistrationTest,WebDashboardTest,MediaUploadTest,RetentionSweepTest}.php` · `docs/dpdp/privacy-policy.md` · `README.md` · `plan.md` |
+| 2026-09-18 | M10.2 · Service-area scope | **The admin Active tick now gates only driver bases, errands and delivery jobs — not listings** (owner: "the disable enable is only for driver and errands"). `ActiveLocality` gained an `enforceServiceArea` flag; listings accept any existing locality (district pairing still enforced) and the catalog no longer hides inactive-area listings; `Product::inActiveServiceArea` + both call-sites removed. Gating tests for driver/errand/logistics kept; listing/catalog tests inverted. **Backend 133 tests green, Pint clean.** | `backend/app/Rules/ActiveLocality.php` · `backend/app/Http/Requests/ListingRequest.php` · `backend/app/Models/Product.php` · `backend/app/Http/Controllers/{Api,Web}/CatalogController.php` · `backend/tests/Feature/ServiceAreaTest.php` · `plan.md` |
+| 2026-09-18 | M10.1 · Multi-locality add | **Admin can add several localities in one go** — the add input takes a comma-separated list, trims/de-dupes case-insensitively, skips names that already exist, and applies the Active tick to all; flash reports added/skipped counts. Form relabelled with the comma hint. 2 new tests; live-verified the page for all 16 districts. **Backend 133 tests green, Pint clean.** | `backend/app/Http/Controllers/Web/Admin/LocalityController.php` · `backend/resources/views/admin/localities/index.blade.php` · `backend/tests/Feature/ServiceAreaTest.php` · `plan.md` |
+| 2026-09-18 | M8.12 · Admin design for auth | **Login/register now use the admin design system, same as `admin/auth/login.blade.php`** (owner request): standalone pages on `admin-tokens.css` + `admin.css`, `.login-page` centering + `.login-card` container (login 380px, register `.wide` 520px), brand → h1 → explainer → `.field` inputs → `.button` submit → links. admin.css gained `.login-card.wide`, `.brand-wordmark` (also fixes the unstyled wordmark on the admin sign-in), `.field-error`, `.form-section`, `.role-radios` + vendor `:has` reveal. Kept from M8.9: native validation (no `novalidate`), no `autofocus`. No site nav/footer — matches the admin standalone page. Auth-only app.css block deleted. **Backend 130 tests green, Pint clean**; live 200s incl. admin login + a listing page (booking form CSS intact). | `backend/resources/views/auth/{login,register}.blade.php` · `backend/resources/css/admin.css` · `backend/resources/css/app.css` · `backend/tests/Feature/{WebAuthTest,WebRegistrationTest}.php` · `plan.md` |
+| 2026-09-18 | M8.11 · Admin-plain auth | **Login/register forms rebuilt in the admin form language**: plain stacked labels + inputs (icons, toggles, submit arrow removed); role cards → plain radio list with 44px rows — vendor shop fields still reveal for Vendor via CSS `:has`, zero JS. Deleted now-unused `x-icon`, `auth.js`, and dead form CSS (~150 lines). POST routes, native validation, errors unchanged. **Backend 130 tests green, Pint clean**; live 200s. | `backend/resources/views/auth/{login,register}.blade.php` · `backend/resources/css/app.css` · `backend/tests/Feature/{WebAuthTest,WebRegistrationTest}.php` · `plan.md` (− `components/icon.blade.php`, `public/js/auth.js`) |
+| 2026-09-18 | M8.10 · Admin-style auth | **Login/register rebuilt as single centered cards** mirroring `admin/auth/login.blade.php` (brand → title → explainer → form): login narrow 440px, register 620px for the role grid. All M8.7/M8.9 behavior kept (role cards, icons, toggles, vendor reveal, route names, native validation, aria states); site nav/footer kept (public surface). Split-shell CSS deleted. Render tests lock the new structure; **backend 130 tests green, Pint clean**; live 200s. | `backend/resources/views/auth/{login,register}.blade.php` · `backend/resources/css/app.css` · `backend/tests/Feature/{WebAuthTest,WebRegistrationTest}.php` · `plan.md` |
+| 2026-09-18 | M8.9 · Auth polish | **Login/register review fixes.** Forms post to the correct `*.attempt` route names; `novalidate` removed (instant native validation); login `autofocus` removed (mobile keyboard pop); `aria-pressed="false"` on all password toggles; `x-icon` dead duplicate `leaf` arm removed + stroke-weight prop (1.5 default, 2 on semibold submit arrows per better-ui #13); submit label+icon centered; 5th role card spans full width; checkbox alignment + 18px branded hit area; form-first on mobile; dead media rule removed. "Remember me" verified working — not a problem. 2 new render tests; **backend 130 tests green, Pint clean**; live-verified both pages 200. | `backend/resources/views/auth/{login,register}.blade.php` · `backend/resources/views/components/icon.blade.php` · `backend/resources/css/app.css` · `backend/tests/Feature/{WebAuthTest,WebRegistrationTest}.php` · `plan.md` |
+| 2026-09-18 | M9.6 · Volunteer training | **Fulfilled the `local-market.md` "training" promise.** `docs/volunteer/training.md` as source of truth (schedule, site checklist, evidence rules, filing, approval/badge/fee, ground rules) + a 5-step "How site visits work" card on the volunteer dashboard (theme roles only). Static content, no logic — no new widget test (recorded in the task note); **flutter analyze 0 issues, 10/10 tests**. M9 milestone complete (6/6). | `docs/volunteer/training.md` 🆕 · `mobile/lib/features/volunteer/volunteer_home_screen.dart` · `plan.md` |
+| 2026-09-18 | M9.5 · Admin review queue | **Admins no longer approve verifications via raw API calls.** New `/admin/verifications` dashboard screen: submitted reports with volunteer name, subject, notes, checklist, evidence thumbnails (existing `.thumb` + tokens, no new styles), approve/reject forms, empty state, nav entry. Review rules extracted to `VerificationReviewService` — API + web now share one code path (identical messages/behavior; all pre-existing API tests pass unchanged). 4 new tests; **backend 128 tests green, Pint clean**. | `backend/app/Services/VerificationReviewService.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/VerificationController.php` 🆕 · `backend/app/Http/Controllers/Api/VerificationController.php` · `backend/resources/views/admin/verifications/index.blade.php` 🆕 · `backend/resources/views/layouts/admin.blade.php` · `backend/routes/web.php` · `backend/tests/Feature/VerificationTest.php` · `plan.md` |
+| 2026-09-18 | M9.4 · Vendor profile UI | **Closed the M2.1a deferral.** New `/vendor/profile` app screen edits exactly what PUT /profile allows (name, phone, display name, description) with a read-only category + district card; `district_name` added to the vendor profile payload for display (one field, registration-time data stays immutable — backend test asserts it). Entry point from the home screen. 2 new repository tests; **backend 124 tests green, Pint clean, flutter 10/10**. | `mobile/lib/features/vendor/profile/{vendor_profile_screen,vendor_profile_repository}.dart` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/lib/features/home/home_screen.dart` · `mobile/test/vendor_profile_repository_test.dart` 🆕 · `backend/app/Http/Controllers/Api/ProfileController.php` · `backend/tests/Feature/ProfileTest.php` · `plan.md` |
+| 2026-09-18 | M9.3 · Share w/ referral | **Closed the M2.5 promise + completed the M6.3 attribution loop (stored-but-never-consumed since launch).** Web listing page: Share button (copy-link, CSP-safe external `share.js`, clipboard fallback, "Link copied" note); owner vendors get `?ref=CODE` appended; the page captures `?ref=` into session and web signup consumes it via `ReferralService::recordSignup` (key pops, no misattribution). API catalog detail exposes the same owner-aware `share_url`; app detail shows a Share button with copied SnackBar. 5 new backend tests; **backend 123 tests green, Pint clean, flutter analyze 0 issues, 8/8 tests**. Note: POST `/ref/attribute` stays but is deprecated in favor of this loop. | `backend/resources/views/pages/listing.blade.php` · `backend/resources/css/app.css` · `backend/public/js/share.js` 🆕 · `backend/app/Http/Controllers/{Web/ListingController,Web/MemberRegistrationController,Api/CatalogController}.php` · `backend/tests/Feature/DonationReferralTest.php` · `mobile/lib/features/catalog/{listing_detail_screen,catalog_repository}.dart` · `plan.md` |
+| 2026-09-18 | M9.2 · App catalog filters | **Closed the M2.4 deferred promise.** Catalog screen gained a district + locality filter row (active-only data via the existing `/locations` provider — only service areas are ever offered, with an explaining caption); locality list narrows to the picked district and resets when the district changes (`filterArea` applies district+locality as an inseparable pair so no stale locality can linger); search + paging preserve the area filter; filter row hides when no service areas exist yet. Flutter 3.47 note: `DropdownButtonFormField.enabled` was removed — disabled via `onChanged: null`. 2 new repository tests; **flutter analyze 0 issues, tests 8/8 green**. | `mobile/lib/features/catalog/{catalog_screen,catalog_controller,catalog_repository}.dart` · `mobile/test/catalog_repository_test.dart` 🆕 · `plan.md` |
+| 2026-09-18 | M9.1 · Service areas | **Owner request: tick-to-activate localities.** One shared `ActiveLocality` validation rule (exists + district pairing + locality AND district active) now guards every locality write path: driver base store/update, errand pickup/drop, logistics job create, listing create/update. `Product::inActiveServiceArea()` hides listings in inactive areas from the API + web catalog (unlocated listings stay visible). Admin locality ADD form gained the Active checkbox — new localities start inactive until ticked (per owner flow), with an explaining status flash. App unchanged: all pickers already consumed active-only `/locations` + `/drivers-online`. Fixed pre-existing bug found by the new tests: `LogisticsController::store` 500-crashed when the optional `address` was absent. 7 new tests (ServiceAreaTest); suite **118 tests / 417 assertions green**, Pint clean. | `backend/app/Rules/ActiveLocality.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/LocalityController.php` · `backend/resources/views/admin/localities/index.blade.php` · `backend/app/Http/Requests/ListingRequest.php` · `backend/app/Http/Controllers/Api/{DriverBaseController,ErrandController,LogisticsController,CatalogController}.php` · `backend/app/Http/Controllers/Web/CatalogController.php` · `backend/app/Models/Product.php` · `backend/tests/Feature/ServiceAreaTest.php` 🆕 · `plan.md` |
+| 2026-09-18 | — · Tracker audit + M9 raised | Plan-only sync after a full audit: **M9 milestone added** (6 gap-closing tasks: M9.1 locality tick-to-activate + active-only enforcement, M9.2 app catalog filters, M9.3 share buttons w/ referral attribution, M9.4 vendor profile UI, M9.5 admin verification queue, M9.6 volunteer training). Stale statuses corrected: M0/M1 headers, M4 header vs §5, M8 header vs §5; **M4.1 closed ✅ with an audit correction** (the "admin CRUD UI deferred" note was wrong — the screen ships); M8.4 reopened to ⏸️ Q7 (docs done, deploy pending); M8.3 SDK caveat resolved. Q15 decided (web registration shipped via M8.6), Q16 dropped, **Q17 raised** (vendor/ in git — gates M8.8). M0.7 partial-work note (branding plumbing); M8.5 launch gates recorded (Q7+Q13); §4 admin moderation pointer fixed; M2.1a/M2.4/M2.5 deferral promises cross-linked to M9.4/M9.2/M9.3. Also: M8.7's missing change-log row added in the previous commit. | `plan.md` |
+| 2026-09-18 | M8.7 · Web member auth UI polish | **Shipped (row added late — work had landed without its change-log entry).** Redesigned /login + /register: two-column split shell (intro panel with role promises + inline SVG features, form panel on surface card); reusable `<x-icon>` outline component (CSP-safe, from the M0.5 icon library) for input adorners + role cards; 5 role cards with icon + one-line descriptor and full state coverage (hover/press/focus-visible/aria); vendor-only fields revealed via CSS `:has()`; password show/hide toggle (eye/eye-off, aria-pressed) via external `public/js/auth.js` (CSP `script-src 'self'`). Tokens only, no literal hex; motion transform/opacity ≤250ms. 111 tests / 393 assertions green; Pint clean; live smoke /register /login 200. | `backend/resources/views/components/icon.blade.php` 🆕 · `backend/resources/views/auth/{login,register}.blade.php` · `backend/public/js/auth.js` 🆕 · `backend/resources/css/app.css` · `plan.md` |
+| 2026-09-18 | M5.6 · Evidence persistence | Evidence paths were validated (uploader-scoped) and echoed in the store() response but **never stored** — admins couldn't see what a volunteer attached. Added `verifications.evidence` JSON column (+ migration), persist the validated paths at create time, return them from `show()`. Regression tests: evidence validated/persisted/returned; other users' paths dropped. Backend 96 tests / 341 assertions green. | `backend/database/migrations/2026_09_18_000003_add_evidence_to_verifications_table.php` 🆕 · `backend/app/Models/Verification.php` · `backend/app/Http/Controllers/Api/VerificationController.php` · `backend/tests/Feature/VerificationTest.php` · `plan.md` |
+| 2026-09-18 | M1.2 (SDK) + M4.6/M5.4 mobile | **M2.3a in-app photo attach shipped** — image_picker wired into the create-listing form: multi-pick (max 8), thumbnail strip with per-photo remove, upload to `POST /media` (field `file`, directory `products`), returned paths passed into the listing `images` array; upload failures keep the form + photos for retry. `ListingsRepository.uploadImage` + `images` support on create/update threaded through the controller. Platform folders generated (`flutter create . --platforms=android,ios`) completing the M1.2 pending step; iOS `NSPhotoLibraryUsageDescription` added; flutter-create `widget_test.dart` stub removed. 3 new repository tests (multipart shape, images present/absent) — **flutter analyze: 0 issues**, **flutter test: 6/6 green**. | `mobile/lib/features/vendor/listings/{listing_edit_screen,listings_repository,listings_controller}.dart` · `mobile/test/listings_repository_test.dart` 🆕 · `mobile/ios/Runner/Info.plist` · `mobile/android/**` + `mobile/ios/**` (scaffold) · `plan.md` |
+| 2026-09-18 | M8.6 · Web member auth + dashboards | **Website now has member sign-in/up** — /register (four registerable roles: vendor/driver/collector/worker/volunteer), /login, /logout, and a /dashboard that lands each role on real data: vendor → my listings (status chips), volunteer → visit queue + profile, driver → base + online/offline toggle (writes driver_availability like the app), worker/collector → profile summary. Session + CSRF like the admin dashboard; register throttle 10/1, login throttle 5/1, blind-index email lookup, admins refused at member login. Registration rules extracted to one shared `RegistrationService` used by both app (API) and web. Nav switches Login/Register ⇄ Dashboard/Logout for signed-in members. 15 new feature tests; **backend 111 tests / 393 assertions green**; live smoke: /register /login 200, /dashboard 302→/login for guests. | `backend/app/Services/RegistrationService.php` 🆕 · `backend/app/Http/Controllers/Web/{MemberRegistrationController,MemberAuthController,DashboardController}.php` 🆕 · `backend/resources/views/auth/{login,register}.blade.php` 🆕 · `backend/resources/views/dashboard/index.blade.php` 🆕 · `backend/routes/web.php` · `backend/resources/views/layouts/app.blade.php` · `backend/resources/views/admin/auth/login.blade.php` · `backend/resources/css/app.css` · `backend/tests/Feature/{WebRegistrationTest,WebAuthTest,WebDashboardTest}.php` 🆕 · `backend/app/Http/Controllers/Api/RegistrationController.php` |
+| 2026-09-18 | M1.2 (SDK) + M4.6/M5.4 mobile | **Flutter SDK installed** — Flutter 3.47.4 / Dart 3.13.3 at `/home/mint/flutter`; flutter_riverpod pinned 2.5.1 (2.6 broke 2-param Notifier); ~30 pre-existing analyzer errors fixed (Riverpod 2.5 API, CardTheme→CardThemeData, missing dio/catalog/booking imports, AsyncData wrap, Listing.status field, updateListing rename, ~10 const/catch lint fixes); **flutter analyze: 0 issues**, **flutter test: 3/3 green**. **M4.6 mobile shipped** — drivers-online screen (district+locality dropdowns, per-locality count, district fallback, updated timestamp). **M5.4 mobile shipped** — VerificationFee repo/model, fee banner in volunteer report + listing detail, "get verified for ₹X" vendor subtitle, verified_badge + home_screen copy updated. M5.5 regression test restored; M8.3 mobile test green. 94 backend tests / 334 assertions green. | `mobile/pubspec.yaml` · `mobile/lib/features/driver/tracking/` 🆕 · `mobile/lib/features/catalog/{catalog_repository,listing_detail_screen}.dart` · `mobile/lib/features/vendor/listings/{listings_screen,listings_controller}.dart` · `mobile/lib/features/volunteer/{volunteer_repository,verification_report_screen}.dart` · `mobile/lib/core/widgets/{verified_badge,app_logo}.dart` · `mobile/lib/features/home/home_screen.dart` · `mobile/lib/core/router/app_router.dart` · `mobile/lib/core/theme/app_theme.dart` · `mobile/lib/features/{driver/catalog/vendor,booking}/*_controller.dart` · `mobile/lib/features/{errand,notifications,profile,vendor/referrals}/*_screen.dart` · `mobile/analysis_options.yaml` |
+| 2026-09-18 | M4.6 + M5.4 + M7.4 + M7.5 + Q10 seed | Built the remaining buildable tasks: **M5.4 verification fee** (single-row settings + admin CRUD + badge snapshot + public fee API + listing/vendor display); **M4.6 driver availability** (public GET /api/v1/drivers-online, per-locality count + district fallback — no map, Q8); **M7.4 hardening** (HSTS + strict CSP headers, throttle on web booking/ref attribute, checklist audit); **M7.5 retention sweeps** (artisan retention:sweep with dry-run, cron gated on Q7); **Q10** Nagaland 16-district seed (migrate:fresh verified). Suite 93/93 green (331 assertions) + 94 after M5.5. | `backend/app/Models/{VerificationFeeSetting,Locality}.php` · `backend/app/Http/Controllers/{Api,Web}/..` 🆕 · `backend/app/Http/Middleware/SecurityHeaders.php` · `backend/app/Console/Commands/RetentionSweep.php` 🆕 · `backend/{database,resources,routes,tests}/**` · `docs/security/checklist.md` · `plan.md` |
+| 2026-09-18 | M5.5 + Q10 ₹ symbol | Launch smoke-test round 2: fixed volunteer profile 500 after registration (store() now updateOrCreate — idempotent; regression test) and wired Q10's **₹** pricing/fee formatting via `config('app.currency_symbol')` (env `CURRENCY_SYMBOL`, was falling back to "Rs."). Live-verified: vendor reg → listing → guest booking BK-6HGRZ2 → admin login → fee 250 → volunteer verify → admin approve → badge fee_inr=250.00 → driver base+online → drivers-online shows Dimapur 1. 94/94 tests green (334 assertions). | `backend/app/Http/Controllers/Api/VolunteerController.php` · `backend/config/app.php` · `backend/tests/Feature/VerificationTest.php` · `plan.md` |
+| 2026-09-18 | Q6/Q8/Q10 + M4.6/M5.4 | Decisions recorded: verification becomes a **paid service** — admin-set fee paid directly to the visiting volunteer, snapshot on the badge (Q6 decided, new task M5.4); **map SDK dropped** — users only see which drivers are online per locality, no ETA/GPS (Q8 decided, M4.6 rescoped); **region = India, Nagaland only**, ₹ (Q10 decided, M4.1/M8.5 seed Nagaland). ADRs written for Q6/Q8/Q10. | `plan.md` · `docs/decisions/Q6-verification-fee.md` 🆕 · `docs/decisions/Q8-maps.md` 🆕 · `docs/decisions/Q10-region.md` 🆕 |
+| 2026-09-18 | M0.7 · Brand config + Flutter v1 + GoRouter fix | Brand plumbing: backend/config/branding.php (name/tagline/logo paths) + brand-logo.blade.php component + layout wired to config; mobile/lib/core/branding/app_brand.dart (single source) + app_logo.dart refactored to use it + assets/brand/ slot README. Flutter app v1 against tested M1-M8 API: driver/errand/volunteer/donations/notifications/profile screens committed; GoRouterConfig.config getter added so app.dart compiles. 51 Dart files, 0 structural imbalance. Backend live-verified (69/69 tests; home/privacy/donation/catalog all 200; register 201 + token + create listing 201 + guest booking 201 BK-LDA1CM + lookup 200). Committed as `1589f10`. | `backend/config/branding.php` 🆕 · `backend/resources/views/components/brand-logo.blade.php` 🆕 · `backend/resources/views/layouts/app.blade.php` · `backend/resources/views/pages/*.blade.php` · `mobile/lib/core/branding/app_brand.dart` 🆕 · `mobile/lib/core/widgets/app_logo.dart` · `mobile/lib/features/{driver,errand,volunteer,donations,notifications,profile}/**` 🆕 · `mobile/lib/core/router/app_router.dart` · `mobile/assets/brand/README.md` 🆕 · `mobile/tool/check_structure.py` 🆕 · `backend/tests/**` |
+| 2026-09-14 | M8.1–M8.5 | Phase 8: NotificationService (sync DB inbox + FCM behind config), GenericNotification, DeviceTokenController (register/remove), booking status wired to notifications, /privacy policy page + route, deploy runbook (docs/deploy/hostinger.md + .env.production.example), security checklist (docs/security/checklist.md), launch checklist (docs/launch/checklist.md); 69/69 tests green (266 assertions) | `backend/app/Services/NotificationService.php` 🆕 · `backend/app/Notifications/GenericNotification.php` 🆕 · `backend/app/Http/Controllers/Api/DeviceTokenController.php` 🆕 · `backend/app/Services/BookingService.php` · `backend/resources/views/pages/privacy.blade.php` 🆕 · `backend/app/Http/Controllers/Web/PageController.php` · `docs/{deploy,launch,security}/` 🆕 · `backend/tests/Feature/NotificationTest.php` 🆕 · `backend/routes/{api,web}.php` |
+| 2026-09-14 | M7.1–M7.3 | Phase 7 DPDP core: ConsentController (grant/list/revoke), DataExportService + DataExportController (JSON export), DataDeletionService + DataDeletionController (PII anonymization); 65/65 tests green (257 assertions) | `backend/app/Http/Controllers/Api/{ConsentController,DataExportController,DataDeletionController}.php` 🆕 · `backend/app/Services/{DataExportService,DataDeletionService}.php` 🆕 · `backend/tests/Feature/DpdpTest.php` 🆕 · `backend/routes/api.php` |
+| 2026-09-14 | M6.1–M6.3 | Phase 6 backend: Api\DonationController (UPI ID + QR URL + deep link), Admin\DonationSettingsController (UPI regex + QR upload via shared validator), ReferralService (generateCode/recordSignup/recordConversion/stats), Api\ReferralController (vendor code management), Web\ReferralLandingController (/ref/{code} attribution); 60/60 tests green (241 assertions) | `backend/app/Http/Controllers/Api/DonationController.php` 🆕 · `backend/app/Http/Controllers/Web/Admin/DonationSettingsController.php` 🆕 · `backend/app/Services/ReferralService.php` 🆕 · `backend/app/Http/Controllers/Api/ReferralController.php` 🆕 · `backend/app/Http/Controllers/Web/ReferralLandingController.php` 🆕 · `backend/tests/Feature/DonationReferralTest.php` 🆕 · `backend/routes/{api,web}.php` |
+| 2026-09-14 | M5.1–M5.3 | Phase 5 backend: VolunteerController (profile CRUD + visit queue), VerificationController (create/submit/approve/reject + evidence path validation), Badge issued on approve with immutable volunteer_name snapshot; 54/54 tests green (226 assertions) | `backend/app/Http/Controllers/Api/{VolunteerController,VerificationController}.php` 🆕 · `backend/routes/api.php` · `backend/tests/Feature/VerificationTest.php` 🆕 |
+| 2026-09-14 | M4.2–M4.5 | Phase 4 backend: DriverBaseController (1 district + max 5 localities, district-locality pairing enforced), DriverAvailabilityController (online/offline toggle + last_online_at), JobMatchingService (locality-match + district fallback), LogisticsController (vendor create + driver accept/progress), ErrandController (guest creation with ER- codes, driver accept/progress, guest lookup by code+phone); 48/48 tests green (213 assertions) | `backend/app/Services/JobMatchingService.php` 🆕 · `backend/app/Http/Controllers/Api/{DriverBaseController,DriverAvailabilityController,LogisticsController,ErrandController}.php` 🆕 · `backend/routes/api.php` · `backend/tests/Feature/LogisticsTest.php` 🆕 |
+| 2026-09-14 | M3.1–M3.3 | Phase 3 live-verified: full end-to-end on 127.0.0.1:8000 — all web pages 200, API register/login/listing 200/201, guest booking created (BK-XXXX) + lookup 200 + MOQ rejection + wrong-phone rejection, full vendor lifecycle pending→confirmed→picked_up→in_transit→delivered→completed, invalid transition (completed→cancelled) correctly rejected, PNG image upload stored + URL returned, SVG rejected by design. Web booking form returns 419 CSRF for curl (expected; WebBookingTest 4/4 pass). 42/42 tests green (199 assertions). Zero emojis. | `backend/app/Services` · `backend/app/Http/Controllers/{Api,Web}` · `backend/app/Http/Resources` · `backend/app/Policies` · `backend/resources/views/pages` · `backend/public/css` · `mobile/lib/features/{booking,vendor}` · `mobile/lib/core/router` |
+| 2026-09-05 | M3.1–M3.3 | Phase 3 built: guest bookings (no account) with per-item MOQ + stock validation in one transaction, BK- codes, price snapshots, booking-contact consent rows; forward-only vendor lifecycle (policy-gated, contact visible to owner only); guest lookup/cancel by code + phone (blind-index matched); web booking form + success page; app booking screen, lookup screen, vendor incoming-bookings screen, home links; Q1 (offline settlement) and Q5 (per-item MOQ) recorded as decided; tests 42/42 green (199 assertions); live API booking flow verified | `backend/app/Services` · `backend/app/Http/Controllers/{Api,Web}` · `backend/app/Http/Resources` · `backend/app/Policies` · `backend/resources/views/pages` · `backend/public/css` · `mobile/lib/features/{booking,vendor}` · `mobile/lib/core/router` |
+| 2026-09-05 | M2.1–M2.5 | Phase 2 built: vendor listing CRUD with policy ownership + FormRequest category rules (rentals = dates not stock/MOQ), shared upload validator (content-verified MIME, caps, GD re-encode, uploader-scoped image paths), guest catalog API + website search/filters, listing detail + vendor pages, app catalog/detail/my-listings screens, worker profiles, 5 API contract docs; tests 27/27 green (117 assertions), live smoke 200s | `backend/app/{Http,Models,Support,Policies}` · `backend/resources/views` · `backend/public/css` · `backend/docs/api/` · `mobile/lib/features/{catalog,vendor}` · `mobile/lib/core/router` |
+| 2026-09-05 | M0.1–M0.6, M1.1–M1.6 | Phase 0+1 built: design tokens (website, dashboard, mobile); backend scaffold on Laravel 12 (security policy blocked EOL Laravel 11) with 15 migrations, 22 models, auth + PII encryption — tests 8/8 green, all pages 200 live; Flutter app scaffold authored (platform folders via `flutter create .` on an SDK machine); CI workflow; git init + phase commit | `backend/` · `mobile/` · `docs/decisions/` · `docs/design/tokens.md` · `.github/workflows/ci.yml` · `README.md` |
+| 2026-09-05 | — | Tracker created (replaces prose plan v1, preserved at `/tmp/plan.md.bak`); UI/UX + asset inventory mapped; `AGENTS.md` added | `plan.md`, `AGENTS.md` |
+
+---
+
+
+| 2026-10-05 | M49.1 · Populate skill tracking files | `plan.md`, `SKILL/plan-template/resources/plan.md`, `SKILL/plan-template/resources/request.md`, `AGENTS.md` | Preserved history, task IDs, statuses and ownership; validated unique request links for every task/subtask. Root plan retained for owner deletion. |
+
+| 2026-10-05 | M50.1 · Merge skill-folder metadata | `README.md`, `.gitignore`, `AGENTS.md`, `plan-template/resources/plan.md`, `plan-template/resources/request.md`; removed `SKILL/README.md`, `SKILL/.gitignore` | Preserved root content, verified links and request mapping, removed remaining legacy folder; no application changes. |
+
+| 2026-10-05 | M51.1 · Supplied olive logo | SVG unchanged; Flutter logo and Android launcher PNGs generated; app light/dark checked, 7 backend tests pass. | `mobile/assets/brand/logo.png`, `mobile/lib/core/{branding/app_brand,widgets/app_logo}.dart`, five Android `mipmap-*/ic_launcher.png`, `backend/public/img/{logo.svg,favicon.png}` |
+| 2026-10-05 | M51.2 · Listing-first Home and bottom categories | Home inside app shell; category sheet, retained More shortcuts, skeleton/retry/paging, stale-response guard; 30 Flutter tests pass, analyzer clean, APK built/installed/opened. | `mobile/lib/features/{home/home_screen,catalog/catalog_screen,catalog/catalog_controller}.dart`, `mobile/lib/core/{navigation/app_shell,router/app_router,theme/tokens}.dart`, `mobile/test/home_navigation_test.dart` |
+| 2026-10-05 | M51.3 · Remaining milestone reconciliation | Reviewed unfinished owners, noted historical deployment correction and append-only remaining-work evidence. | `plan-template/resources/{plan,request}.md` |
+
+| 2026-10-05 | M12 · Milestone completion reconciled (M52.1) | 4/4 tasks implemented; existing owners, historical state-walk records and current tests reviewed. Summary heading changed to done; no product code changed. | `plan-template/resources/plan.md` |
+| 2026-10-05 | M17 · Milestone completion reconciled (M52.1) | 3/3 tasks implemented; existing owners, historical state-walk records and current tests reviewed. Summary heading changed to done; no product code changed. | `plan-template/resources/plan.md` |
+| 2026-10-05 | M18 · Milestone completion reconciled (M52.1) | 2/2 tasks implemented; existing owners, historical state-walk records and current tests reviewed. Summary heading changed to done; no product code changed. | `plan-template/resources/plan.md` |
+| 2026-10-05 | M22 · Milestone completion reconciled (M52.1) | 2/2 tasks implemented; existing owners, historical state-walk records and current tests reviewed. Summary heading changed to done; no product code changed. | `plan-template/resources/plan.md` |
+| 2026-10-05 | M31 · Milestone completion reconciled (M52.1) | 1/1 tasks implemented; existing owners, historical state-walk records and current tests reviewed. Summary heading changed to done; no product code changed. | `plan-template/resources/plan.md` |
+| 2026-10-05 | M32 · Milestone completion reconciled (M52.1) | 2/2 tasks implemented; existing owners, historical state-walk records and current tests reviewed. Summary heading changed to done; no product code changed. | `plan-template/resources/plan.md` |
+| 2026-10-05 | M42 · Milestone completion reconciled (M52.1) | 2/2 tasks implemented; existing owners, historical state-walk records and current tests reviewed. Summary heading changed to done; no product code changed. | `plan-template/resources/plan.md` |
+| 2026-10-05 | M52 · Milestone completion reconciled (M52.1) | 1/1 tasks implemented; existing owners, historical state-walk records and current tests reviewed. Summary heading changed to done; no product code changed. | `plan-template/resources/plan.md` |
+| 2026-10-05 | M52.1 · Built-work status reconciliation | Dashboard/headings/request ticks synchronized; partial scopes and failed demo seeder reopened. 268 backend tests / 1012 assertions and 30 Flutter tests pass; isolated seed failure documented. | `plan-template/resources/{plan,request}.md` |
+
+## 8 · Definition of done
+
+1. Scope matches the task comment — nothing more.
+2. Tests/lint/build pass for touched areas; smallest meaningful test added where absent (or reason noted in the task comment).
+3. UI changes walked through every state (default, hover/focus, pressed, loading, empty, error, dark).
+4. `plan.md` updated: status, dated note, files list, §7 row.
+5. Decisions recorded as dated notes / `docs/decisions/` ADRs — not in chat history.
+
+---
+
+*Generated from `local-market.md`, `additionalfeatures.txt`, `ui deisgns/`, `UX/`, `assets/`. Process rules for coding agents: `AGENTS.md`.*
+
+---
+
+
+## 9 · Current function inventory and verification
+
+This index is the current at-a-glance map of user-facing functions. Detailed
+task history remains in §§5–8; this section records the current causal chain
+and its evidence so future work can continue without reconstructing it.
+
+### Public website and content
+
+| Function | Main implementation | Verification / status |
+|---|---|---|
+| Home, About, Contact, Terms, Privacy, Disclaimer | `backend/routes/web.php`; `PageController`; `resources/views/pages/`; `config/legal.php` | Live pages return HTTP 200; Contact/legal tests pass; production legal entity/address still owner-configured |
+| Product catalog and listing detail | `Web/CatalogController`, `Web/ListingController`, `Product` active scope, Blade catalog/listing/vendor pages | Catalog/booking feature tests pass; web catalog currently filters by search/category only, not area/price (M27.8 open) |
+| PG/rentals/homestays search | `Web/StayController`, `pages/stays.blade.php`, `.catalog-filters` | District/locality/price tests; responsive filter design; live `/stays` 200 |
+| Farm produce for resellers | `Web/ResellerProduceController`, farm-reseller category, hub metadata | Filter test and collection tests; live `/reseller-produce` 200 |
+| Worker/transport directories | Web directory controllers, skill/transport categories | Directory tests; live pages return 200 |
+| Blog/stories | `PostController` web/API, admin post CRUD, story Blade pages | Blog/API/admin post tests; public story API returns 200 |
+| Responsive website navigation/search | `layouts/app.blade.php`, `resources/css/app.css`, served `public/css/app.css` | Static responsive audit and CSS publish; real browser viewport walk still recommended |
+
+### Accounts, identity and admin
+
+| Function | Main implementation | Verification / status |
+|---|---|---|
+| Registration and legal consent | `RegistrationService`, Consent model, web/API registration | Registration/legal tests; consent acceptance is enforced |
+| Email verification | `User` implements `MustVerifyEmail`; signed web verify route; API resend endpoint; web/API verified gate | `EmailVerificationTest`; production requires working SMTP; web has resend form, app shows pending state but has no resend control |
+| Member/admin sign-in and logout | `MemberAuthController`, API `AuthController`, admin `AuthController`, Sanctum/session middleware | Auth and role-gate tests; admin password changes use OTP, but admin login itself does not have second-factor OTP |
+| Admin password change | `Admin/PasswordController`, `password_change_otps`, email mailable, `/admin/password` | `AdminPasswordTest`; production SMTP delivery needs monitoring |
+| Admin operations | Donation/fee settings, districts/localities/hubs, collector assignments, listing approvals, volunteer/verification review, categories, posts, DPDP request queue | Admin feature tests cover major CRUD/actions; live authenticated admin walkthrough not part of this audit |
+
+### Commerce and logistics
+
+| Function | Main implementation | Verification / status |
+|---|---|---|
+| Vendor product create/edit/archive | `ListingController`, `VendorListingController`, shared FormRequests and `ProductPolicy` | Web create/edit/archive and app create/API CRUD; new/edited listings are pending approval by default; Flutter listing edit UI remains missing |
+| Listing moderation | `Admin/ListingModerationController`, `/admin/listings` approve/reject | `ListingApprovalTest`; only active products enter public catalog queries |
+| Public listing image consent | `REQUIRE_LISTING_IMAGE_CONSENT`, `image_public_consent`, `Consent::KEY_LISTING_IMAGES_PUBLIC`, shared upload validator | Production web/app upload requests require explicit consent for new images; accepted files are public by design |
+| Guest booking | `BookingService`, booking controllers, MOQ/stock validation, code/phone lookup/cancel | Booking and web booking tests; money settles directly between parties |
+| Vendor booking fulfillment | Vendor booking web/app screens, shared `BookingService` transitions | Vendor booking and lifecycle tests |
+| Driver jobs and errands | Driver base/availability, `JobMatchingService`, Logistics/Errand controllers | Backend logistics tests and Flutter repository/screens; booking-linked vendor request UI remains missing |
+| Farm-produce collection | Collector assignments, hubs, `collect_produce`, vendor web/app request and collector app queue/actions | Collection/assignment/repository tests; host/device fulfillment not independently observed |
+| Delayed listing deletion | Vendor unpublishes, then deletes after 7 days (`unpublished_at`) | Dashboard Delete when eligible with 7-day hint; refused while orders reference the product; images + media rows removed | `ListingDeletionTest`; vendor products only |
+
+### Community, referrals and user rights
+
+| Function | Main implementation | Verification / status |
+|---|---|---|
+| Skilled worker profile/directory | WorkerProfile/ProfileController, mobile profile, web profile and directory | Worker skill/profile/directory tests; app skilled-worker profile is implemented |
+| Volunteer verification | Questionnaire, reports, review service, badge/story publishing | Backend story/review tests; mobile report still lacks evidence photo picking/upload; app listing detail lacks story link |
+| Donations | Admin UPI settings, QR validation, public display-only donation page | Donation tests; platform does not store/process payment credentials |
+| Referral and sales records | ReferralService, owner approval, vendor sales PDF | Backend affiliate/sales tests; app commission interface and errand attribution remain open |
+| In-app notifications | Notification service, device tokens, database inbox, optional FCM | Notification tests; FCM key is optional/unconfigured; website inbox not implemented |
+| DPDP export/deletion | `DataExportService`, `DataDeletionService`, DataRequest endpoints | Existing tests cover basic profile/consent behavior, but export is not complete across all related data and deletion does not yet erase/anonymize every PII surface |
+| Consent coverage | Registration, booking contacts, listing-image publication consent | Errand-contact and notification opt-in consent records remain gaps (M27.5) |
+
+### App/API and release state
+
+- Flutter app routes/features include auth, home, catalog/listing detail, stays,
+  stories, workers/transport, bookings, vendor listing create, vendor bookings,
+  driver base/jobs/errands, collector assignments/collections, volunteer
+  verification, notifications, donations and profile/data requests.
+- APK is built for `https://shekuthi.in/api/v1`; latest release artifact is
+  debug-signed for sideload testing, not Play Store publishing. A private
+  release keystore and final application ID remain required.
+- Automated baseline on 2026-09-24: backend 259 tests / 976 assertions; Flutter
+  analyze clean, 19/19 tests. Public smoke checks returned HTTP 200 for `/`,
+  `/about`, `/contact`, `/privacy`, `/terms`, `/disclaimer`, `/catalog`,
+  `/stays`, `/reseller-produce`, `/workers`, `/transport`, `/blog`, and public
+  API locations/posts/stays/reseller-produce endpoints.
+- Remaining device/production checks: physical navigation-inset/keyboard walk;
+  authenticated registration/verification/listing/booking/collector smoke;
+  Hostinger cron, backups, FCM, SMTP reliability, legal identity and storage
+  persistence.
+
+
+## 10 · Function index for future reference
+
+This is a user-facing lookup of functions added or materially changed. Follow
+the milestone links for owners, implementation files, tests and decision notes.
+
+| User function | Behavior / entry point | Milestone | Current status |
+|---|---|---|---|
+| Browse Shekuthi | Guest home, active catalog, listing detail/vendor page, search/category; `/`, `/catalog`, `/listing/{product}` | M2, M9, M24, M32 | Live/public checks pass; general web catalog area/price filters remain open |
+| PG, rentals and homestays | Dedicated category feed with search, district/locality, price filters; `/stays`, `/api/v1/stays`, app shortcut | M23, M35 | Implemented and tested |
+| Farm produce for resellers | `farm_reseller` listing category/feed; `/reseller-produce`, `/api/v1/reseller-produce`, app shortcut | M28 | Implemented and tested |
+| Guest booking | Book without account; MOQ/stock validation, price snapshot, code lookup and guest cancellation | M3 | Implemented and tested |
+| Vendor account/profile | Register, verify email, log in, edit shop profile, manage product images and view incoming bookings | M12, M33, M45 | Implemented; SMTP/email delivery is an operational dependency |
+| Product submission/moderation | New/edit submissions pending; explicit consent for public listing images; admin approves/rejects at `/admin/listings` | M14.1, M30, M45 | Implemented and tested |
+| Vendor delayed product deletion | Unpublish/archive, then delete after seven days | M48 | Shipped; refused while orders reference the listing |
+| Drivers and errands | Driver base/availability/job matching; guest errand request and code/phone lookup | M4, M15, M18 | Implemented in backend/web/app; end-to-end handoff needs live smoke |
+| Booking-linked driver pickup | Vendor asks a driver to collect/deliver a regular booking | M4.4, M13.3, M27.2 | **API exists; client request flow not implemented** |
+| Collectors and farm collection | Admin signs one collector per sub-division; vendor requests farm collection to a hub; collector accepts/progresses | M28 | Implemented in backend/web/app and tested |
+| Skilled-worker discovery/profile | Worker edits services/categories; public directory filters workers | M15.3, M17, M18 | Web/app/API paths implemented and tested |
+| Volunteer verification | Approval, questionnaire, report, admin review, badge and signed story | M5, M9.5, M25 | Backend/web and story paths implemented; app evidence photo/profile photo upload remains open |
+| Verification story in app listing | Open the volunteer-authored story from a verified listing | M25.1, M27.7 | **API story reference and app link not implemented** |
+| UPI donations | Display-only UPI ID/QR; no platform payment handling | M6 | Implemented; owner must configure live UPI details |
+| Referrals/affiliate | Share codes; record signup/conversion; owner approves peer-to-peer commission; vendor sales PDF | M6, M21 | Web/backend implemented; app commission UI and errand referral attribution remain open |
+| Notifications | Database inbox; optional FCM push | M8 | App/API inbox exists; FCM credentials and web inbox remain open |
+| Consent and account-data requests | Registration/booking/image consent, export, deletion and retention request flows | M7, M26, M45 | Partial: errand/notification consent gaps and incomplete full-data export/deletion remain |
+| Admin operations | Districts/hubs, collector assignments, listing approvals, volunteer/verifications, categories, posts, UPI/fees, data requests | M4–M7, M14.1, M17, M22, M28, M45 | Implemented; admin login 2FA not present (password-change OTP exists) |
+| Mobile app navigation | Home/Browse/Farm/Account/Back bottom navigation; Shekuthi API/site base | M37, M41–M44 | APK sideload build passes tests; physical-phone inset walkthrough and Play signing remain |
+| Branding/legal/contact | Shekuthi name/domain, About/source/AI notices, contact and grievance officer, terms/privacy/disclaimer | M26, M29, M32, M33, M39 | Implemented; legal entity/address/jurisdiction values still need owner completion |
+| Responsive mobile website | App-like bottom tabs, compact header, responsive filters, sharp typography | M34–M37 | CSS/tests pass; manual browser/device walkthrough still recommended |
+
+### Current audit evidence and limits
+
+- Latest completed audit run: backend **259 tests / 976 assertions**; Flutter
+  analyzer clean and **19/19 tests**.
+- Live public website and public API route checks returned HTTP 200 on
+  2026-09-24; these do not verify authenticated mutations or user-specific data.
+- Latest APK is debug-signed and suitable for sideload testing only. Play Store
+  publishing needs a private release keystore and production application ID.
+- Hostinger operations that still require verification: scheduled cron, backup
+  restore, FCM setup, storage persistence, legal identity values and full
+  signed-email/listing-approval journeys with real accounts.
+
+
+> Tracking location update — 2026-10-05: owner moved `SKILL/plan-template/` to root `plan-template/` and design references to root `design/`. Earlier SKILL paths are historical. Active tracker/request files remain here; root plan.md is the legacy copy.
+
+## 11 · Remaining work after M51 (2026-10-05)
+
+This is a source-code review of known open tasks, not a new production or authenticated-flow audit. Task IDs above remain permanent. Earlier 🆕 audit statuses in M27.2–M27.8 now use ⬜; their scope/history is unchanged. Request checkboxes remain owner confirmation.
+
+### Implementation still missing
+
+| Task(s) | Work to build | Current evidence / owner |
+|---|---|---|
+| M16.1 | Restore functional local demo seeding | Isolated DemoAccountsSeeder run fails required accept_terms validation; see M52 and RegistrationService. |
+| M8.1 | Connect all promised notification events and mobile push client | Only booking-status notification has an application call site; job/errand/verification service methods are uncalled and mobile push registration is absent. |
+| M13.1 | Edit existing vendor listings in the app | `mobile/lib/features/vendor/listings/listing_edit_screen.dart` is create-only; `listings_screen.dart` has status actions; `mobile/lib/core/router/app_router.dart` has no edit route. |
+| M13.3 / M27.2 | Ordinary booking-linked pickup/delivery request in app and website | Existing `/logistics/jobs` API has no vendor request form in app/web booking screens. Farm-produce collections from M28 are implemented and separate. |
+| M14.2 | Website notification inbox | `backend/routes/web.php` lacks inbox routes; app/API notifications already exist. |
+| M21.3 | App commission management and driver errand referral attribution | `mobile/lib/features/vendor/referrals/referrals_screen.dart` shows codes/counters; `mobile/lib/features/errand/errand_request_screen.dart` has no commission attribution flow. |
+| M25.3 | Volunteer profile photo upload in app | `mobile/lib/features/volunteer/` has no profile photo picker/upload; server accepts photo path. |
+| M27.3 | Website verification evidence submission client | — 2026-10-05: App photos are now built/verified in M5.2. Website volunteer dashboard still directs reports to the app; no web evidence submission form. |
+| M27.4 | Complete account-data export | `backend/app/Services/DataExportService.php` exports basic user/vendor fields and user consent only, omitting other role/activity records. Private export storage from M47 is implemented. — 2026-10-05: ✅ resolved in M7.2; earlier evidence is retained as audit history. |
+| M27.5 | Record errand-contact and notification opt-in consent | `backend/app/Http/Controllers/Api/{ErrandController,DeviceTokenController}.php` does not capture corresponding consent records. — 2026-10-05: ✅ resolved in M7.1; earlier evidence is retained as audit history. |
+| M27.6 | Complete end-to-end personal-data deletion | `backend/app/Services/DataDeletionService.php` anonymizes basic user/vendor fields; remaining role/media/activity surfaces still need deletion/anonymization and verification. — 2026-10-05: ✅ resolved in M7.3; earlier evidence is retained as audit history. |
+| M27.7 | Link verified app listings to the signed verification story | `backend/app/Http/Resources/ProductResource.php` has badge name/boolean but no story reference; Flutter listing detail has no story link. |
+| M27.8 | District/locality and price filters in general website catalog | `backend/app/Http/Controllers/Web/CatalogController.php` and `backend/resources/views/pages/catalog.blade.php` support only search/category. API and dedicated sections are separate. |
+
+### Release, operations and design work still open
+
+- **M20.3:** private release signing, final application ID, signed AAB/store release, Firebase messaging client/token registration and backend push credentials; physical-phone checks. Android SDK/debug build and supplied launcher icon are now available.
+- **M8.4 / Q7:** live deployment did occur per 2026-09-24 history. Confirm private-export fix deployment and legacy cleanup, cron scheduling, backup restore, storage persistence, push setup and legal values. Historical SMTP/OTP/PHP/storage confirmations are not re-verified today.
+- **M0.7 / Q13:** supplied logo is adopted; final palette and remaining store/brand collateral are still open. Existing design tokens retain the current palette.
+- **M0.5 / M0.6:** ongoing per-feature icon/illustration coverage, governed by third-party asset isolation rather than the old copy-out instructions. **Q9:** local media versus optional object storage remains a recorded decision, not an invented cloud requirement.
+
+### M51 verification and limits
+
+- App analyzer: zero issues. Flutter: 30 passing tests, including 11 new navigation/state/controller tests. Backend relevant suite: 7 tests / 37 assertions.
+- Supplied source SVG was not changed; website logo matches its bytes, PNGs render at the Flutter and Android density sizes.
+- Debug APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`; installed and opened on emulator-5554 with production API base. Debug signing remains intentional for emulator testing.
+- Emulator walked Home, category sheet and filtered listings, including dark mode and safe-area bottom bar; restored light mode/Home. Populated listings, paging, errors/retry, keyboard focus, hover/press, disabled locality and narrow 2x text are covered with isolated tests. Skeleton replayed at 10% speed.
+- Production catalog returned an empty list during this run; the app displays the actual empty state. No test listings added to production. Website logo files are local changes; no host deployment performed.
+
+## 12 · Verified completion reconciliation (M52, 2026-10-05)
+
+User asked to mark already-built milestones done. This review preserves old notes, corrects current technical statuses and synchronizes request ticks under that explicit instruction. Progress now counts top-level permanent task IDs only; lettered subtasks remain separately linked and M1 stays in progress while its host-confirmation subtask is blocked.
+
+### Corrected milestone headings
+
+| Milestone | Verified completion | Evidence |
+|---|---|---|
+| M12 | ✅ 4/4 | Vendor web listing/profile/booking routes, views/controllers and WebVendor* tests; prior UI-state notes. |
+| M17 | ✅ 3/3 | Volunteer approval, skill-category admin and worker directory implementations and corresponding tests; prior UI-state notes. |
+| M18 | ✅ 2/2 | Driver transport categories/profile and public web/API/app directory; AdminTransportCategory, DriverTransport and TransportDirectory tests. |
+| M22 | ✅ 2/2 | Admin posts, published public/API stories and app reader; AdminPost/Blog/PostApi tests and Flutter blog tests. |
+| M31 | ✅ 1/1 | No tracked files in third-party art/design paths; .gitignore exclusions and root ATTRIBUTION.md verified. |
+| M32 | ✅ 2/2 | Public Shekuthi branding/default domains, production template and completed Hostinger audit/runbook; delivery is audit/docs, while actual remaining operations stay M8.4/M20.3. |
+| M42 | ✅ 2/2 | SafeArea navigation implementation and completed causal audit document; M51 widget/emulator checks corroborate the inset fix. Physical release checks remain M20.3. |
+| M52 | ✅ 1/1 | Existing task owners and verification records reviewed. |
+
+### Completion claims corrected to partial
+
+| Task | Status | Reason / follow-up |
+|---|---|---|
+| M5.2 | 🔄 | Report/checklist/notes and server evidence validation/persistence are built, but the promised mobile photo picker/upload is absent. Existing verification tests pass; full task scope remains incomplete. See M27.3. |
+| M7.1 | 🔄 | Consent grant/list/revoke, registration and booking capture exist and pass tests. The original comment also promises errand-contact and notification opt-in capture; those paths still do not create the required consent rows. See M27.5. |
+| M7.2 | 🔄 | Self-serve private JSON export is built and tests pass, including signed downloads/retention. The original scope says all personal data; the export still covers only basic user/vendor fields and user consents. See M27.4. Private storage protection M47.1 remains complete. |
+| M7.3 | 🔄 | Self-serve/basic user/vendor anonymization and admin ledger are built and tested. The original scope promises end-to-end PII removal; role/media/activity surfaces are not fully covered. See M27.6. |
+| M8.1 | 🔄 | Database inbox, device-token endpoints and booking-status notification are built and tested. jobAssigned/errandAssigned/verificationResult exist only as service definitions with no application call sites; mobile Firebase messaging/token-registration is also absent. Full promised event/push scope remains incomplete; do not treat configuration alone as completion. |
+| M16.1 | 🔄 | Seeder implementation exists and is excluded from production DatabaseSeeder, but an isolated in-memory migrate + DemoAccountsSeeder run fails validation on accept_terms. The fresh-account payload omits the now-required field. This failure is not covered by the passing 268-test suite. Task reopened for repair and verification; no seed data or production configuration changed. |
+
+M8.4 now reads in progress: live deployment is recorded, while Q7 operations checks remain unverified. M1 remains in progress due M1.1c/Q7. Existing M13/M14/M20/M21/M25/M27 implementation/release gaps remain open; M0 asset/palette work remains open.
+
+### Verification
+
+- Full backend suite: **268 tests / 1012 assertions pass** using PHP 8.3.6 with GD loaded from `/tmp/shekuthi-php-gd/usr/lib/php/20230831/gd.so`. Initial 10 missing-GD errors were environmental; the matching Ubuntu package SHA-256 was checked against local apt metadata before extraction. No system install or project configuration change.
+- Full Flutter suite: **30 tests pass**. Application code is unchanged since M51, whose analyzer/build/emulator/state-walk evidence remains dated there.
+- Additional isolated in-memory database probe: `DemoAccountsSeeder` fails on required `accept_terms`; M16.1 reopened. No live account seeding, remote writes or new production assertions.
+- Milestone summary is scoped completion, not blanket launch approval. Completed audit/doc milestones do not close missing product features or host/device gates.
+
+### Prior dashboard descriptions retained for history
+
+The following were the dashboard rows before this reconciliation; the current dashboard above supersedes their counts/statuses.
+
+| Milestone | Scope | Prior status | Prior progress |
+|---|---|---|---|
+| M0 | Design system & assets adoption | 🔄 | 4/7 (M0.5/M0.6 copy-outs continue per feature · M0.7 ⏸️ Q13) |
+| M1 | Foundations: scaffolds, schema, auth, encryption, CI | ✅ | 6/6 (M1.1c host confirmation ⏸️ Q7) |
+| M2 | Roles, catalog & listings | ✅ | 6/6 incl. M2.3a photo attach |
+| M3 | Booking + MOQ (guest) | ✅ | 3/3 |
+| M4 | Logistics: localities, rider bases, availability, matching, errands | ✅ | 6/6 — admin locality CRUD confirmed shipped (2026-09-18 audit correction) |
+| M5 | Verification & verified badge | ✅ | 6/6 (M5.1–M5.6; verification is a paid service — fee to the volunteer; mobile UI shipped) |
+| M6 | Donations (UPI) + referral/affiliate | ✅ | 3/3 |
+| M7 | DPDP + security | ✅ | 5/5 · M7.5=manual command (cron gated on Q7) |
+| M8 | Notifications, website pages, tests, deploy, launch | 🔄 | 8/9 ✅ · M8.4 🔄 docs done, live deploy ⏸️ Q7 |
+| M9 | Service areas + audit gap-closing | ✅ | 6/6 complete |
+| M10 | Scope corrections & role rename (raised 2026-09-18) | ✅ | 3/3 complete — multi-locality add, service-area scope, skilled-worker rename |
+| M11 | Upload optimisation (raised 2026-09-18) | ✅ | 1/1 complete — WebP conversion on media uploads |
+| M12 | Vendor functional gaps (raised 2026-09-18) | ✅ | 4/4 — web listing create/edit, archive, profile, bookings |
+| M13 | App parity gaps (raised 2026-09-18) | 🔄 | 1/3 — skilled-worker profile shipped; listing edit and ordinary pickup requests remain |
+| M14 | Admin & platform gaps (raised 2026-09-18) | 🔄 | 1/2 — listing moderation shipped; web notifications inbox remains |
+| M15 | Member workspace & form UI (raised 2026-09-18) | ✅ | 5/5 complete — dashboard/listing form, booking form, asset publishing, driver base, worker profile |
+| M16 | Dev tooling (raised 2026-09-18) | ✅ | 1/1 — demo accounts seeder (one account per role) |
+| M17 | Volunteer approval & skilled-worker discovery (raised 2026-09-18) | ✅ | 3/3 — volunteer approval, skill categories, worker directory |
+| M18 | Transport & errands directory (raised 2026-09-18) | ✅ | 2/2 — transport categories + driver contact, public directory with call |
+| M19 | Region reference data (raised 2026-09-18) | ✅ | 1/1 — real localities for Dimapur/Kohima/Chümoukedima/Niuland (admin-editable) |
+| M20 | Production readiness (raised 2026-09-18) | 🔄 | 2/3 — audit done, app parity done; release hardening pending SDK/keystore |
+| M21 | Sales reporting & affiliate commissions (raised 2026-09-18) | 🔄 | 2/3 — sales PDF ✅, peer-to-peer commissions ✅; app commission UI pending |
+| M22 | Blog / community stories (raised 2026-09-19) | ✅ | 2/2 — admin authoring + public pages + app reader |
+| M23 | PG / rentals / homestays section (raised 2026-09-19) | ✅ | 1/1 — web search page + API + app shortcut |
+| M24 | About page & content (raised 2026-09-19) | ✅ | 1/1 — stakeholders + full feature list |
+| M25 | Verification questionnaire + signed story (raised 2026-09-19) | 🔄 | 2/3 — backend/web + app questionnaire/stories ✅; volunteer photo upload pending |
+| M26 | Legal pages & DPDP compliance (raised 2026-09-19) | ✅ | 3/3 — legal pages, consent capture, app links/docs |
+| M27 | Production audit (raised 2026-09-19) | 🔄 | 1/8 closed — collector dead-end resolved; collection flow partially addresses pickup; DPDP, evidence, story link, ordinary pickup UI, web filters and launch checks remain |
+| M28 | Collectors & reseller farm produce (raised 2026-09-19) | ✅ | 5/5 — collector role + signing, reseller category/section, collection jobs, app collector screens, vendor request (web + app) |
+| M29 | Open-source distribution (raised 2026-09-19) | ✅ | 2/2 — MIT license + repo; About page source/contribution note and AI-built disclosure |
+| M30 | Media limits & optimisation (raised 2026-09-19) | ✅ | 1/1 — 2 MB upload cap, downscale to 1600 px + WebP, max 4 photos per listing |
+| M31 | Third-party asset hygiene (raised 2026-09-19) | ✅ | 1/1 — untracked third-party art/docs, credited owners + sources, gitignored |
+| M32 | Shekuthi brand + Hostinger deployment readiness (raised 2026-09-19) | 🔄 | 2/2 — public brand/domain update and shared-hosting audit complete; host/owner launch gates pending |
+| M33 | Contact, grievance and peer-to-peer responsibility copy (raised 2026-09-19) | ✅ | 2/2 — contact/grievance details and rate-compliance disclaimer |
+| M34 | Responsive UI fluidity audit (raised 2026-09-19) | ✅ | 1/1 — website navigation fixed for narrow screens; Flutter static audit complete |
+| M35 | Modern responsive public search/filter UI (raised 2026-09-19) | ✅ | 1/1 — PG/stays, catalog and farm-produce filters use responsive labeled cards |
+| M36 | Clean sharp typography and UI pass (raised 2026-09-19) | ✅ | 1/1 — lighter Inter Tight typography, sharper radii and crisp surfaces |
+| M37 | Mobile website app-like shell (raised 2026-09-19) | ✅ | 1/1 — mobile compact header and fixed bottom navigation |
+| M38 | Admin password change with email OTP (raised 2026-09-19) | ✅ | 1/1 — secure OTP-confirmed admin password change |
+| M39 | About-page AI attribution update (raised 2026-09-19) | ✅ | 1/1 — OpenCode and LLM attribution wording |
+| M40 | Android APK build and live API verification (raised 2026-09-19) | ✅ | 1/1 — 56.7 MB Shekuthi APK built and live public API verified; release keystore remains pending for store publishing |
+| M41 | Flutter bottom navigation shell (raised 2026-09-19) | ✅ | 1/1 — persistent Home/Browse/Farm/Account/Back navigation |
+| M42 | Navigation inset fix + causal functional audit (raised 2026-09-19) | ✅ | 2/2 — safe-area implementation and causal audit documented; physical-device walkthrough remains external |
+| M43 | Mobile auth network diagnostics (raised 2026-09-19) | ✅ | 1/1 — distinguish API validation, server and connection failures |
+| M44 | Android release network permission (raised 2026-09-19) | ✅ | 1/1 — release APK can access the Shekuthi API |
+| M45 | Email verification + listing approval (raised 2026-09-19) | ✅ | 2/2 — mandatory email verification and admin listing moderation |
+| M46 | Current function inventory and plan reconciliation (raised 2026-09-24) | ✅ | 1/1 — current function map, verification evidence and open gaps appended |
+| M47 | Protect data export files (raised 2026-09-24) | ✅ | 1/1 — private exports, expiring signed download and retention cleanup shipped |
+| M48 | Vendor delayed listing deletion (raised 2026-09-24) | ✅ | 1/1 — delete option after 7 days unpublished shipped |
+| M49 | Skill tracking migration | ✅ | 1/1 — documentation migrated and request links verified |
+| M50 | Merge remaining skill-folder metadata | ✅ | 1/1 — README and ignore rules merged, SKILL removed |
+| M51 | Supplied logo, listing-first app and remaining-work review | ✅ | 3/3 |
+
+### Prior milestone headings retained for history
+
+Current headings now carry recalculated counts. These earlier descriptions are retained verbatim as historical text:
+
+```text
+### M0 · Design system & assets — status: 🔄 (M0.1/M0.2 decided 2026-09-05; M0.5/M0.6 copy-outs continue per feature; M0.7 ⏸️ Q13)
+### M1 · Foundations — status: 🔄 (6/6; M1.1c host confirmation ⏸️ Q7)
+### M2 · Roles, catalog & listings — status: ✅ (6/6; M2.3a in-app photo attach done)
+### M3 · Booking + MOQ (guest) — status: ✅ (3/3)
+### M4 · Logistics & errands — status: ✅ (6/6 — backend + all app screens; admin locality CRUD confirmed shipped in the 2026-09-18 audit)
+### M5 · Verification & verified badge — status: 🔄 (6 tasks: M5.1–M5.6; mobile UI shipped)
+### M6 · Donations (UPI) + referral/affiliate — status: ✅ (3/3)
+### M7 · DPDP + security — status: 🔄 (DPDP core + hardening + retention sweeps done)
+### M8 · Notifications, website, testing, deploy, launch — status: 🔄 (8.1–8.3, 8.5–8.7 delivered; M8.4 docs done, live deploy ⏸️ Q7; M8.8 ⬜ Q17; Q10 decided 2026-09-18)
+### M9 · Service areas + audit gap-closing — status: ✅ (6/6 complete 2026-09-18)
+### M10 · Scope corrections & role rename — status: ✅ (3/3 complete 2026-09-18)
+### M11 · Upload optimisation — status: ✅ (1/1 complete 2026-09-18)
+### M12 · Vendor functional gaps — status: ✅ (raised 2026-09-18 from a cause→effect audit)
+### M13 · App parity gaps — status: 🔄 (raised from the same audit)
+### M14 · Admin & platform gaps — status: 🔄 (raised from the same audit)
+### M15 · Member workspace & form UI — status: ✅ (5/5 complete 2026-09-18)
+### M16 · Dev tooling — status: 🔄 (raised 2026-09-18, owner request)
+### M17 · Volunteer approval & skilled-worker discovery — status: ✅ (raised 2026-09-18, owner request)
+### M18 · Transport & errands directory — status: ✅ (raised 2026-09-18, owner request)
+### M19 · Region reference data — status: ✅ (raised 2026-09-18, owner request)
+### M20 · Production readiness — status: 🔄 (raised 2026-09-18, owner request)
+### M21 · Sales reporting & peer-to-peer affiliate commissions — status: 🔄 (raised 2026-09-18, owner request)
+### M22 · Blog / community stories — status: ✅ (raised 2026-09-19, owner request)
+### M23 · Dedicated PG / rentals / homestays section — status: ✅ (raised 2026-09-19, owner request)
+### M24 · About page & content — status: ✅ (raised 2026-09-19, owner request)
+### M25 · Verification: volunteer questionnaire + signed story — status: 🔄 (raised 2026-09-19, owner request)
+### M26 · Legal pages & DPDP compliance — status: ✅ (raised 2026-09-19, owner request)
+### M27 · Production audit (2026-09-19) — status: 🔄 (cause→effect audit of every requirement)
+### M28 · Collectors & reseller farm produce — status: ✅ (raised 2026-09-19, owner request)
+### M29 · Open-source distribution — status: ✅ (raised 2026-09-19, owner request)
+### M30 · Media limits & optimisation — status: ✅ (raised 2026-09-19, owner request)
+### M31 · Third-party asset hygiene — status: ✅ (raised 2026-09-19, owner request)
+### M32 · Shekuthi brand + Hostinger deployment readiness — status: ✅ (raised 2026-09-19, owner request)
+### M33 · Contact, grievance and peer-to-peer responsibility copy — status: ✅ (raised 2026-09-19, owner request)
+### M34 · Responsive UI fluidity audit — status: ✅ (raised 2026-09-19, owner request)
+### M35 · Modern responsive public search/filter UI — status: ✅ (raised 2026-09-19, owner request)
+### M36 · Clean sharp typography and UI pass — status: ✅ (raised 2026-09-19, owner request)
+### M37 · Mobile website app-like shell — status: ✅ (raised 2026-09-19, owner request)
+### M38 · Admin password change with email OTP — status: ✅ (raised 2026-09-19, owner request)
+### M39 · About-page AI attribution update — status: ✅ (raised 2026-09-19, owner request)
+### M40 · Android APK build and live API verification — status: ✅ (raised 2026-09-19, owner request)
+### M41 · Flutter bottom navigation shell — status: ✅ (raised 2026-09-19, owner request)
+### M42 · Navigation inset fix + causal functional audit — status: ✅ (raised 2026-09-19, owner request)
+### M43 · Mobile auth network diagnostics — status: ✅ (raised 2026-09-19, owner request)
+### M44 · Android release network permission — status: ✅ (raised 2026-09-19, owner report)
+### M45 · Email verification + listing approval — status: ✅ (raised 2026-09-19, owner request)
+### M46 · Current function inventory and plan reconciliation — status: ✅ (raised 2026-09-24, owner request)
+### M47 · Protect data export files — status: ✅ (raised 2026-09-24, security audit)
+### M48 · Vendor delayed listing deletion — status: ✅ (raised 2026-09-24, owner request)
+### M49 · Skill tracking migration — status: ✅ (raised 2026-10-05, owner request)
+### M50 · Merge remaining skill-folder metadata — status: ✅
+### M51 · Supplied logo, listing-first app and remaining-work review — status: ✅
+### M52 · Reconcile built milestones and completion marks — status: ✅
+```
+
+
+## 13 · M5 completion — 2026-10-05
+
+M5.2 now completes M5 (6/6 top-level tasks). M52 reconciliation above remains a historical audit snapshot; its reopened M5.2 finding is resolved by this delivery. Current milestone summaries: 42/53 done; requests: 140/163 checked, 23 open. M27.3 remains open for the website client. Implementation/automated verification is complete locally; deploy the backend changes before using app evidence uploads against production.
+
+
+## 14 · Photo limit change and M7 completion — 2026-10-05
+
+Owner requested four verification photos at 500 KB each and the next remaining milestone. M5.7 implements the new limits and supersedes the eight-photo/2 MB implementation notes in M5.2; prior notes remain historical. M7 application work is complete (5/5), resolving the reopened M52 findings for M7.1–M7.3 and matching audit tasks M27.4–M27.6. M27 remains partial (4/8), including its missing website evidence client. Current dashboard: 43/53 milestones done; requests: 147/164 checked, 17 open.
+
+Verification: backend 281 tests / 1210 assertions; app 44 tests; analyzer zero issues; touched PHP Pint clean; debug APK built, installed and opened in emulator. Isolated fixtures/fake storage only: no production account exported or erased. Backend deployment and host backup/retention/restore checks remain M8.4/Q7. Data boundaries and restore/retry procedure are documented in docs/security/account-data.md.
+
+## 15 · Listing lifecycle delivery — 2026-10-05
+
+M53.1–M53.3 implement R165–R167. Current completion: 44/54 milestones; 150/167 request ticks, 17 open. Approval is mandatory before publication; a new approval starts one calendar year. Expiry makes a listing inactive, with automatic removal after 30 days without renewal. Email and in-app warnings are sent at expiry and seven days before removal; delivery failure or a late scheduler preserves a full seven-day final notice. Renewal awaits admin review and suspends removal; approved renewal restarts the year. Removed listings retain only a non-public integrity tombstone for bookings.
+
+Verification: 293 backend tests / 1320 assertions, 51 Flutter tests, analyzer zero issues, touched PHP Pint clean, final debug APK built/installed/opened in emulator. Local migration safely returns existing active rows to moderation and rolls back schema; production migration is not applied. Production rollout, SMTP deliverability and host scheduler activation remain M8.4/Q7. Lifecycle decisions and commands: docs/decisions/listing-lifecycle.md. No real warnings or production deletions were performed.
+
+## 16 · Driver vehicle categories — 2026-10-05
+
+M54.1 / R168 complete locally. Drivers select two-wheeler, three-wheeler, car, van, pickup or truck before submitting their transport work profile. The selected category is displayed separately from offered services on app/web directory cards. Existing drivers with no category remain hidden until they select one; no vehicle is inferred. Current completion: 45/55 milestones, 151/168 request ticks, 17 open. Verification: 297 backend tests / 1407 assertions, 57 Flutter tests, analyzer/Pint clean and debug APK installed/opened. Production migration/API deployment remains M8.4/Q7.
+
+## Role workflow delivery — 2026-10-05
+
+M55.1–M55.5 / R169–R173 complete locally. Role-specific tools, private navigation, driver work lifecycle, profile regressions and fluid role layouts verified. Full backend: 304 tests / 1527 assertions; full Flutter: 95 tests; added driver hover/focus/pressed checks pass; analyzer/Pint clean; debug app built and opened in emulator. Decisions, evidence and unchanged open feature/release gaps: `docs/audits/role-workflows-2026-10-05.md`. Current dashboard: 46/56 milestones done, 156/173 request ticks, 17 open. No production deployment or production data changes in this delivery.
+
+## All-screen navigation delivery — 2026-10-05
+
+M57.1–M57.2 / R175–R176 complete locally. Bottom menu remains outside page scrolling on every routed app screen, including authentication; temporary dialogs/sheets remain overlays. M57 supersedes the earlier M41 authentication exception; historical notes retained. Keyboard menu placement, role access and pushed-page Back verified. Compact registration and catalog empty/error layout fixes included. 98 Flutter tests pass; analyzer clean; debug app rebuilt and opened in emulator. Current completion: 48/58 milestones, 159/176 request ticks, 17 open. No backend/production changes.

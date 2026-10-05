@@ -29,7 +29,6 @@ class _ListingEditScreenState extends ConsumerState<ListingEditScreen> {
   final TextEditingController _availableFrom = TextEditingController();
   final TextEditingController _availableTo = TextEditingController();
   String _category = 'agro';
-  bool _publishNow = false;
   bool _imagePublicConsent = false;
   bool _saving = false;
   final List<XFile> _photos = <XFile>[];
@@ -99,9 +98,9 @@ class _ListingEditScreenState extends ConsumerState<ListingEditScreen> {
               stock: _isRental ? null : int.tryParse(_stock.text.trim()),
               availableFrom: _isRental ? _availableFrom.text.trim() : null,
               availableTo: _isRental ? _availableTo.text.trim() : null,
-               status: _publishNow ? 'active' : 'draft',
-               images: uploaded,
-               imagePublicConsent: uploaded.isNotEmpty && _imagePublicConsent,
+              status: 'active',
+              images: uploaded,
+              imagePublicConsent: uploaded.isNotEmpty && _imagePublicConsent,
             );
 
     if (!mounted) {
@@ -142,19 +141,17 @@ class _ListingEditScreenState extends ConsumerState<ListingEditScreen> {
             const SizedBox(height: 16),
             _buildPhotoSection(),
             const SizedBox(height: 16),
-            SwitchListTile(
-              value: _publishNow,
-              onChanged: (bool value) => setState(() => _publishNow = value),
-              title: const Text('Submit for publication'),
-              subtitle: const Text('New listings are reviewed by an admin before they go live.'),
-            ),
+            const Text(
+                'Every listing needs admin approval before it goes live. '
+                'Approved listings expire after one year and can be renewed.'),
             if (_photos.isNotEmpty)
               CheckboxListTile(
                 value: _imagePublicConsent,
                 onChanged: (bool? value) =>
                     setState(() => _imagePublicConsent = value ?? false),
                 title: const Text('Show listing images publicly'),
-                subtitle: const Text('Anyone viewing the listing can see these images.'),
+                subtitle: const Text(
+                    'Anyone viewing the listing can see these images.'),
                 contentPadding: EdgeInsets.zero,
               ),
             const SizedBox(height: 16),
@@ -283,9 +280,8 @@ class _ListingEditScreenState extends ConsumerState<ListingEditScreen> {
           suffixIcon: Icon(Icons.calendar_today_outlined),
         ),
         onTap: () => _pickDate(_availableFrom),
-        validator: (String? value) => (value == null || value.isEmpty)
-            ? 'Pick the start date.'
-            : null,
+        validator: (String? value) =>
+            (value == null || value.isEmpty) ? 'Pick the start date.' : null,
       ),
       const SizedBox(height: 16),
       TextFormField(
@@ -296,9 +292,8 @@ class _ListingEditScreenState extends ConsumerState<ListingEditScreen> {
           suffixIcon: Icon(Icons.calendar_today_outlined),
         ),
         onTap: () => _pickDate(_availableTo),
-        validator: (String? value) => (value == null || value.isEmpty)
-            ? 'Pick the end date.'
-            : null,
+        validator: (String? value) =>
+            (value == null || value.isEmpty) ? 'Pick the end date.' : null,
       ),
     ];
   }
@@ -306,13 +301,7 @@ class _ListingEditScreenState extends ConsumerState<ListingEditScreen> {
   Widget _buildSubmitButton() {
     return FilledButton(
       onPressed: _saving ? null : _submit,
-      child: _saving
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Text('Save listing'),
+      child: Text(_saving ? 'Submitting…' : 'Submit for admin approval'),
     );
   }
 
@@ -361,8 +350,7 @@ class _ListingEditScreenState extends ConsumerState<ListingEditScreen> {
         OutlinedButton.icon(
           onPressed: _saving ? null : _addPhotos,
           icon: const Icon(Icons.add_photo_alternate_outlined),
-          label:
-              Text(_photos.isEmpty ? 'Add photos' : 'Add more photos'),
+          label: Text(_photos.isEmpty ? 'Add photos' : 'Add more photos'),
         ),
         if (_photos.isNotEmpty) ...<Widget>[
           const SizedBox(height: 12),
@@ -404,8 +392,10 @@ class _ListingEditScreenState extends ConsumerState<ListingEditScreen> {
         const SizedBox(height: 8),
         Text(
           'Up to $_maxPhotos photos.',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ],
     );

@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Consent;
 use App\Models\DataRequest;
+use App\Models\District;
+use App\Models\Errand;
+use App\Models\Locality;
 use App\Models\User;
 use App\Support\BlindIndex;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,6 +27,51 @@ class DpdpTest extends TestCase
             'role' => $role,
             'is_active' => true,
         ]);
+    }
+
+    public function test_consent_cannot_be_granted_for_another_account_or_fabricated_subject(): void
+    {
+        $user = $this->makeUser();
+        $other = $this->makeUser('other-consent@fixture.test');
+        $consent = ['consent_key' => Consent::KEY_NOTIFICATIONS, 'text_version' => '1.0',
+            'purpose' => 'Push notices', 'subject_type' => User::class, 'subject_id' => $other->id];
+        $this->actingAs($user, 'sanctum')->postJson('/api/v1/consents', $consent)
+            ->assertUnprocessable()->assertJsonValidationErrors('subject_id');
+        $consent['subject_type'] = 'invented';
+        $consent['subject_id'] = $user->id;
+        $this->postJson('/api/v1/consents', $consent)->assertUnprocessable();
+        $this->assertDatabaseCount('consents', 0);
+    }
+
+    public function test_errand_requires_consent_and_records_guest_and_authenticated_contact_permission(): void
+    {
+        $district = District::create(['name' => 'Fixture district', 'is_active' => true]);
+        $locality = Locality::create(['name' => 'Fixture locality', 'district_id' => $district->id,
+            'is_active' => true, 'is_service_area_active' => true]);
+        $payload = ['contact_name' => 'Errand fixture contact', 'contact_phone' => '+555112233',
+            'description' => 'Collect the parcel', 'pickup_district_id' => $district->id,
+            'pickup_locality_id' => $locality->id, 'drop_district_id' => $district->id,
+            'drop_locality_id' => $locality->id];
+        $this->postJson('/api/v1/errands', $payload)->assertUnprocessable()
+            ->assertJsonValidationErrors('accept_contact');
+        $this->assertDatabaseCount('errands', 0);
+        $this->assertDatabaseCount('consents', 0);
+        $payload['accept_contact'] = true;
+        $guest = $this->postJson('/api/v1/errands', $payload)->assertCreated();
+        $guestConsent = Consent::query()->where('subject_type', Errand::class)
+            ->where('subject_id', $guest->json('data.id'))->firstOrFail();
+        $this->assertSame(Consent::KEY_ERRAND_CONTACT, $guestConsent->consent_key);
+        $this->assertSame('1.0', $guestConsent->text_version);
+        $this->assertNotNull($guestConsent->granted_at);
+        $user = $this->makeUser('errand@fixture.test');
+        $token = $user->createToken('Fixture app')->plainTextToken;
+        $created = $this->withToken($token)->postJson('/api/v1/errands', $payload)
+            ->assertCreated()->assertJsonPath('data.customer_id', $user->id);
+        $id = $created->json('data.id');
+        $consent = Consent::query()->where('subject_type', Errand::class)->where('subject_id', $id)->firstOrFail();
+        $this->getJson('/api/v1/consents')->assertOk()->assertJsonPath('data.0.id', $consent->id);
+        $this->deleteJson('/api/v1/consents/'.$consent->id)->assertOk();
+        $this->assertNotNull($consent->fresh()->revoked_at);
     }
 
     public function test_a_user_can_record_consent(): void

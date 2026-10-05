@@ -53,6 +53,7 @@ class DriverTransportTest extends TestCase
 
         $this->actingAs($driver)
             ->put(route('dashboard.driver.profile'), [
+                'vehicle_category' => 'two_wheeler',
                 'name' => 'Rider Ravi',
                 'phone' => '9876507777',
                 'transport_category_ids' => [$bike->id, $errand->id],

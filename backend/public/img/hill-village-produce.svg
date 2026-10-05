@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 420" role="img" aria-labelledby="title desc">
+  <title id="title">A hill village and its harvest</title>
+  <desc id="desc">Small white houses sit among green terraced hills. A woven basket of leafy vegetables, radishes and squash rests beside ears of corn in the foreground.</desc>
+  <defs>
+    <clipPath id="landscape"><rect x="24" y="28" width="512" height="342" rx="28"/></clipPath>
+    <pattern id="basket-weave" width="24" height="16" patternUnits="userSpaceOnUse">
+      <rect width="24" height="16" fill="#FFFFFF"/>
+      <path d="M0 8h24M12 0v8M0 8v8M24 8v8" fill="none" stroke="#000000" stroke-width="1.5"/>
+    </pattern>
+  </defs>
+  <!-- Original Shekuthi vector art. Palette: logo green, white and black only. General landscape inspiration credited in ATTRIBUTION.md. -->
+  <g clip-path="url(#landscape)">
+    <rect x="24" y="28" width="512" height="342" fill="#FFFFFF"/>
+    <circle cx="432" cy="80" r="26" fill="#008000"/>
+    <g fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round">
+      <path d="M95 79q7-7 14 0q7-7 14 0M294 59q6-6 12 0q6-6 12 0"/>
+    </g>
+    <path d="M24 231L120 137L160 163L248 72L324 161L380 112L464 188L536 170V370H24Z" fill="#000000"/>
+    <path d="M215 110L248 72L280 108L261 99L248 110L237 98Z" fill="#FFFFFF"/>
+    <path d="M351 144L380 112L407 143L389 132L379 143L369 132Z" fill="#FFFFFF"/>
+    <path d="M24 254Q116 141 218 174Q285 195 328 223Q432 115 536 209V370H24Z" fill="#008000"/>
+    <path d="M24 276Q148 205 261 249Q410 173 536 269V370H24Z" fill="#FFFFFF"/>
+    <path d="M24 314Q139 241 274 282Q402 228 536 298V370H24Z" fill="#008000"/>
+    <!-- Contour lines suggest cultivated terraces. -->
+    <g fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round">
+      <path d="M38 244Q108 176 176 189M53 259Q112 211 177 216M336 232Q421 158 509 213M358 244Q437 192 515 235"/>
+      <path d="M33 329Q116 280 207 294M29 346Q116 297 211 311M351 278Q430 258 518 306M377 293Q451 279 528 324"/>
+    </g>
+    <path d="M274 215Q242 244 274 263Q316 288 278 316L256 344H303Q347 296 305 271Q272 250 290 225Z" fill="#FFFFFF"/>
+    <!-- Village homes, simple pitched roofs and veranda details. -->
+    <g stroke="#000000" stroke-width="2.5" stroke-linejoin="round">
+      <path d="M119 186v52h71v-52" fill="#FFFFFF"/>
+      <path d="M108 187l47-35 47 35Z" fill="#000000"/>
+      <path d="M146 211h16v27h-16Z" fill="#008000"/>
+      <path d="M128 200h12v13h-12ZM169 200h12v13h-12Z" fill="#FFFFFF"/>
+      <path d="M231 196v44h58v-44" fill="#FFFFFF"/>
+      <path d="M222 196l38-30 39 30Z" fill="#000000"/>
+      <path d="M251 219h15v21h-15Z" fill="#008000"/>
+      <path d="M238 204h10v10h-10ZM272 204h10v10h-10Z" fill="#FFFFFF"/>
+      <path d="M377 196v46h65v-46" fill="#FFFFFF"/>
+      <path d="M366 196l43-31 44 31Z" fill="#000000"/>
+      <path d="M401 216h16v26h-16Z" fill="#008000"/>
+      <path d="M384 205h10v12h-10ZM425 205h10v12h-10Z" fill="#FFFFFF"/>
+    </g>
+    <g fill="#000000">
+      <path d="M76 185l-22 43h15l-24 29h61l-24-29h15Z"/>
+      <path d="M463 202l-18 33h12l-21 25h54l-21-25h12Z"/>
+    </g>
+    <g stroke="#000000" stroke-width="3" stroke-linecap="round">
+      <path d="M76 252v19M463 255v17"/>
+    </g>
+  </g>
+  <!-- Foreground harvest sits outside the landscape frame. -->
+  <path d="M104 393h382" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+  <!-- Leafy greens and white radishes. -->
+  <g stroke="#000000" stroke-width="2" stroke-linejoin="round">
+    <path d="M182 316Q123 292 147 252Q179 250 189 285Q172 236 208 222Q234 251 212 293Q241 252 266 274Q261 309 223 321Z" fill="#008000"/>
+    <g fill="none" stroke="#FFFFFF" stroke-linecap="round">
+      <path d="M156 264l31 45M207 237l-5 70M251 282l-36 29"/>
+    </g>
+    <path d="M253 313Q236 274 258 257Q272 259 276 279Q284 251 304 260Q314 288 285 316" fill="#008000"/>
+    <path d="M267 298Q289 289 299 307Q304 326 284 349Q265 335 260 317Q259 306 267 298Z" fill="#FFFFFF"/>
+    <path d="M284 344l-3 14" fill="none" stroke-linecap="round"/>
+    <!-- Squash, with ribbed shape and a short stem. -->
+    <path d="M317 299q-6-13 1-23l10 3q-6 8-3 18" fill="#000000"/>
+    <path d="M321 296C285 278 278 309 285 329C294 353 348 355 364 331C380 304 356 281 321 296Z" fill="#008000"/>
+    <g fill="none" stroke="#FFFFFF" stroke-width="2">
+      <path d="M320 299q-23 17-14 45M326 299q21 14 16 44M325 302v44"/>
+    </g>
+    <!-- Woven produce basket. -->
+    <path d="M148 330h219l-23 54H172Z" fill="url(#basket-weave)" stroke-width="3"/>
+    <rect x="142" y="320" width="231" height="15" rx="6" fill="#FFFFFF" stroke-width="3"/>
+    <path d="M179 348h148M184 365h136" fill="none" stroke-width="3"/>
+    <!-- Corn cobs and husks alongside the basket. -->
+    <path d="M411 357C385 330 391 291 408 288C430 293 442 329 426 361Z" fill="#FFFFFF"/>
+    <g fill="none" stroke-width="1.5">
+      <path d="M402 301l17-4M399 311l26-5M400 322l29-5M403 333l27-5M408 344l20-4M408 294l13 55M416 298l12 47"/>
+    </g>
+    <path d="M419 379Q366 354 376 316Q403 324 419 359Q429 321 454 313Q461 355 419 379Z" fill="#008000"/>
+    <g fill="none" stroke="#FFFFFF" stroke-linecap="round">
+      <path d="M386 330q11 24 32 43M446 328q-9 27-24 43"/>
+    </g>
+    <!-- Radish laid in front of the basket. -->
+    <path d="M121 354q-30-31-13-43q22 1 25 26q6-27 24-22q11 19-22 39" fill="#008000"/>
+    <path d="M129 345Q151 345 157 362Q149 382 112 385Q110 361 129 345Z" fill="#FFFFFF"/>
+    <path d="M113 383l-13 7" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -30,7 +30,7 @@ class CatalogController extends Controller
 
         $query = Product::query()
             ->active()
-            ->with('vendor')
+            ->with(['vendor', 'activeBadge'])
             ->latest();
 
         if (isset($data['q'])) {
@@ -62,9 +62,9 @@ class CatalogController extends Controller
 
     public function show(Product $product): JsonResponse
     {
-        abort_unless($product->status === Product::STATUS_ACTIVE, 404);
+        abort_unless($product->isLive(), 404);
 
-        $product->load('vendor');
+        $product->load(['vendor', 'activeBadge']);
 
         return response()->json([
             'data' => new ProductResource($product),

@@ -87,11 +87,11 @@ Route::prefix('v1')->group(function () {
         ->middleware(['signed', 'throttle:10,1'])
         ->name('api.exports.download');
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
     });
 
-    Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::middleware(['auth:sanctum', 'active', 'verified'])->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
 
         Route::get('/profile', [ProfileController::class, 'show']);
@@ -105,6 +105,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/listings', [ListingController::class, 'index']);
         Route::post('/listings', [ListingController::class, 'store'])
             ->middleware('throttle:30,1');
+        Route::post('/listings/{product}/renew', [ListingController::class, 'renew'])->middleware('throttle:30,1');
         Route::put('/listings/{product}', [ListingController::class, 'update']);
         Route::delete('/listings/{product}', [ListingController::class, 'destroy']);
 

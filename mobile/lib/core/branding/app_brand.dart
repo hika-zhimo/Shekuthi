@@ -19,7 +19,7 @@ abstract final class AppBrand {
   static const String logoAsset = 'assets/brand/logo.png';
 
   /// Dark-background variant. Falls back to [logoAsset] when absent.
-  static const String logoDarkAsset = 'assets/brand/logo-dark.png';
+  static const String logoDarkAsset = logoAsset;
 
   /// Alt/semantics text for the mark.
   static const String logoLabel = name;

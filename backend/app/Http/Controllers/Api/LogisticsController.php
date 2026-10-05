@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\LogisticsJob;
 use App\Models\User;
 use App\Rules\ActiveLocality;
+use App\Services\DriverWorkService;
 use App\Services\JobMatchingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -89,20 +90,8 @@ class LogisticsController extends Controller
             return response()->json(['data' => []]);
         }
 
-        $base = $driver->riderBaseOperation;
-
-        if ($base === null) {
-            return response()->json(['data' => []]);
-        }
-
-        $localityIds = $base->localities->modelKeys();
-
-        $jobs = LogisticsJob::query()
-            ->whereIn('locality_id', $localityIds)
-            ->where('status', LogisticsJob::STATUS_REQUESTED)
-            ->with('booking.vendor')
-            ->latest()
-            ->get();
+        $jobs = app(DriverWorkService::class)->queue($driver, false)
+            ->with('booking.vendor')->latest()->limit(100)->get();
 
         return response()->json([
             'data' => $jobs->map(function (LogisticsJob $job) {
@@ -125,23 +114,7 @@ class LogisticsController extends Controller
     public function accept(Request $request, LogisticsJob $job): JsonResponse
     {
         $driver = $request->user();
-
-        if ($driver->role !== User::ROLE_DRIVER) {
-            throw ValidationException::withMessages([
-                'role' => ['Only drivers can accept jobs.'],
-            ]);
-        }
-
-        if ($job->status !== LogisticsJob::STATUS_REQUESTED && $job->status !== LogisticsJob::STATUS_ASSIGNED) {
-            throw ValidationException::withMessages([
-                'status' => ["A {$job->status} job cannot be accepted."],
-            ]);
-        }
-
-        $job->update([
-            'driver_id' => $driver->id,
-            'status' => LogisticsJob::STATUS_ACCEPTED,
-        ]);
+        $job = app(DriverWorkService::class)->accept($driver, $job);
 
         return response()->json([
             'data' => $job->fresh(),
@@ -154,31 +127,8 @@ class LogisticsController extends Controller
     public function updateStatus(Request $request, LogisticsJob $job): JsonResponse
     {
         $driver = $request->user();
-
-        if ($driver->role !== User::ROLE_DRIVER) {
-            throw ValidationException::withMessages([
-                'role' => ['Only drivers can update job status.'],
-            ]);
-        }
-
-        $data = $request->validate([
-            'status' => ['required', 'string', Rule::in([
-                LogisticsJob::STATUS_IN_PROGRESS,
-                LogisticsJob::STATUS_COMPLETED,
-            ])],
-        ]);
-
-        // Only the assigned driver can progress the job.
-        if ($job->driver_id !== $driver->id) {
-            throw ValidationException::withMessages([
-                'id' => ['This job is not assigned to you.'],
-            ]);
-        }
-
-        $job->update([
-            'status' => $data['status'],
-            'completed_at' => $data['status'] === LogisticsJob::STATUS_COMPLETED ? now() : $job->completed_at,
-        ]);
+        $data = $request->validate(['status' => ['required', 'string', Rule::in(['in_progress', 'completed'])]]);
+        $job = app(DriverWorkService::class)->progress($driver, $job, $data['status']);
 
         return response()->json([
             'data' => $job->fresh(),

@@ -14,9 +14,17 @@ class ProductResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // Resolved once per row: the accessor runs a query, so reusing the
-        // result keeps list endpoints at one badge lookup instead of two (M5.3).
+        // Catalog endpoints eager-load badges; other callers retain lazy lookup.
         $badge = $this->verified_badge;
+        $fee = null;
+        if ($badge === null) {
+            // Request-local reuse avoids stale fees and cross-request state.
+            $key = self::class.'.verification_fee';
+            if (! $request->attributes->has($key)) {
+                $request->attributes->set($key, VerificationFeeSetting::current()->amount_inr);
+            }
+            $fee = $request->attributes->get($key);
+        }
 
         return [
             'id' => $this->id,
@@ -36,11 +44,14 @@ class ProductResource extends JsonResource
             'district_id' => $this->district_id,
             'locality_id' => $this->locality_id,
             'status' => $this->status,
+            'expires_at' => $this->expires_at?->toIso8601String(),
+            'deletion_scheduled_at' => $this->deletion_scheduled_at?->toIso8601String(),
+            'can_renew' => $this->canRenew(),
             'is_verified' => $badge !== null,
             'verified_by' => $badge?->volunteer_name,
             'verification_fee_inr' => $this->when(
-                $badge === null && VerificationFeeSetting::current()->amount_inr !== null,
-                fn () => (float) VerificationFeeSetting::current()->amount_inr
+                $badge === null && $fee !== null,
+                fn () => (float) $fee
             ),
             'vendor' => $this->whenLoaded('vendor', fn (): ?array => $this->vendor === null ? null : [
                 'id' => $this->vendor->id,

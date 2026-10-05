@@ -85,6 +85,8 @@ class ProfileController extends Controller
 
         return [
             'is_online' => (bool) $user->driverAvailability?->is_online,
+            'vehicle_category' => $user->vehicle_category,
+            'vehicle_categories' => User::VEHICLE_CATEGORIES,
             'transport_category_ids' => $categories->pluck('id')->all(),
             'transport_categories' => $categories
                 ->map(fn ($category) => ['id' => $category->id, 'name' => $category->name])
@@ -111,6 +113,11 @@ class ProfileController extends Controller
                 Rule::exists('skill_categories', 'id')->where('is_active', true),
             ],
             // Driver-only fields.
+            'vehicle_category' => [
+                Rule::prohibitedIf($user->role !== User::ROLE_DRIVER),
+                Rule::requiredIf($user->role === User::ROLE_DRIVER && $request->exists('transport_category_ids')),
+                'string', Rule::in(array_keys(User::VEHICLE_CATEGORIES)),
+            ],
             'transport_category_ids' => ['sometimes', 'array'],
             'transport_category_ids.*' => [
                 'integer',
@@ -129,6 +136,10 @@ class ProfileController extends Controller
                 : null;
         }
 
+        if ($user->role === User::ROLE_DRIVER && array_key_exists('vehicle_category', $data)) {
+            $user->vehicle_category = $data['vehicle_category'];
+        }
+
         $user->save();
 
         if ($user->role === 'vendor') {
@@ -143,13 +154,8 @@ class ProfileController extends Controller
         }
 
         if ($user->role === 'skilled_worker') {
-            $profile = WorkerProfile::query()->updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'services' => $data['services'] ?? null,
-                    'service_areas' => $data['service_areas'] ?? null,
-                ],
-            );
+            $profile = WorkerProfile::query()->firstOrCreate(['user_id' => $user->id]);
+            $profile->fill(array_intersect_key($data, array_flip(['services', 'service_areas'])))->save();
 
             if (array_key_exists('skill_category_ids', $data)) {
                 $profile->skillCategories()->sync($data['skill_category_ids'] ?? []);

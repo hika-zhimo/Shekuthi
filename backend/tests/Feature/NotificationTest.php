@@ -2,10 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Models\Booking;
+use App\Models\Consent;
 use App\Models\DeviceToken;
+use App\Models\District;
 use App\Models\User;
+use App\Models\Vendor;
+use App\Notifications\GenericNotification;
+use App\Services\BookingService;
+use App\Services\NotificationService;
 use App\Support\BlindIndex;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification as NotificationFacade;
 use Tests\TestCase;
 
@@ -25,12 +33,58 @@ class NotificationTest extends TestCase
         ]);
     }
 
+    public function test_device_registration_requires_permission_and_does_not_transfer_ownership(): void
+    {
+        $user = $this->makeUser();
+        $other = $this->makeUser('other-push@fixture.test');
+        $this->actingAs($user, 'sanctum')->postJson('/api/v1/device-tokens', ['token' => 'fixture-token'])
+            ->assertUnprocessable()->assertJsonValidationErrors('notification_consent');
+        $this->assertDatabaseCount('device_tokens', 0);
+        $this->assertDatabaseCount('consents', 0);
+        $this->postJson('/api/v1/device-tokens', ['token' => 'fixture-token', 'notification_consent' => true])->assertCreated();
+        $this->postJson('/api/v1/device-tokens', ['token' => 'fixture-token', 'notification_consent' => true])->assertCreated();
+        $this->assertDatabaseCount('consents', 1);
+        $consent = Consent::firstOrFail();
+        $this->assertSame(Consent::KEY_NOTIFICATIONS, $consent->consent_key);
+        $this->assertSame('1.0', $consent->text_version);
+        $this->assertNotNull($consent->granted_at);
+        $this->actingAs($other, 'sanctum')->postJson('/api/v1/device-tokens', [
+            'token' => 'fixture-token', 'notification_consent' => true,
+        ])->assertUnprocessable()->assertJsonValidationErrors('token');
+        $this->assertSame($user->id, DeviceToken::firstOrFail()->user_id);
+    }
+
+    public function test_push_requires_active_consent_and_revocation_removes_devices(): void
+    {
+        Http::fake(['fcm.googleapis.com/*' => Http::response([], 200)]);
+        config(['services.fcm.server_key' => 'isolated-fixture-key']);
+        $user = $this->makeUser();
+        DeviceToken::create(['user_id' => $user->id, 'token' => 'fixture-token', 'platform' => 'android']);
+        app(NotificationService::class)->push($user, 'Account notice', 'Own notice');
+        Http::assertNothingSent();
+        $this->assertCount(1, $user->notifications()->get()); // operational inbox remains
+        $this->actingAs($user, 'sanctum')->postJson('/api/v1/device-tokens', [
+            'token' => 'fixture-token', 'notification_consent' => true,
+        ])->assertCreated();
+        app(NotificationService::class)->push($user, 'Account notice', 'Own notice');
+        Http::assertSentCount(1);
+        $consent = Consent::where('consent_key', Consent::KEY_NOTIFICATIONS)->firstOrFail();
+        $this->deleteJson('/api/v1/consents/'.$consent->id)->assertOk();
+        $this->assertSame(0, $user->deviceTokens()->count());
+        app(NotificationService::class)->push($user, 'Account notice', 'Own notice');
+        Http::assertSentCount(1);
+        $user->update(['is_active' => false]);
+        app(NotificationService::class)->push($user, 'Account notice', 'Own notice');
+        $this->assertCount(3, $user->notifications()->get());
+    }
+
     public function test_a_user_can_register_a_device_token(): void
     {
         $user = $this->makeUser();
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson('/api/v1/device-tokens', [
+                'notification_consent' => true,
                 'token' => 'fcm-token-abc123',
                 'platform' => 'android',
             ]);
@@ -90,15 +144,15 @@ class NotificationTest extends TestCase
         NotificationFacade::fake();
 
         $user = $this->makeUser('vendor@test.com', 'vendor');
-        $district = \App\Models\District::query()->create(['name' => 'Test District', 'is_active' => true]);
-        $vendor = \App\Models\Vendor::query()->create([
+        $district = District::query()->create(['name' => 'Test District', 'is_active' => true]);
+        $vendor = Vendor::query()->create([
             'user_id' => $user->id,
             'display_name' => 'Test Shop',
             'category' => 'traditional',
             'district_id' => $district->id,
         ]);
 
-        $booking = \App\Models\Booking::query()->create([
+        $booking = Booking::query()->create([
             'code' => 'BK-NOTIF01',
             'vendor_id' => $vendor->id,
             'status' => 'pending',
@@ -108,12 +162,12 @@ class NotificationTest extends TestCase
             'settled_offline' => true,
         ]);
 
-        $service = new \App\Services\BookingService();
+        $service = new BookingService;
         $service->changeStatus($booking, 'confirmed');
 
         NotificationFacade::assertSentTo(
             $user,
-            \App\Notifications\GenericNotification::class
+            GenericNotification::class
         );
     }
 }

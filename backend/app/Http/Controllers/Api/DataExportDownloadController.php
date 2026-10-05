@@ -17,7 +17,8 @@ class DataExportDownloadController extends Controller
     public function __invoke(Request $request, DataRequest $dataRequest): Response
     {
         abort_unless(
-            $dataRequest->type === DataRequest::TYPE_EXPORT
+            $dataRequest->user?->is_active
+                && $dataRequest->type === DataRequest::TYPE_EXPORT
                 && $dataRequest->status === DataRequest::STATUS_COMPLETED
                 && is_string($dataRequest->notes)
                 && str_starts_with($dataRequest->notes, 'private:exports/'),

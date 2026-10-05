@@ -28,18 +28,31 @@ abstract final class AppRadius {
   static final BorderRadius cardRadius = BorderRadius.circular(card);
 }
 
-/// Brand colors. The seed drives the Material 3 schemes; semantic colors stay
-/// stable across light and dark so status meaning never shifts.
+/// Owner-approved logo palette; neutral values blend black and white.
 abstract final class BrandColors {
-  /// Interactive seed (brand blue). Used only for interaction and status.
-  static const Color seed = Color(0xFF007BFF);
-
-  static const Color success = Color(0xFF28A745);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color danger = Color(0xFFDC3545);
+  static const Color seed = Color(0xFF008000);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF000000);
+  static const Color success = seed;
+  static const Color warning = black;
+  static const Color danger = black;
+  static const Color neutralLight = Color(0xFFF8F8F8);
+  static const Color neutralDark = Color(0xFF121212);
+  static const Color neutralLightContainer = Color(0xFFEEEEEE);
+  static const Color neutralDarkContainer = Color(0xFF222222);
+  static const Color outlineLight = Color(0xFF666666);
+  static const Color outlineDark = Color(0xFFAAAAAA);
+  static const Color borderLight = Color(0xFFDDDDDD);
+  static const Color borderDark = Color(0xFF444444);
 }
 
 /// Minimum touch target for interactive elements (accessibility floor).
 abstract final class TouchTarget {
   static const double min = 48;
+}
+
+/// Listing loading feedback.
+abstract final class AppMotion {
+  static const Duration skeletonDuration = Duration(milliseconds: 900);
+  static const double skeletonMinOpacity = 0.45;
 }

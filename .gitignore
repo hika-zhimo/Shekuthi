@@ -27,3 +27,21 @@ backend/public/icons/*
 !backend/public/icons/README.md
 backend/public/img/empty.svg
 backend/public/img/farm-girl.svg
+
+# Third-party resources and assets (design references, icons, illustrations) stay
+# local to this machine — add each path here per project, when the resource is
+# shared (AGENTS.md §3a). Never `git add -f` these paths.
+# Example: design/
+# Example: assets/
+
+# Moved local-only third-party design references
+/design/
+
+# Local derivative of supplied reference image (M62.1; licence unconfirmed)
+/scratch/brand-landscape-traced.svg
+
+# Local runtime copy of supplied landscape derivative (M62.2)
+/backend/public/img/brand-landscape-traced.svg
+
+# Local derivative of supplied PNG, licence unconfirmed (M62.3)
+/backend/public/img/home-landscape-cutout.png

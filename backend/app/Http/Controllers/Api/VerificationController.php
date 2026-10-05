@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Consent;
 use App\Models\Media;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\Verification;
 use App\Services\VerificationReviewService;
+use App\Support\UploadValidator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -43,12 +46,21 @@ class VerificationController extends Controller
             'checklist' => ['nullable', 'array'],
             'geo_lat' => ['nullable', 'numeric', 'between:-90,90'],
             'geo_lng' => ['nullable', 'numeric', 'between:-180,180'],
-            'evidence' => ['nullable', 'array', 'max:8'],
+            'evidence' => ['nullable', 'array', 'max:'.Verification::MAX_EVIDENCE],
             'evidence.*' => ['string', 'max:255'],
+            'evidence_public_consent' => ! empty($request->input('evidence'))
+                ? ['required', 'accepted'] : ['nullable', 'boolean'],
         ]);
 
         $evidencePaths = [];
         if (! empty($data['evidence'])) {
+            if (Media::query()->where('uploaded_by', $request->user()->id)
+                ->whereIn('path', $data['evidence'])
+                ->where('size', '>', UploadValidator::EVIDENCE_MAX_KILOBYTES * 1024)->exists()) {
+                throw ValidationException::withMessages([
+                    'evidence' => ['Each photo must be at most 500 KB.'],
+                ]);
+            }
             $evidencePaths = Media::query()
                 ->where('uploaded_by', $request->user()->id)
                 ->whereIn('path', $data['evidence'])
@@ -57,24 +69,35 @@ class VerificationController extends Controller
                 ->all();
         }
 
-        $verification = Verification::query()->create([
-            'volunteer_id' => $volunteer->id,
-            'subject_type' => $data['subject_type'],
-            'subject_id' => $data['subject_id'],
-            'notes' => $data['notes'],
-            'checklist' => $data['checklist'] ?? null,
-            'evidence' => $evidencePaths,
-            'geo_lat' => $data['geo_lat'] ?? null,
-            'geo_lng' => $data['geo_lng'] ?? null,
-            'status' => Verification::STATUS_DRAFT,
-        ]);
+        $verification = DB::transaction(function () use ($data, $volunteer, $evidencePaths) {
+            $verification = Verification::query()->create([
+                'volunteer_id' => $volunteer->id,
+                'subject_type' => $data['subject_type'],
+                'subject_id' => $data['subject_id'],
+                'notes' => $data['notes'],
+                'checklist' => $data['checklist'] ?? null,
+                'evidence' => $evidencePaths,
+                'geo_lat' => $data['geo_lat'] ?? null,
+                'geo_lng' => $data['geo_lng'] ?? null,
+                'status' => Verification::STATUS_DRAFT,
+            ]);
+
+            if ($evidencePaths !== []) {
+                Consent::query()->create([
+                    'subject_type' => Verification::class,
+                    'subject_id' => $verification->id,
+                    'consent_key' => Consent::KEY_VERIFICATION_EVIDENCE_PUBLIC,
+                    'text_version' => '1.0',
+                    'purpose' => 'The volunteer has permission to share visit photos publicly in the verification story after approval.',
+                    'granted_at' => now(),
+                ]);
+            }
+
+            return $verification;
+        });
 
         return response()->json([
-            'data' => [
-                'id' => $verification->id,
-                'status' => $verification->status,
-                'evidence' => $evidencePaths,
-            ],
+            'data' => $verification,
         ], 201);
     }
 

@@ -3,12 +3,15 @@
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Models\Consent;
 use App\Models\DeviceToken;
 use App\Models\Errand;
 use App\Models\LogisticsJob;
 use App\Models\User;
 use App\Models\Verification;
+use App\Notifications\GenericNotification;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -20,6 +23,7 @@ use Illuminate\Support\Facades\Log;
 class NotificationService
 {
     private const CHANNEL_DATABASE = 'database';
+
     private const CHANNEL_FCM = 'fcm';
 
     /**
@@ -92,15 +96,20 @@ class NotificationService
      */
     public function push(User $user, string $title, string $body): void
     {
+        if (! $user->is_active) {
+            return;
+        }
         try {
-            $notification = new \App\Notifications\GenericNotification($title, $body);
+            $notification = new GenericNotification($title, $body);
             $user->notify($notification);
         } catch (\Throwable $e) {
             Log::warning('Database notification failed', ['user' => $user->id, 'error' => $e->getMessage()]);
         }
 
         $fcmKey = (string) config('services.fcm.server_key');
-        if ($fcmKey === '') {
+        if ($fcmKey === '' || ! Consent::query()->where('subject_type', User::class)
+            ->where('subject_id', $user->id)->where('consent_key', Consent::KEY_NOTIFICATIONS)
+            ->whereNull('revoked_at')->exists()) {
             return;
         }
 
@@ -119,26 +128,17 @@ class NotificationService
             return;
         }
 
-        $client = new \GuzzleHttp\Client(['timeout' => 3]);
         $fcmKey = (string) config('services.fcm.server_key');
 
         foreach ($tokens as $token) {
             try {
-                $client->post('https://fcm.googleapis.com/fcm/send', [
-                    'headers' => [
-                        'Authorization' => 'key='.$fcmKey,
-                        'Content-Type' => 'application/json',
-                    ],
-                    'json' => [
+                Http::timeout(3)->withHeaders(['Authorization' => 'key='.$fcmKey])
+                    ->post('https://fcm.googleapis.com/fcm/send', [
                         'to' => $token,
-                        'notification' => [
-                            'title' => $title,
-                            'body' => $body,
-                        ],
-                    ],
-                ]);
+                        'notification' => ['title' => $title, 'body' => $body],
+                    ])->throw();
             } catch (\Throwable $e) {
-                Log::warning('FCM push failed', ['token' => $token, 'error' => $e->getMessage()]);
+                Log::warning('FCM push failed', ['user' => $user->id, 'exception' => $e::class]);
             }
         }
     }

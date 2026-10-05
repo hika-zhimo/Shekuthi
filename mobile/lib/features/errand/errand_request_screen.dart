@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/tokens.dart';
 import '../../core/network/location_fields.dart';
 import '../../core/network/locations_provider.dart';
 import 'errand_repository.dart';
@@ -29,6 +30,7 @@ class _ErrandRequestScreenState extends ConsumerState<ErrandRequestScreen> {
   int? _dropDistrictId;
   int? _dropLocalityId;
 
+  bool _acceptContact = false;
   bool _submitting = false;
   String? _error;
   Errand? _created;
@@ -44,7 +46,7 @@ class _ErrandRequestScreenState extends ConsumerState<ErrandRequestScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) {
+    if (!_acceptContact || !_formKey.currentState!.validate()) {
       return;
     }
     setState(() {
@@ -56,6 +58,7 @@ class _ErrandRequestScreenState extends ConsumerState<ErrandRequestScreen> {
             contactName: _name.text.trim(),
             contactPhone: _phone.text.trim(),
             description: _description.text.trim(),
+            acceptContact: _acceptContact,
             pickupDistrictId: _pickupDistrictId!,
             pickupLocalityId: _pickupLocalityId!,
             pickupAddress: _pickupAddress.text.trim(),
@@ -63,11 +66,13 @@ class _ErrandRequestScreenState extends ConsumerState<ErrandRequestScreen> {
             dropLocalityId: _dropLocalityId!,
             dropAddress: _dropAddress.text.trim(),
           );
+      if (!mounted) return;
       setState(() {
         _created = errand;
         _submitting = false;
       });
     } on DioException catch (e) {
+      if (!mounted) return;
       setState(() {
         _submitting = false;
         _error = _message(e);
@@ -84,6 +89,7 @@ class _ErrandRequestScreenState extends ConsumerState<ErrandRequestScreen> {
     }
     return 'Could not place the errand. Check your connection and try again.';
   }
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -92,7 +98,10 @@ class _ErrandRequestScreenState extends ConsumerState<ErrandRequestScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Request an errand')),
-      body: _created != null ? _success(theme) : _form(theme, districts),
+      body: _created != null
+          ? _success(theme)
+          : AbsorbPointer(
+              absorbing: _submitting, child: _form(theme, districts)),
     );
   }
 
@@ -138,6 +147,7 @@ class _ErrandRequestScreenState extends ConsumerState<ErrandRequestScreen> {
       ),
     );
   }
+
   Widget _form(
     ThemeData theme,
     AsyncValue<List<DistrictWithLocalities>> districts,
@@ -147,15 +157,6 @@ class _ErrandRequestScreenState extends ConsumerState<ErrandRequestScreen> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Text(
-                _error!,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.error),
-              ),
-            ),
           TextFormField(
             controller: _name,
             decoration: const InputDecoration(
@@ -174,8 +175,9 @@ class _ErrandRequestScreenState extends ConsumerState<ErrandRequestScreen> {
               hintText: 'Used to match you with this errand',
               border: OutlineInputBorder(),
             ),
-            validator: (String? v) =>
-                (v == null || v.trim().length < 6) ? 'Enter a phone number' : null,
+            validator: (String? v) => (v == null || v.trim().length < 6)
+                ? 'Enter a phone number'
+                : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -265,11 +267,32 @@ class _ErrandRequestScreenState extends ConsumerState<ErrandRequestScreen> {
               border: OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xl),
+          CheckboxListTile(
+            value: _acceptContact,
+            onChanged: _submitting
+                ? null
+                : (value) => setState(() => _acceptContact = value ?? false),
+            controlAffinity: ListTileControlAffinity.leading,
+            contentPadding: EdgeInsets.zero,
+            title: const Text(
+                'I agree to use my contact details and addresses to arrange and track this errand and share them with the assigned driver.'),
+          ),
+          const SizedBox(height: Spacing.md),
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: Spacing.md),
+              child: Text(
+                _error!,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.error),
+              ),
+            ),
           SizedBox(
-            height: 48,
+            height: TouchTarget.min,
             child: FilledButton(
-              onPressed: _submitting ||
+              onPressed: !_acceptContact ||
+                      _submitting ||
                       _pickupDistrictId == null ||
                       _pickupLocalityId == null ||
                       _dropDistrictId == null ||

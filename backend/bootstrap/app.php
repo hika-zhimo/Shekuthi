@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureActiveAccount;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\SecurityHeaders;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Rate limits are applied per-route (see routes/api.php).
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+            'active' => EnsureActiveAccount::class,
             'verified' => EnsureEmailIsVerified::class,
         ]);
 

@@ -36,7 +36,7 @@ class DashboardController extends Controller
                 'user' => $user,
                 'volunteer' => $user->verificationVolunteer,
                 'verifications' => Verification::query()
-                    ->where('volunteer_id', $user->verificationVolunteer->id)
+                    ->where('volunteer_id', $user->verificationVolunteer?->id ?? 0)
                     ->latest('id')
                     ->limit(20)
                     ->get(),

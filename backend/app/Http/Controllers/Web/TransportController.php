@@ -27,6 +27,7 @@ class TransportController extends Controller
         $drivers = User::query()
             ->where('role', User::ROLE_DRIVER)
             ->where('is_active', true)
+            ->whereIn('vehicle_category', array_keys(User::VEHICLE_CATEGORIES))
             ->with([
                 'driverAvailability',
                 'transportCategories' => fn ($query) => $query->where('is_active', true),

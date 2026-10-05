@@ -56,6 +56,7 @@ class ErrandRepository {
     required String contactName,
     required String contactPhone,
     required String description,
+    required bool acceptContact,
     required int pickupDistrictId,
     required int pickupLocalityId,
     String? pickupAddress,
@@ -70,6 +71,7 @@ class ErrandRepository {
         'contact_name': contactName,
         'contact_phone': contactPhone,
         'description': description,
+        'accept_contact': acceptContact,
         'pickup_district_id': pickupDistrictId,
         'pickup_locality_id': pickupLocalityId,
         if (pickupAddress != null && pickupAddress.isNotEmpty)

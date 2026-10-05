@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../branding/app_brand.dart';
+import '../theme/tokens.dart';
 
 /// Brand mark for the app (M0.7).
 ///
@@ -33,19 +34,26 @@ class AppLogo extends StatelessWidget {
       future: _exists(asset),
       builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
         if (snapshot.data == true) {
-          return Image.asset(
-            asset,
-            height: height,
-            fit: BoxFit.contain,
-            // Meaningful imagery carries a description for assistive tech.
-            semanticLabel: AppBrand.logoLabel,
-            // A corrupt file must not take the screen down.
-            errorBuilder: (
-              BuildContext context,
-              Object error,
-              StackTrace? stack,
-            ) =>
-                _wordmark(theme),
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Image.asset(
+                asset,
+                height: height,
+                fit: BoxFit.contain,
+                // Meaningful imagery carries a description for assistive tech.
+                semanticLabel: AppBrand.logoLabel,
+                // A corrupt file must not take the screen down.
+                errorBuilder: (
+                  BuildContext context,
+                  Object error,
+                  StackTrace? stack,
+                ) =>
+                    _wordmark(theme),
+              ),
+              const SizedBox(width: Spacing.sm),
+              _wordmark(theme),
+            ],
           );
         }
 

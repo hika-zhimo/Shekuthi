@@ -31,6 +31,8 @@ final class UploadValidator
 
     public const MAX_KILOBYTES = 2048; // 2 MB
 
+    public const EVIDENCE_MAX_KILOBYTES = 500;
+
     /** Reject absurd source dimensions before GD decodes them. */
     public const MAX_DIMENSION = 4096;
 
@@ -55,15 +57,16 @@ final class UploadValidator
         string $directory,
         bool $convertToWebp = true,
     ): array {
+        $maxKilobytes = $directory === 'evidence' ? self::EVIDENCE_MAX_KILOBYTES : self::MAX_KILOBYTES;
         if (! $file->isValid()) {
             throw ValidationException::withMessages([
                 'file' => ['The upload failed. Try again.'],
             ]);
         }
 
-        if ($file->getSize() > self::MAX_KILOBYTES * 1024) {
+        if ($file->getSize() > $maxKilobytes * 1024) {
             throw ValidationException::withMessages([
-                'file' => ['Images may be at most '.(self::MAX_KILOBYTES / 1024).' MB.'],
+                'file' => ["Images may be at most {$maxKilobytes} KB."],
             ]);
         }
 
@@ -100,6 +103,13 @@ final class UploadValidator
             $storedSize = (int) \Storage::disk('public')->size($stored['path']);
         } catch (\Throwable) {
             $storedSize = (int) $file->getSize();
+        }
+
+        if ($directory === 'evidence' && $storedSize > $maxKilobytes * 1024) {
+            \Storage::disk('public')->delete($stored['path']);
+            throw ValidationException::withMessages([
+                'file' => ["The processed image must be at most {$maxKilobytes} KB. Choose a smaller image."],
+            ]);
         }
 
         return [

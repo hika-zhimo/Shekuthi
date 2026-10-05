@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateListingRequest;
 use App\Models\Consent;
 use App\Models\Media;
 use App\Models\Product;
+use App\Services\ListingLifecycleService;
 use App\Support\UploadValidator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,12 +57,7 @@ class VendorListingController extends Controller
         $validated['images'] = $this->storePhotos($request);
 
         $product = $vendor->products()->create(array_merge($validated, [
-            'status' => config('app.require_listing_approval')
-                ? Product::STATUS_PENDING
-                : $request->input('status', Product::STATUS_DRAFT),
-            'unpublished_at' => in_array($request->input('status'), [Product::STATUS_INACTIVE, Product::STATUS_ARCHIVED], true)
-                ? now()
-                : null,
+            'status' => Product::STATUS_PENDING,
         ]));
 
         if ($validated['images'] !== []) {
@@ -85,17 +81,7 @@ class VendorListingController extends Controller
             'status' => ['required', 'string', 'in:draft,active,inactive,archived,pending'],
         ]);
 
-        $product->update([
-            'status' => config('app.require_listing_approval')
-                && $data['status'] === Product::STATUS_ACTIVE
-                ? Product::STATUS_PENDING
-                : $data['status'],
-            // Track when the listing left the public eye for the 7-day
-            // delayed-delete rule (M48.1).
-            'unpublished_at' => in_array($data['status'], [Product::STATUS_INACTIVE, Product::STATUS_ARCHIVED], true)
-                ? now()
-                : null,
-        ]);
+        app(ListingLifecycleService::class)->submit($product, $data);
 
         return redirect()
             ->route('dashboard')
@@ -107,6 +93,14 @@ class VendorListingController extends Controller
      * that were never published (drafts) or have been unpublished for at
      * least 7 days can be removed, and never while orders reference them.
      */
+    public function renew(Request $request, Product $product): RedirectResponse
+    {
+        $this->authorize('update', $product);
+        app(ListingLifecycleService::class)->renew($product);
+
+        return redirect()->route('dashboard')->with('status', 'Renewal submitted for admin approval.');
+    }
+
     public function destroy(Request $request, Product $product): RedirectResponse
     {
         $this->authorize('delete', $product);
@@ -134,7 +128,7 @@ class VendorListingController extends Controller
                     ->delete();
             }
 
-            $product->delete();
+            $product->forceDelete();
         });
 
         return redirect()
@@ -186,16 +180,7 @@ class VendorListingController extends Controller
         $newPhotos = $this->storePhotos($request);
         $validated['images'] = [...$kept, ...$newPhotos];
 
-        if (config('app.require_listing_approval')) {
-            $validated['status'] = Product::STATUS_PENDING;
-        }
-
-        $newStatus = $validated['status'] ?? $product->status;
-        $validated['unpublished_at'] = in_array($newStatus, [Product::STATUS_INACTIVE, Product::STATUS_ARCHIVED], true)
-            ? ($product->unpublished_at ?? now())
-            : null;
-
-        $product->update($validated);
+        $product = app(ListingLifecycleService::class)->submit($product, $validated);
 
         if ($newPhotos !== []) {
             $this->recordPublicImageConsent($product);

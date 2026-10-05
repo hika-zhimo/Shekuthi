@@ -13,6 +13,8 @@ class RoleProfile {
     required this.services,
     required this.transportCategoryIds,
     required this.skillCategoryIds,
+    this.vehicleCategory,
+    this.vehicleCategories = const <String, String>{},
   });
 
   final String name;
@@ -20,6 +22,8 @@ class RoleProfile {
   final String services;
   final List<int> transportCategoryIds;
   final List<int> skillCategoryIds;
+  final String? vehicleCategory;
+  final Map<String, String> vehicleCategories;
 
   factory RoleProfile.fromJson(Map<String, dynamic> user) {
     final Map<String, dynamic> driver =
@@ -29,6 +33,11 @@ class RoleProfile {
 
     return RoleProfile(
       name: user['name'] as String? ?? '',
+      vehicleCategory: driver['vehicle_category'] as String?,
+      vehicleCategories:
+          (driver['vehicle_categories'] as Map<String, dynamic>? ??
+                  <String, dynamic>{})
+              .map((key, value) => MapEntry(key, value as String)),
       phone: user['phone'] as String? ?? '',
       services: worker['services'] as String? ?? '',
       transportCategoryIds: <int>[
@@ -63,6 +72,7 @@ class RoleProfileRepository {
     required String name,
     required String phone,
     required List<int> transportCategoryIds,
+    required String vehicleCategory,
   }) async {
     await _api.dio.put<Map<String, dynamic>>(
       '/profile',
@@ -70,6 +80,7 @@ class RoleProfileRepository {
         'name': name,
         'phone': phone.isEmpty ? null : phone,
         'transport_category_ids': transportCategoryIds,
+        'vehicle_category': vehicleCategory,
       },
     );
   }

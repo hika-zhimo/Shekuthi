@@ -908,6 +908,14 @@ listingplatform/
   > **Comment:** Owner scope: vendor `Product` listings only (worker/driver profiles stay separate). Drafts deletable anytime; inactive/archived listings show Delete after 7 days unpublished (`unpublished_at`, backfilled from `updated_at`). Deletion is refused while booking items reference the product (`restrictOnDelete`); own image files + media rows are removed with the listing. API destroy keeps archive behavior.
   > **Notes:** `— 2026-09-24: DELIVERED — migration adds `unpublished_at` with backfill; status changes (web, API update, admin approve/reject) maintain it without resetting the clock on re-edits. Dashboard shows Delete when eligible, otherwise a 7-day hint. 7 tests; full suite 268 passed / 1012 assertions.`
 
+### M49 · Skill tracking migration — status: ✅ (raised 2026-10-05, owner request)
+
+- [x] **M49.1 · Populate skill plan and request files from the current project** — ✅
+  > **Files:** `plan.md` · `SKILL/plan-template/resources/plan.md` · `SKILL/plan-template/resources/request.md` · `AGENTS.md`
+  > **Comment:** Migrate existing task IDs, statuses, file ownership, decisions, change log and function inventories into the skill tracking files; add permanent request links for every task/subtask. Preserve root tracker for the owner to delete later. Request ticks require owner confirmation and are not inferred from historical completion. — 2026-10-05: started documentation migration; user-selected tracking location overrides the skill's root-file default. Verify lossless history and complete unique request mapping; no application code changes or runtime tests required.
+
+> **Migration completion — 2026-10-05:** Active tracker and requests now live in `SKILL/plan-template/resources/`; request-link and history-preservation checks pass. Root plan retained for owner deletion.
+
 ## 7 · Open questions & decisions
 
 > Decided questions keep their row (never delete — history). Record the chosen answer as a dated note here + an ADR in `docs/decisions/`.
@@ -1029,6 +1037,8 @@ listingplatform/
 | 2026-09-05 | — | Tracker created (replaces prose plan v1, preserved at `/tmp/plan.md.bak`); UI/UX + asset inventory mapped; `AGENTS.md` added | `plan.md`, `AGENTS.md` |
 
 ---
+
+| 2026-10-05 | M49.1 · Skill tracking migration | `plan.md`, `SKILL/plan-template/resources/plan.md`, `SKILL/plan-template/resources/request.md`, `AGENTS.md` | Migrated history and linked every task/subtask to a unique request; documentation checks passed. |
 
 ## 9 · Definition of done (every task)
 

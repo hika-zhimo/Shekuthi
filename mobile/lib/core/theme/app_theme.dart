@@ -1,9 +1,7 @@
 /// Material 3 application theme.
 ///
-/// Dynamic color is the M3 default on Android 12+ and is enabled at the app
-/// level (see android/app theme once `flutter create .` generates the
-/// platform folder). These static schemes are the fallback below Android 12
-/// and the source of consistent brand identity on all devices.
+/// Explicit logo-green and monochrome schemes preserve the approved brand
+/// across devices. Status meaning also appears in labels and icons.
 ///
 /// Rules enforced here:
 /// - Color roles come from ColorScheme, never hardcoded hex in widgets.
@@ -21,17 +19,60 @@ abstract final class AppTheme {
 
   static ThemeData dark() => _theme(Brightness.dark);
 
-  static ThemeData _theme(Brightness brightness) {
-    final ColorScheme scheme = ColorScheme.fromSeed(
-      seedColor: BrandColors.seed,
+  static ColorScheme colorScheme(Brightness brightness) {
+    final bool dark = brightness == Brightness.dark;
+    final Color ink = dark ? BrandColors.white : BrandColors.black;
+    final Color surface = dark ? BrandColors.black : BrandColors.white;
+    final Color container = dark
+        ? BrandColors.neutralDarkContainer
+        : BrandColors.neutralLightContainer;
+    return ColorScheme(
       brightness: brightness,
+      primary: dark ? BrandColors.white : BrandColors.seed,
+      onPrimary: dark ? BrandColors.black : BrandColors.white,
+      primaryContainer: BrandColors.seed,
+      onPrimaryContainer: BrandColors.white,
+      secondary: ink,
+      onSecondary: surface,
+      secondaryContainer: BrandColors.seed,
+      onSecondaryContainer: BrandColors.white,
+      tertiary: ink,
+      onTertiary: surface,
+      tertiaryContainer: container,
+      onTertiaryContainer: ink,
+      error: ink,
+      onError: surface,
+      errorContainer: container,
+      onErrorContainer: ink,
+      surface: surface,
+      onSurface: ink,
+      onSurfaceVariant:
+          dark ? BrandColors.outlineDark : BrandColors.outlineLight,
+      outline: dark ? BrandColors.outlineDark : BrandColors.outlineLight,
+      outlineVariant: dark ? BrandColors.borderDark : BrandColors.borderLight,
+      surfaceContainerLowest: surface,
+      surfaceContainerLow:
+          dark ? BrandColors.neutralDark : BrandColors.neutralLight,
+      surfaceContainer: container,
+      surfaceContainerHigh: container,
+      surfaceContainerHighest: container,
+      surfaceDim: container,
+      surfaceBright: surface,
+      surfaceTint: BrandColors.seed,
+      inverseSurface: ink,
+      onInverseSurface: surface,
+      inversePrimary: dark ? BrandColors.seed : BrandColors.white,
+      shadow: BrandColors.black,
+      scrim: BrandColors.black,
     );
+  }
 
+  static ThemeData _theme(Brightness brightness) {
+    final ColorScheme scheme = colorScheme(brightness);
     final ThemeData base = ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor:
-          brightness == Brightness.light ? const Color(0xFFFAFAFA) : null,
+      scaffoldBackgroundColor: scheme.surface,
       textTheme: GoogleFonts.interTightTextTheme(
         brightness == Brightness.light
             ? ThemeData(brightness: Brightness.light).textTheme

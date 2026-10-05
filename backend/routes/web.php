@@ -87,7 +87,7 @@ Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 've
     ->middleware(['signed', 'throttle:6,1'])
     ->name('verification.verify');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/email/verify', [EmailVerificationController::class, 'notice'])
         ->name('verification.notice');
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
@@ -96,7 +96,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [MemberAuthController::class, 'logout'])->name('logout');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'active', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
     Route::post('/dashboard/availability', [DashboardController::class, 'setAvailability'])
         ->name('dashboard.availability');
@@ -111,6 +111,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('vendor.listings.update');
     Route::put('/dashboard/listings/{product}/status', [VendorListingController::class, 'status'])
         ->name('vendor.listings.status');
+    Route::post('/dashboard/listings/{product}/renew', [VendorListingController::class, 'renew'])
+        ->middleware('throttle:30,1')->name('vendor.listings.renew');
     Route::delete('/dashboard/listings/{product}', [VendorListingController::class, 'destroy'])
         ->name('vendor.listings.destroy');
 

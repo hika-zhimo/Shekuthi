@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/widgets/role_loading.dart';
+import '../../core/theme/tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,13 +33,13 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Driver dashboard')),
       body: state.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const RoleLoading()
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               children: <Widget>[
                 if (state.error != null)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: Spacing.md),
                     child: Text(
                       state.error!,
                       style: theme.textTheme.bodyMedium
@@ -78,14 +80,19 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
                             .toggleOnline(!state.isOnline),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _BaseCard(state: state),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 OutlinedButton.icon(
                   onPressed: () => context.go('/driver/jobs'),
                   icon: const Icon(Icons.local_shipping_outlined),
-                  label: const Text('View available jobs'),
+                  label: const Text('View my jobs'),
                 ),
+                const SizedBox(height: Spacing.md),
+                OutlinedButton.icon(
+                    onPressed: () => context.go('/driver/errands'),
+                    icon: const Icon(Icons.directions_run_outlined),
+                    label: const Text('View my errands')),
               ],
             ),
     );
@@ -104,12 +111,12 @@ class _BaseCard extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text('Base of operation', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 4),
+            const SizedBox(height: Spacing.xs),
             Text(
               base == null
                   ? 'Set one district plus up to five localities you work from.'
@@ -118,12 +125,11 @@ class _BaseCard extends StatelessWidget {
               style: theme.textTheme.bodyMedium
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed:
-                    state.saving ? null : () => _showBasePicker(context),
+                onPressed: state.saving ? null : () => _showBasePicker(context),
                 icon: const Icon(Icons.edit_location_alt_outlined),
                 label: Text(base == null ? 'Set base' : 'Change base'),
               ),
@@ -138,6 +144,8 @@ class _BaseCard extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
       builder: (_) => const _BasePickerSheet(),
     );
   }
@@ -149,6 +157,7 @@ class _BasePickerSheet extends ConsumerStatefulWidget {
   @override
   ConsumerState<_BasePickerSheet> createState() => _BasePickerSheetState();
 }
+
 class _BasePickerSheetState extends ConsumerState<_BasePickerSheet> {
   int? _districtId;
   final Set<int> _localityIds = <int>{};
@@ -157,8 +166,7 @@ class _BasePickerSheetState extends ConsumerState<_BasePickerSheet> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final DriverDashboardState state =
-          ref.read(driverDashboardProvider);
+      final DriverDashboardState state = ref.read(driverDashboardProvider);
       final DriverBase? base = state.base;
       if (base != null && mounted) {
         setState(() {
@@ -178,21 +186,23 @@ class _BasePickerSheetState extends ConsumerState<_BasePickerSheet> {
         .firstOrNull;
 
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
+          child: Padding(
         padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          left: Spacing.lg,
+          right: Spacing.lg,
+          top: Spacing.lg,
+          bottom: MediaQuery.of(context).viewInsets.bottom + Spacing.lg,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text('Your base', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             DropdownButtonFormField<int>(
               initialValue: _districtId,
+              isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'District',
                 border: OutlineInputBorder(),
@@ -200,7 +210,8 @@ class _BasePickerSheetState extends ConsumerState<_BasePickerSheet> {
               items: state.districts
                   .map((DistrictWithLocalities d) => DropdownMenuItem<int>(
                         value: d.id,
-                        child: Text(d.name),
+                        child: Text(d.name,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
                       ))
                   .toList(),
               onChanged: (int? value) {
@@ -210,15 +221,15 @@ class _BasePickerSheetState extends ConsumerState<_BasePickerSheet> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             Text(
               'Localities ${_localityIds.length}/5',
               style: theme.textTheme.labelLarge,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: Spacing.sm,
+              runSpacing: Spacing.sm,
               children: (district?.localities ?? const <LocalityOption>[])
                   .map((LocalityOption l) {
                 final bool selected = _localityIds.contains(l.id);
@@ -237,7 +248,7 @@ class _BasePickerSheetState extends ConsumerState<_BasePickerSheet> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
@@ -257,7 +268,7 @@ class _BasePickerSheetState extends ConsumerState<_BasePickerSheet> {
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 }

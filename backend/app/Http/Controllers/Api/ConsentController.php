@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Consent;
+use App\Models\DeviceToken;
 use App\Models\User;
+use App\Services\AccountDataScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -36,6 +39,13 @@ class ConsentController extends Controller
             'subject_type' => ['required', 'string'],
             'subject_id' => ['nullable', 'integer'],
         ]);
+
+        if ($user === null || $data['subject_type'] !== User::class
+            || (int) ($data['subject_id'] ?? $user->id) !== (int) $user->id) {
+            throw ValidationException::withMessages([
+                'subject_id' => ['You can only grant consent for your own account. Record-specific consent is captured when you create that record.'],
+            ]);
+        }
 
         $consent = Consent::query()->create([
             'subject_type' => $data['subject_type'],
@@ -67,9 +77,7 @@ class ConsentController extends Controller
             return response()->json(['data' => []]);
         }
 
-        $consents = Consent::query()
-            ->where('subject_type', User::class)
-            ->where('subject_id', $user->id)
+        $consents = (new AccountDataScope($user))->consents()
             ->whereNull('revoked_at')
             ->latest()
             ->get();
@@ -93,13 +101,21 @@ class ConsentController extends Controller
         $user = $request->user();
 
         // Only the subject can revoke their own consent.
-        if ($user === null || $consent->subject_type !== User::class || (int) $consent->subject_id !== (int) $user->id) {
+        if ($user === null || ! (new AccountDataScope($user))->consents()->whereKey($consent->id)->exists()) {
             throw ValidationException::withMessages([
                 'id' => ['You cannot revoke this consent.'],
             ]);
         }
 
-        $consent->update(['revoked_at' => now()]);
+        DB::transaction(function () use ($consent, $user) {
+            $consent->update(['revoked_at' => now()]);
+            if ($consent->consent_key === Consent::KEY_NOTIFICATIONS) {
+                Consent::query()->where('subject_type', User::class)->where('subject_id', $user->id)
+                    ->where('consent_key', Consent::KEY_NOTIFICATIONS)->whereNull('revoked_at')
+                    ->update(['revoked_at' => now()]);
+                DeviceToken::query()->where('user_id', $user->id)->delete();
+            }
+        });
 
         return response()->json([
             'data' => [

@@ -204,7 +204,7 @@
                     @if ($products->isEmpty())
                         <div class="dash-empty">
                             <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l18 0"/><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4"/><path d="M5 21l0 -10.15"/><path d="M19 21l0 -10.15"/><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4"/></svg>
-                            <p>No listings yet. Create your first listing and publish it to appear in the catalog.</p>
+                            <p>No listings yet. Create your first listing and submit it for admin approval to appear in the catalog.</p>
                             <a class="btn btn-primary" href="{{ route('vendor.listings.create') }}">Create a listing</a>
                         </div>
                     @else
@@ -222,7 +222,11 @@
                                     @endif
                                     <div class="dash-row-body">
                                         <div class="dash-row-title">
-                                            <a href="{{ route('listing.show', $product) }}">{{ $product->title }}</a>
+                                            @if ($product->isLive())
+                                                <a href="{{ route('listing.show', $product) }}">{{ $product->title }}</a>
+                                            @else
+                                                {{ $product->title }}
+                                            @endif
                                         </div>
                                         <div class="dash-row-meta">
                                             {{ \Illuminate\Support\Str::headline($product->category) }}
@@ -234,11 +238,23 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <span class="chip chip-{{ $product->status }}">{{ \Illuminate\Support\Str::headline($product->status) }}</span>
+                                    <span class="chip chip-{{ $product->status }}">{{ $product->canRenew() ? 'Expired' : ($product->status === 'pending' ? 'Awaiting admin approval' : \Illuminate\Support\Str::headline($product->status)) }}</span>
+                                    @if ($product->deletion_scheduled_at && $product->status !== 'pending')
+                                        <span class="muted small">Renew before deletion on {{ $product->deletion_scheduled_at->format('d M Y') }}</span>
+                                    @elseif ($product->expires_at && $product->isLive())
+                                        <span class="muted small">Expires {{ $product->expires_at->format('d M Y') }}</span>
+                                    @endif
                                     <div class="dash-row-actions">
                                         <a class="btn btn-secondary btn-sm" href="{{ route('vendor.listings.edit', $product) }}">Edit</a>
 
-                                        @if ($product->status === 'archived')
+                                        @if ($product->canRenew())
+                                            <form method="post" action="{{ route('vendor.listings.renew', $product) }}">
+                                                @csrf
+                                                <button class="btn btn-primary" type="submit">Renew for admin review</button>
+                                            </form>
+                                        @elseif ($product->status === 'pending')
+                                            <button class="btn btn-secondary" type="button" disabled>Awaiting approval</button>
+                                        @elseif ($product->status === 'archived')
                                             <form method="post" action="{{ route('vendor.listings.status', $product) }}">
                                                 @csrf
                                                 @method('PUT')
@@ -258,7 +274,7 @@
                                                     @csrf
                                                     @method('PUT')
                                                     <input type="hidden" name="status" value="active">
-                                                    <button class="btn btn-primary btn-sm" type="submit">Publish</button>
+                                                    <button class="btn btn-primary" type="submit">Submit for approval</button>
                                                 </form>
                                             @endif
 
@@ -451,6 +467,18 @@
 
                             <div class="dash-form-grid">
                                 <div class="field">
+                                    <label for="driver-vehicle">Vehicle category</label>
+                                    <select id="driver-vehicle" name="vehicle_category" required>
+                                        <option value="">Choose a vehicle category</option>
+                                        @foreach (\App\Models\User::VEHICLE_CATEGORIES as $value => $label)
+                                            <option value="{{ $value }}" @selected(old('vehicle_category', $user->vehicle_category) === $value)>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="muted small">Choose your vehicle before appearing in Transport &amp; errands.</p>
+                                    @error('vehicle_category')<p class="field-error" role="alert">{{ $message }}</p>@enderror
+                                </div>
+
+                                <div class="field">
                                     <label for="driver-name">Your name</label>
                                     <input id="driver-name" name="name" type="text" required
                                            maxlength="120" value="{{ old('name', $user->name) }}"
@@ -521,7 +549,7 @@
                     <div class="dash-card-head">
                         <h2 id="my-visits">My visits</h2>
                         @if ($volunteer?->availability)
-                            <span class="small muted">Availability: {{ $volunteer->availability }}</span>
+                            <span class="small muted">Availability: {{ $volunteer?->availability ?? 'Not set yet' }}</span>
                         @endif
                     </div>
 

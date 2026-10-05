@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Consent;
 use App\Models\Errand;
 use App\Models\User;
 use App\Rules\ActiveLocality;
+use App\Services\DriverWorkService;
 use App\Services\JobMatchingService;
 use App\Support\BlindIndex;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -28,13 +32,16 @@ class ErrandController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $user = $request->user();
+        // The public route supports guests and optional Sanctum bearer auth.
+        $user = $request->user() ?? Auth::guard('sanctum')->user();
         $isGuest = $user === null;
+        abort_if($user !== null && ! $user->is_active, 403, 'This account is no longer active.');
 
         $data = $request->validate([
             'contact_name' => $isGuest ? ['required', 'string', 'max:120'] : ['nullable', 'string'],
             'contact_phone' => $isGuest ? ['required', 'string', 'max:20'] : ['nullable', 'string'],
             'description' => ['required', 'string', 'max:1000'],
+            'accept_contact' => ['required', 'accepted'],
             'pickup_district_id' => [
                 'required',
                 'integer',
@@ -64,23 +71,36 @@ class ErrandController extends Controller
 
         $code = $this->generateCode();
 
-        $errand = Errand::query()->create([
-            'code' => $code,
-            'customer_id' => $user?->id,
-            'contact_name' => $contactName,
-            'contact_phone' => $contactPhone,
-            'contact_phone_index' => $contactPhone ? BlindIndex::make($contactPhone) : null,
-            'description' => $data['description'],
-            'pickup_district_id' => $data['pickup_district_id'],
-            'pickup_locality_id' => $data['pickup_locality_id'],
-            'pickup_address' => $data['pickup_address'] ?? null,
-            'drop_district_id' => $data['drop_district_id'],
-            'drop_locality_id' => $data['drop_locality_id'],
-            'drop_address' => $data['drop_address'] ?? null,
-            'status' => Errand::STATUS_REQUESTED,
-        ]);
+        $errand = DB::transaction(function () use ($user, $contactName, $contactPhone, $code, $data) {
+            $errand = Errand::query()->create([
+                'code' => $code,
+                'customer_id' => $user?->id,
+                'contact_name' => $contactName,
+                'contact_phone' => $contactPhone,
+                'contact_phone_index' => $contactPhone ? BlindIndex::make($contactPhone) : null,
+                'description' => $data['description'],
+                'pickup_district_id' => $data['pickup_district_id'],
+                'pickup_locality_id' => $data['pickup_locality_id'],
+                'pickup_address' => $data['pickup_address'] ?? null,
+                'drop_district_id' => $data['drop_district_id'],
+                'drop_locality_id' => $data['drop_locality_id'],
+                'drop_address' => $data['drop_address'] ?? null,
+                'status' => Errand::STATUS_REQUESTED,
+            ]);
 
-        $this->matcher->assign($errand);
+            Consent::query()->create([
+                'subject_type' => Errand::class,
+                'subject_id' => $errand->id,
+                'consent_key' => Consent::KEY_ERRAND_CONTACT,
+                'text_version' => '1.0',
+                'purpose' => 'Use my contact details and addresses to arrange and track this errand and share them with the assigned driver.',
+                'granted_at' => now(),
+            ]);
+
+            $this->matcher->assign($errand);
+
+            return $errand;
+        });
 
         return response()->json([
             'data' => $errand->fresh(),
@@ -100,19 +120,7 @@ class ErrandController extends Controller
             return response()->json(['data' => []]);
         }
 
-        $base = $driver->riderBaseOperation;
-
-        if ($base === null) {
-            return response()->json(['data' => []]);
-        }
-
-        $localityIds = $base->localities->modelKeys();
-
-        $errands = Errand::query()
-            ->whereIn('pickup_locality_id', $localityIds)
-            ->where('status', Errand::STATUS_REQUESTED)
-            ->latest()
-            ->get();
+        $errands = app(DriverWorkService::class)->queue($driver, true)->latest()->limit(100)->get();
 
         return response()->json([
             'data' => $errands->map(function (Errand $errand) {
@@ -135,23 +143,7 @@ class ErrandController extends Controller
     public function accept(Request $request, Errand $errand): JsonResponse
     {
         $driver = $request->user();
-
-        if ($driver->role !== User::ROLE_DRIVER) {
-            throw ValidationException::withMessages([
-                'role' => ['Only drivers can accept errands.'],
-            ]);
-        }
-
-        if (in_array($errand->status, [Errand::STATUS_COMPLETED, Errand::STATUS_CANCELLED], true)) {
-            throw ValidationException::withMessages([
-                'status' => ["Cannot accept a {$errand->status} errand."],
-            ]);
-        }
-
-        $errand->update([
-            'driver_id' => $driver->id,
-            'status' => Errand::STATUS_ACCEPTED,
-        ]);
+        $errand = app(DriverWorkService::class)->accept($driver, $errand);
 
         return response()->json([
             'data' => $errand->fresh(),
@@ -164,24 +156,8 @@ class ErrandController extends Controller
     public function updateStatus(Request $request, Errand $errand): JsonResponse
     {
         $driver = $request->user();
-
-        if ($driver->role !== User::ROLE_DRIVER) {
-            throw ValidationException::withMessages([
-                'role' => ['Only drivers can update errand status.'],
-            ]);
-        }
-
-        $data = $request->validate([
-            'status' => ['required', Rule::in([Errand::STATUS_IN_PROGRESS, Errand::STATUS_COMPLETED])],
-        ]);
-
-        if ($errand->driver_id !== $driver->id) {
-            throw ValidationException::withMessages([
-                'id' => ['This errand is not assigned to you.'],
-            ]);
-        }
-
-        $errand->update(['status' => $data['status']]);
+        $data = $request->validate(['status' => ['required', 'string', Rule::in(['in_progress', 'completed'])]]);
+        $errand = app(DriverWorkService::class)->progress($driver, $errand, $data['status']);
 
         return response()->json([
             'data' => $errand->fresh(),

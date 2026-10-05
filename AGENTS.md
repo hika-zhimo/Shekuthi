@@ -88,3 +88,10 @@ If verification can't be completed (no environment, missing credentials), say so
 
 *Derived from the project's working files — tracker conventions, design-system do's/don'ts, UI-polish principles, vertical-slice planning, and privacy/security feature requirements — generalized so this file can be dropped into any repository.*
 
+
+
+## Project tracking location — 2026-10-05
+
+By owner instruction, the active project tracker is `plan-template/resources/plan.md` and the request intake is `plan-template/resources/request.md`. Read these wherever this agreement says `plan.md` or the adopted skill says root `request.md`; all implementation paths resolve from the repository root. Apply the workflow in `plan-template/SKILL.md`. Keep task/request links synchronized; request ticks are the owner's manual confirmation. The old root `plan.md` is a retained migration copy for the owner to delete, not the target for future task updates.
+
+— 2026-10-05: owner moved the skill to root `plan-template/`; merged remaining SKILL metadata into root and removed the empty legacy directory.

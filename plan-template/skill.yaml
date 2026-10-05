@@ -1,0 +1,166 @@
+name: plan-template
+display_name: "Plan-Driven Development & Task Tracker"
+version: "1.0.0"
+description: >-
+  Universal, tech-agnostic and project-agnostic operating workflow for spec-driven development
+  using the 3-file system (AGENTS.md, request.md, plan.md). Enforces two-way requirement
+  synchronization, surgical change boundaries, tracer-bullet vertical slicing, and strict definition of done.
+
+author: Antigravity
+license: MIT
+category: workflow
+type: skill
+
+compatibility:
+  languages:
+    - all
+  frameworks:
+    - all
+  architectures:
+    - web
+    - mobile
+    - backend
+    - desktop
+    - cli
+    - embedded
+    - library
+    - monorepo
+  supported_agents:
+    - antigravity
+    - claude-code
+    - codex
+    - cursor
+    - generic-ai-agent
+
+tags:
+  - plan-driven-development
+  - task-tracker
+  - spec-driven
+  - tech-agnostic
+  - project-agnostic
+  - surgical-discipline
+  - tracer-bullet-slicing
+  - definition-of-done
+
+files:
+  instructions: SKILL.md
+  specification: skill.yaml
+  resources:
+    working_agreement: resources/AGENTS.md
+    status_tracker: resources/plan.md
+    feature_requests: resources/request.md
+    attribution_register: resources/ATTRIBUTION.md
+
+triggers:
+  file_patterns:
+    - "plan.md"
+    - "request.md"
+    - "AGENTS.md"
+    - "ATTRIBUTION.md"
+    - "docs/brief.md"
+    - "docs/decisions/*.md"
+  keywords:
+    - "plan.md"
+    - "request.md"
+    - "AGENTS.md"
+    - "plan template"
+    - "spec-driven development"
+    - "task tracker"
+    - "vertical slice"
+    - "tracer bullet"
+    - "surgical change"
+    - "definition of done"
+    - "read order"
+  intents:
+    - initialize_project_tracking
+    - ingest_feature_requests
+    - sync_plan_and_requests
+    - break_down_vertical_slices
+    - execute_task_surgically
+    - verify_definition_of_done
+    - log_completed_task
+
+status_vocabulary:
+  not_started:
+    icon: "⬜"
+    meaning: "Task not yet begun"
+  in_progress:
+    icon: "🔄"
+    meaning: "Active work in progress"
+  done:
+    icon: "✅"
+    meaning: "Fully implemented, tested, states walked, and logged in change log"
+  blocked:
+    icon: "⏸️"
+    meaning: "Blocked on external dependency or open decision (Q# in §6)"
+  dropped:
+    icon: "🚫"
+    meaning: "Decided not to implement; retained for permanent audit history"
+
+operating_rules:
+  read_order:
+    1: "AGENTS.md (process rules and working agreement)"
+    2: "request.md (plain-English feature list, R<n> IDs)"
+    3: "plan.md (status tracker, repo map, milestone dashboard, task ownership)"
+    4: "docs/ and design references (briefs, ADRs, specifications)"
+
+  two_way_sync:
+    request_to_plan:
+      rule: "New line in request.md -> create task in plan.md (dedupe strictly by R<n> ID, not wording)."
+    plan_to_request:
+      rule: "New task in plan.md -> add matching plain-English line to request.md with next R<n> ID."
+    traceability:
+      rule: "Every task in plan.md must carry '> **Request:** R<n>' linking directly to request.md."
+    completion_signoff:
+      agent_role: "Agent flips plan.md status to ✅ upon passing Definition of Done."
+      user_role: "User ticks [x] in request.md as personal confirmation after human verification."
+
+  surgical_change_discipline:
+    track_first_build_second:
+      enforced: true
+      rule: "No task ID in plan.md = no code allowed. Zero exceptions."
+    file_boundary:
+      enforced: true
+      rule: "Touch ONLY files explicitly declared under '> **Files:**' in the active task entry."
+    created_files:
+      rule: "Append any newly created file to '> **Files:**' before closing the task."
+    no_drive_by_edits:
+      enforced: true
+      rule: "Zero unsolicited refactorings, renames, lint fixes, or formatting sweeps outside task scope."
+    structural_locality:
+      rule: "Group logic by concern (status transitions in one module, tokens in one token file, validation in one validator)."
+
+  vertical_slicing:
+    tracer_bullets:
+      enforced: true
+      rule: "Cut vertically through all architecture layers (data -> domain logic -> interface/API/UI/CLI -> tests)."
+    prefactoring:
+      rule: "Make the change easy, then make the easy change. Track prefactoring as its own discrete task."
+    dependencies:
+      rule: "Record dependencies explicitly ('Depends: M0.1' or 'Blocked by: Q02') and work in order."
+
+  third_party_assets:
+    isolate_local_only:
+      enforced: true
+      rule: "Third-party design assets, mockups, and external artwork must be gitignored and never committed."
+    attribution:
+      enforced: true
+      rule: "Attribute provenance, original author, link, and license in ATTRIBUTION.md."
+
+  definition_of_done:
+    checklist:
+      - id: scope_fidelity
+        check: "Code implements exactly the task comment's scope — nothing more, nothing less."
+      - id: automated_verification
+        check: "Tests, lint, and build pass for the touched area; write minimal meaningful test if absent."
+      - id: state_walk
+        check: "Walk every state (for UI: hover/focus/active/loading/empty/error/disabled/dark; for API/CLI: success/error/exit codes)."
+      - id: tracker_closed
+        check: "plan.md updated with ✅, dated note appended, all files recorded, and change log row appended in §7."
+      - id: decisions_recorded
+        check: "All architectural choices and trade-offs documented as ADRs in docs/decisions/."
+
+  communication_protocol:
+    ambiguity_resolution: "One consolidated round of questions; never drip-feed. Proceed on best-supported assumption."
+    status_summary_format: "State: 1) What changed, 2) Task IDs (M<milestone>.<n>), 3) Files touched."
+    code_review_format: "Cite path/to/file:line, group by severity (Blocker, Major, Minor), provide clear verdict."

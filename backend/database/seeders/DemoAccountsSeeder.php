@@ -103,6 +103,8 @@ class DemoAccountsSeeder extends Seeder
                 'password' => self::PASSWORD,
                 'password_confirmation' => self::PASSWORD,
                 'role' => $account['role'],
+                // Synthetic demo fixtures use the same consent validation as members.
+                'accept_terms' => true,
             ];
 
             // Only vendors carry these; the shared rules reject an explicit

@@ -67,8 +67,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final AsyncValue<SessionState> session =
-        ref.watch(authControllerProvider);
+    final AsyncValue<SessionState> session = ref.watch(authControllerProvider);
     final bool isVendor = _role == 'vendor';
 
     ref.listen<AsyncValue<SessionState>>(
@@ -159,6 +158,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Widget _buildRoleSelector() {
     return DropdownButtonFormField<String>(
+      isExpanded: true,
       initialValue: _role,
       decoration: const InputDecoration(
         labelText: 'I am registering as',
@@ -168,7 +168,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           .map(
             (String role) => DropdownMenuItem<String>(
               value: role,
-              child: Text(kRoleLabels[role] ?? role),
+              child: Text(kRoleLabels[role] ?? role,
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
           )
           .toList(),
@@ -211,6 +212,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ),
       const SizedBox(height: 16),
       DropdownButtonFormField<String>(
+        isExpanded: true,
         initialValue: _vendorCategory,
         decoration: const InputDecoration(
           labelText: 'What you list',
@@ -283,8 +285,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         prefixIcon: const Icon(Icons.lock_outline),
         helperText: 'At least 8 characters.',
         suffixIcon: IconButton(
-          onPressed: () =>
-              setState(() => _obscurePassword = !_obscurePassword),
+          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
           icon: Icon(
             _obscurePassword
                 ? Icons.visibility_outlined
@@ -330,4 +331,3 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 }
-

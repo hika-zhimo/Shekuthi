@@ -67,7 +67,8 @@ class _TransportDirectoryScreenState
         mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('Could not start a call to $phone.')));
+        ..showSnackBar(
+            SnackBar(content: Text('Could not start a call to $phone.')));
     }
   }
 
@@ -147,7 +148,8 @@ class _TransportDirectoryScreenState
                               ),
                             ),
                             Chip(
-                              label: Text(driver.isOnline ? 'Online' : 'Offline'),
+                              label:
+                                  Text(driver.isOnline ? 'Online' : 'Offline'),
                               visualDensity: VisualDensity.compact,
                               backgroundColor: driver.isOnline
                                   ? theme.colorScheme.primaryContainer
@@ -155,6 +157,8 @@ class _TransportDirectoryScreenState
                             ),
                           ],
                         ),
+                        if (driver.vehicleCategoryName != null)
+                          Text(driver.vehicleCategoryName!),
                         if (driver.district != null)
                           Text(
                             'Based in ${driver.district}',
@@ -221,7 +225,8 @@ class _Message extends StatelessWidget {
         children: <Widget>[
           Icon(icon, size: 40, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(height: 12),
-          Text(text, textAlign: TextAlign.center, style: theme.textTheme.bodyLarge),
+          Text(text,
+              textAlign: TextAlign.center, style: theme.textTheme.bodyLarge),
         ],
       ),
     );

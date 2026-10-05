@@ -34,6 +34,7 @@ class JobMatchingService
         // Drivers who are online and whose base locality matches.
         $drivers = User::query()
             ->where('role', User::ROLE_DRIVER)
+            ->where('is_active', true)
             ->whereHas('driverAvailability', fn ($q) => $q->where('is_online', true))
             ->whereHas('riderBaseOperation.localities', fn ($q) => $q->where('locality_id', $localityId))
             ->get();
@@ -51,6 +52,7 @@ class JobMatchingService
     {
         return User::query()
             ->where('role', User::ROLE_DRIVER)
+            ->where('is_active', true)
             ->whereHas('driverAvailability', fn ($q) => $q->where('is_online', true))
             ->whereHas('riderBaseOperation', fn ($q) => $q->where('district_id', $districtId))
             ->get();
@@ -105,6 +107,7 @@ class JobMatchingService
         $assignment = CollectorAssignment::query()
             ->active()
             ->where('locality_id', $localityId)
+            ->whereHas('user', fn ($q) => $q->where('role', User::ROLE_COLLECTOR)->where('is_active', true))
             ->with('user')
             ->first();
 

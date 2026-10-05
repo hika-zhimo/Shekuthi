@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import '../../../core/widgets/role_loading.dart';
+import '../../../core/theme/tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../directory/directory_repository.dart';
@@ -118,13 +120,13 @@ class _WorkerProfileScreenState extends ConsumerState<WorkerProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Skilled worker profile')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const RoleLoading()
           : _error != null
               ? Center(child: Text(_error!))
               : Form(
                   key: _formKey,
                   child: ListView(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     children: <Widget>[
                       TextFormField(
                         controller: _name,
@@ -133,9 +135,11 @@ class _WorkerProfileScreenState extends ConsumerState<WorkerProfileScreen> {
                           border: OutlineInputBorder(),
                         ),
                         validator: (String? v) =>
-                            (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+                            (v == null || v.trim().isEmpty)
+                                ? 'Enter your name'
+                                : null,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Spacing.md),
                       TextFormField(
                         controller: _phone,
                         keyboardType: TextInputType.phone,
@@ -145,8 +149,9 @@ class _WorkerProfileScreenState extends ConsumerState<WorkerProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Text('Work you provide', style: theme.textTheme.titleSmall),
-                      const SizedBox(height: 8),
+                      Text('Work you provide',
+                          style: theme.textTheme.titleSmall),
+                      const SizedBox(height: Spacing.sm),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -165,7 +170,7 @@ class _WorkerProfileScreenState extends ConsumerState<WorkerProfileScreen> {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: Spacing.lg),
                       TextFormField(
                         controller: _services,
                         maxLines: 3,
@@ -175,7 +180,7 @@ class _WorkerProfileScreenState extends ConsumerState<WorkerProfileScreen> {
                           border: OutlineInputBorder(),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: Spacing.xl),
                       FilledButton.icon(
                         onPressed: _saving ? null : _save,
                         icon: const Icon(Icons.save_outlined),

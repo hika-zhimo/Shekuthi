@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Shekuthi Indian olive icon</title>
+  <desc id="desc">White stylized Indian olive fruit, leaves and twig on a solid muted green rounded square with a mild drop shadow.</desc>
+  <defs><filter id="softShadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dy="4"/><feComponentTransfer><feFuncA type="linear" slope="0.16"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <rect x="30" y="30" width="452" height="452" rx="48" fill="#008000" filter="url(#softShadow)"/>
+  <!-- Pure-vector Indian olive mark -->
+  <g fill="#FFFFFF">
+    <!-- upper leaf -->
+    <path d="M188 225 C231 164 300 118 404 116 C385 153 351 180 309 196 C265 212 224 220 188 225 Z"/>
+    <!-- lower leaf -->
+    <path d="M191 230 C253 229 329 259 421 343 C375 352 326 339 279 315 C238 294 208 262 191 230 Z"/>
+    <!-- olive fruit -->
+    <path d="M171 228 C135 234 108 269 108 320 C108 374 135 413 173 413 C214 413 237 373 234 320 C231 270 208 230 171 228 Z"/>
+    <!-- twig -->
+    <path d="M103 178 C107 173 112 172 117 176 C142 196 165 213 192 229 C220 245 245 257 273 269 L267 279 C237 266 211 253 183 237 C154 220 129 201 103 181 Z"/>
+    <path d="M166 211 C171 212 175 216 175 221 L174 254 L163 254 L164 221 C164 216 165 213 166 211 Z"/>
+  </g>
+  <!-- subtle cut lines preserve leaf character while the olive itself remains pure white -->
+  <g fill="none" stroke="#FFFFFF" stroke-opacity="0.42" stroke-width="4" stroke-linecap="round">
+    <path d="M195 220 C252 197 319 163 388 127"/>
+    <path d="M202 236 C270 261 336 300 405 337"/>
+  </g>
+</svg>

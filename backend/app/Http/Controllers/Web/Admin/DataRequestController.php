@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\DataRequest;
 use App\Services\DataDeletionService;
+use App\Services\DataExportService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -20,9 +21,7 @@ use Illuminate\View\View;
  */
 class DataRequestController extends Controller
 {
-    public function __construct(private DataDeletionService $deletionService)
-    {
-    }
+    public function __construct(private DataDeletionService $deletionService) {}
 
     public function index(): View
     {
@@ -57,12 +56,12 @@ class DataRequestController extends Controller
         if ($dataRequest->type === DataRequest::TYPE_DELETION) {
             $this->deletionService->delete($user, $dataRequest);
         } else {
-            $path = app(\App\Services\DataExportService::class)->export($user);
+            $path = app(DataExportService::class)->export($user);
 
             $dataRequest->update([
                 'status' => DataRequest::STATUS_COMPLETED,
                 'processed_at' => now(),
-                'notes' => $data['notes'] ?? $path,
+                'notes' => 'private:'.$path,
             ]);
         }
 

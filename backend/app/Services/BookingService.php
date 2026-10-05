@@ -131,7 +131,7 @@ class BookingService
                 continue;
             }
 
-            if ($product->status !== Product::STATUS_ACTIVE) {
+            if (! $product->isLive()) {
                 $itemErrors["items.{$index}.product_id"] = ['This listing is not open for booking right now.'];
 
                 continue;

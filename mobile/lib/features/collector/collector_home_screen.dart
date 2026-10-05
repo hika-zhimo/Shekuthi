@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import '../../core/widgets/role_loading.dart';
+import '../../core/theme/tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'collector_repository.dart';
@@ -89,12 +91,12 @@ class _CollectorHomeScreenState extends ConsumerState<CollectorHomeScreen> {
       body: RefreshIndicator(
         onRefresh: _load,
         child: _loading
-            ? const Center(child: CircularProgressIndicator())
+            ? const RoleLoading()
             : ListView(
                 children: <Widget>[
                   if (_error != null)
                     Padding(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(Spacing.xl),
                       child: Text(
                         _error!,
                         style: theme.textTheme.bodyLarge
@@ -103,7 +105,7 @@ class _CollectorHomeScreenState extends ConsumerState<CollectorHomeScreen> {
                     )
                   else ...<Widget>[
                     _assignmentCard(theme),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                       child: Text(
@@ -114,7 +116,7 @@ class _CollectorHomeScreenState extends ConsumerState<CollectorHomeScreen> {
                     ),
                     if (_jobs.isEmpty)
                       Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(Spacing.xl),
                         child: Text(
                           'Nothing waiting right now. New farm-produce '
                           'collections will show up here.',
@@ -137,9 +139,9 @@ class _CollectorHomeScreenState extends ConsumerState<CollectorHomeScreen> {
     final bool active = assignment?.isActive ?? false;
 
     return Card(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(Spacing.lg),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -147,7 +149,7 @@ class _CollectorHomeScreenState extends ConsumerState<CollectorHomeScreen> {
               active ? Icons.place_outlined : Icons.hourglass_empty_outlined,
               color: theme.colorScheme.primary,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,7 +159,7 @@ class _CollectorHomeScreenState extends ConsumerState<CollectorHomeScreen> {
                     style: theme.textTheme.titleMedium
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     active
                         ? '${assignment?.locality ?? 'Set'}'
@@ -194,7 +196,7 @@ class _CollectorHomeScreenState extends ConsumerState<CollectorHomeScreen> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -202,7 +204,7 @@ class _CollectorHomeScreenState extends ConsumerState<CollectorHomeScreen> {
               children: <Widget>[
                 Icon(Icons.agriculture_outlined,
                     color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.sm),
                 Expanded(
                   child: Text(
                     'Collect to ${job.destination ?? 'hub'}',
@@ -210,27 +212,29 @@ class _CollectorHomeScreenState extends ConsumerState<CollectorHomeScreen> {
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
-                Text(
+                Flexible(
+                    child: Text(
                   job.status.replaceAll('_', ' '),
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                ),
+                )),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Text(
               <String>[
                 if (job.locality != null) 'From ${job.locality}',
                 if (job.address != null) job.address!,
-                if (job.feeInr != null) 'Fee ₹${job.feeInr} paid directly to you',
+                if (job.feeInr != null)
+                  'Fee ₹${job.feeInr} paid directly to you',
               ].join('\n'),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             if (action != null) ...<Widget>[
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               Align(
                 alignment: Alignment.centerRight,
                 child: FilledButton(
@@ -238,10 +242,9 @@ class _CollectorHomeScreenState extends ConsumerState<CollectorHomeScreen> {
                       ? null
                       : () => _act(
                             job,
-                            (CollectorRepository repo) =>
-                                nextStatus == null
-                                    ? repo.accept(job.id)
-                                    : repo.progress(job.id, nextStatus),
+                            (CollectorRepository repo) => nextStatus == null
+                                ? repo.accept(job.id)
+                                : repo.progress(job.id, nextStatus),
                             nextStatus == null
                                 ? 'Collection accepted.'
                                 : 'Collection updated.',

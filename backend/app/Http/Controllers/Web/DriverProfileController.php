@@ -30,6 +30,7 @@ class DriverProfileController extends Controller
         }
 
         $data = $request->validate([
+            'vehicle_category' => ['required', 'string', Rule::in(array_keys(User::VEHICLE_CATEGORIES))],
             'name' => ['required', 'string', 'max:120'],
             'phone' => ['nullable', 'string', 'max:20', new UniquePhone($user)],
             'transport_category_ids' => ['nullable', 'array'],
@@ -39,6 +40,7 @@ class DriverProfileController extends Controller
             ],
         ]);
 
+        $user->vehicle_category = $data['vehicle_category'];
         $user->name = $data['name'];
         $user->phone = $data['phone'] ?? null;
         $user->phone_index = ($data['phone'] ?? null) !== null && $data['phone'] !== ''

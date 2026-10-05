@@ -8,8 +8,8 @@ use App\Http\Requests\UpdateListingRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Consent;
 use App\Models\Product;
-use App\Models\User;
 use App\Models\Vendor;
+use App\Services\ListingLifecycleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -41,9 +41,7 @@ class ListingController extends Controller
         $validated['images'] = $request->validatedImages();
 
         $product = $vendor->products()->create(array_merge($validated, [
-            'status' => config('app.require_listing_approval')
-                ? Product::STATUS_PENDING
-                : $request->input('status', Product::STATUS_DRAFT),
+            'status' => Product::STATUS_PENDING,
         ]));
 
         if ($product->images !== []) {
@@ -67,19 +65,11 @@ class ListingController extends Controller
         $this->authorize('update', $product);
 
         $validated = $request->safe()->except(['images', 'image_public_consent']);
-        $validated['images'] = $request->validatedImages();
-
-        if (config('app.require_listing_approval')
-            && $request->user()->role !== User::ROLE_ADMIN) {
-            $validated['status'] = Product::STATUS_PENDING;
+        if ($request->exists('images')) {
+            $validated['images'] = $request->validatedImages();
         }
 
-        $newStatus = $validated['status'] ?? $product->status;
-        $validated['unpublished_at'] = in_array($newStatus, [Product::STATUS_INACTIVE, Product::STATUS_ARCHIVED], true)
-            ? ($product->unpublished_at ?? now())
-            : null;
-
-        $product->update($validated);
+        $product = app(ListingLifecycleService::class)->submit($product, $validated);
 
         if ($product->images !== [] && $request->boolean('image_public_consent')) {
             Consent::query()->create([
@@ -97,11 +87,19 @@ class ListingController extends Controller
         ]);
     }
 
+    public function renew(Request $request, Product $product): JsonResponse
+    {
+        $this->authorize('update', $product);
+        $product = app(ListingLifecycleService::class)->renew($product);
+
+        return response()->json(['data' => new ProductResource($product->load('vendor'))]);
+    }
+
     public function destroy(Request $request, Product $product): JsonResponse
     {
         $this->authorize('delete', $product);
 
-        $product->update(['status' => Product::STATUS_ARCHIVED]);
+        app(ListingLifecycleService::class)->submit($product, ['status' => Product::STATUS_ARCHIVED]);
 
         return response()->json([
             'message' => 'Listing archived.',

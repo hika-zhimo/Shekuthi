@@ -74,7 +74,7 @@ class WebVendorListingTest extends TestCase
         $this->assertDatabaseHas('products', [
             'title' => 'Web Basket',
             'category' => 'traditional',
-            'status' => 'active',
+            'status' => 'pending',
             'moq' => 2,
         ]);
     }
@@ -134,7 +134,7 @@ class WebVendorListingTest extends TestCase
 
         $this->assertSame('New Title', $product->title);
         $this->assertSame(['products/keep.webp'], $product->images);
-        $this->assertSame(Product::STATUS_ACTIVE, $product->status);
+        $this->assertSame(Product::STATUS_PENDING, $product->status);
     }
 
     public function test_rental_listings_require_a_date_window_and_price(): void
@@ -200,7 +200,7 @@ class WebVendorListingTest extends TestCase
         $this->actingAs($user)
             ->put(route('vendor.listings.status', $product), ['status' => 'active'])
             ->assertRedirect(route('dashboard'));
-        $this->assertSame(Product::STATUS_ACTIVE, $product->fresh()->status);
+        $this->assertSame(Product::STATUS_PENDING, $product->fresh()->status);
 
         $this->actingAs($user)
             ->put(route('vendor.listings.status', $product), ['status' => 'inactive'])

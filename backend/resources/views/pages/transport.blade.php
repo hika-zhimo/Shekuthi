@@ -47,6 +47,8 @@
                                 @endif
                             </div>
 
+                            <p>{{ \App\Models\User::VEHICLE_CATEGORIES[$driver->vehicle_category] }}</p>
+
                             @if ($driver->riderBaseOperation?->district)
                                 <p class="muted small" style="margin: 0 0 var(--space-1);">
                                     Based in {{ $driver->riderBaseOperation->district->name }}

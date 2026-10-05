@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import '../../../core/widgets/role_loading.dart';
+import '../../../core/theme/tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'vendor_profile_repository.dart';
@@ -115,17 +117,17 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Shop profile')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const RoleLoading()
           : _loaded == null
               ? Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(Spacing.xl),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         Text(_error ?? 'No profile found.',
                             textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: Spacing.lg),
                         FilledButton(
                           onPressed: _load,
                           child: const Text('Try again'),
@@ -140,15 +142,16 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
 
   Widget _form(ThemeData theme) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       children: <Widget>[
         Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Column(
               children: <Widget>[
-                _readOnlyRow(theme, 'Category', _categoryLabel(_loaded!.category)),
-                const SizedBox(height: 8),
+                _readOnlyRow(
+                    theme, 'Category', _categoryLabel(_loaded!.category)),
+                const SizedBox(height: Spacing.sm),
                 _readOnlyRow(
                   theme,
                   'District',
@@ -158,14 +161,14 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: Spacing.xs),
         Text(
           'Category and district were set when you registered.',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: Spacing.lg),
         Form(
           key: _formKey,
           child: Column(
@@ -182,7 +185,7 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                         ? 'Enter your name'
                         : null,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               TextFormField(
                 controller: _phone,
                 decoration: const InputDecoration(
@@ -193,7 +196,7 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.next,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               TextFormField(
                 controller: _displayName,
                 decoration: const InputDecoration(
@@ -206,7 +209,7 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                         ? 'Enter your shop name'
                         : null,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               TextFormField(
                 controller: _description,
                 decoration: const InputDecoration(
@@ -221,14 +224,14 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
           ),
         ),
         if (_error != null) ...<Widget>[
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Text(
             _error!,
             style: theme.textTheme.bodyMedium
                 ?.copyWith(color: theme.colorScheme.error),
           ),
         ],
-        const SizedBox(height: 16),
+        const SizedBox(height: Spacing.lg),
         FilledButton.icon(
           onPressed: _saving ? null : _save,
           icon: _saving
@@ -244,25 +247,15 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
   }
 
   Widget _readOnlyRow(ThemeData theme, String label, String value) {
-    return Row(
-      children: <Widget>[
-        SizedBox(
-          width: 110,
-          child: Text(
-            label,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w500),
-          ),
-        ),
-      ],
-    );
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(label,
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: Spacing.xs),
+          Text(value, style: theme.textTheme.bodyMedium),
+        ]);
   }
 
   String _categoryLabel(String category) {

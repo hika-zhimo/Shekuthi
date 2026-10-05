@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/network/locations_provider.dart';
+import '../../core/theme/tokens.dart';
+import '../../core/widgets/app_logo.dart';
 import 'catalog_controller.dart';
 import 'catalog_repository.dart';
 
@@ -11,7 +13,9 @@ import 'catalog_repository.dart';
 /// offers active service areas (M9.1/M9.2) — it lists where the platform
 /// operates.
 class CatalogScreen extends ConsumerStatefulWidget {
-  const CatalogScreen({super.key, this.initialCategory});
+  const CatalogScreen({super.key, this.initialCategory, this.isHome = false});
+
+  final bool isHome;
 
   /// When set (e.g. the dedicated PG / rentals / homestays entry, M23.1), the
   /// catalog opens already filtered to that category.
@@ -36,11 +40,34 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) => _applyCategory());
+  }
+
+  Future<void> _applyCategory() async {
     final String? category = widget.initialCategory;
-    if (category != null && category.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(catalogControllerProvider.notifier).search(category: category);
-      });
+    if (category == null) return;
+    // Let the provider's initial load finish before applying a route filter.
+    try {
+      await ref.read(catalogControllerProvider.future);
+    } on Object {
+      // A route selection can retry an unsuccessful initial request.
+    }
+    if (!mounted) return;
+    final CatalogState? current =
+        ref.read(catalogControllerProvider).valueOrNull;
+    if (widget.isHome &&
+        current != null &&
+        (current.districtId != null || current.localityId != null)) {
+      await ref
+          .read(catalogControllerProvider.notifier)
+          .filterArea(districtId: null, localityId: null);
+    }
+    if (current == null ||
+        current.category != category ||
+        widget.isHome && current.query.isNotEmpty) {
+      await ref
+          .read(catalogControllerProvider.notifier)
+          .search(query: '', category: category);
     }
   }
 
@@ -60,11 +87,20 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
         ref.watch(districtsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Catalog')),
+      appBar: AppBar(
+          title: widget.isHome
+              ? const AppLogo(height: Spacing.xxl)
+              : Text(_categories
+                  .firstWhere(
+                    (entry) => entry.$1 == (widget.initialCategory ?? ''),
+                    orElse: () => ('', 'All listings'),
+                  )
+                  .$2)),
       body: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.lg, Spacing.sm, Spacing.lg, 0),
             child: SearchBar(
               controller: _search,
               hintText: 'Search titles and descriptions',
@@ -82,29 +118,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               ],
             ),
           ),
-          SizedBox(
-            height: 56,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              children: <Widget>[
-                for (final (String value, String label) in _categories)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      label: Text(label),
-                      selected: (state?.category ?? '') == value,
-                      onSelected: (bool selected) => ref
-                          .read(catalogControllerProvider.notifier)
-                          .search(category: selected ? value : ''),
-                    ),
-                  ),
-              ],
-            ),
-          ),
           if (districts.valueOrNull?.isNotEmpty ?? false) ...<Widget>[
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                  Spacing.lg, Spacing.xl, Spacing.lg, 0),
               child: Row(
                 children: <Widget>[
                   Expanded(
@@ -121,7 +138,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                           .filterArea(districtId: value, localityId: null),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: Spacing.md),
                   Expanded(
                     child: _areaFilter(
                       theme: theme,
@@ -130,7 +147,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                           ? 'Pick a district first'
                           : 'All localities',
                       value: state?.localityId,
-                      items: _localitiesOf(districts.valueOrNull!, state?.districtId)
+                      items: _localitiesOf(
+                              districts.valueOrNull!, state?.districtId)
                           .map((LocalityOption l) => (l.id, l.name))
                           .toList(),
                       enabled: state?.districtId != null,
@@ -146,7 +164,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                  Spacing.lg, Spacing.xs, Spacing.lg, 0),
               child: Row(
                 children: <Widget>[
                   Icon(
@@ -154,7 +173,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                     size: 14,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: Spacing.xs),
                   Expanded(
                     child: Text(
                       'Only areas where the platform operates are listed.',
@@ -198,16 +217,14 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: Spacing.md),
       ),
       items: <DropdownMenuItem<int>>[
         DropdownMenuItem<int>(
           value: null,
           child: Text(
             allLabel,
-            style: enabled
-                ? null
-                : TextStyle(color: theme.disabledColor),
+            style: enabled ? null : TextStyle(color: theme.disabledColor),
           ),
         ),
         ...<DropdownMenuItem<int>>[
@@ -224,23 +241,37 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     AsyncValue<CatalogState> asyncState,
     CatalogState? state,
   ) {
-    if (asyncState.isLoading && (state?.items.isEmpty ?? true)) {
-      return const Center(child: CircularProgressIndicator());
+    if (asyncState.isLoading ||
+        (state?.loading ?? false) && (state?.items.isEmpty ?? true)) {
+      return const _CatalogSkeleton();
     }
 
     final CatalogState data = state ?? const CatalogState();
 
-    if (data.error != null && data.items.isEmpty) {
+    if ((asyncState.hasError || data.error != null) && data.items.isEmpty) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              const Icon(Icons.cloud_off_outlined, size: 40),
-              const SizedBox(height: 12),
-              Text(data.error!, textAlign: TextAlign.center),
-            ],
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(Spacing.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Icon(Icons.cloud_off_outlined, size: 40),
+                const SizedBox(height: Spacing.md),
+                Text(
+                    data.error ??
+                        'Could not load listings. Check your connection.',
+                    textAlign: TextAlign.center),
+                const SizedBox(height: Spacing.md),
+                FilledButton.icon(
+                  onPressed: () => ref
+                      .read(catalogControllerProvider.notifier)
+                      .search(category: widget.initialCategory ?? ''),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try again'),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -248,21 +279,26 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
 
     if (data.items.isEmpty) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              const Icon(Icons.storefront_outlined, size: 40),
-              const SizedBox(height: 12),
-              Text(
-                data.query.isEmpty && data.category.isEmpty
-                    ? 'No listings yet. Sellers are onboarding now.'
-                    : 'Nothing matched. Try different filters.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyLarge,
-              ),
-            ],
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(Spacing.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Icon(Icons.storefront_outlined, size: 40),
+                const SizedBox(height: Spacing.md),
+                Text(
+                  data.query.isEmpty &&
+                          data.category.isEmpty &&
+                          data.districtId == null &&
+                          data.localityId == null
+                      ? 'No listings yet. Sellers are onboarding now.'
+                      : 'Nothing matched. Try different filters.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -271,14 +307,21 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     return RefreshIndicator(
       onRefresh: () => ref.read(catalogControllerProvider.notifier).search(),
       child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         itemCount: data.items.length + (data.canLoadMore ? 1 : 0),
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, __) => const SizedBox(height: Spacing.md),
         itemBuilder: (BuildContext context, int index) {
           if (index >= data.items.length) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: Spacing.lg),
+              child: data.loading
+                  ? const _CatalogSkeletonRow()
+                  : OutlinedButton(
+                      onPressed: () => ref
+                          .read(catalogControllerProvider.notifier)
+                          .loadMore(),
+                      child: const Text('Load more listings'),
+                    ),
             );
           }
 
@@ -308,12 +351,13 @@ class _ListingCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: SizedBox(
-          height: 96,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: TouchTarget.min * 2),
           child: Row(
             children: <Widget>[
               SizedBox(
-                width: 96,
+                width: TouchTarget.min * 2,
+                height: TouchTarget.min * 2,
                 child: listing.images.isNotEmpty
                     ? Image.network(
                         listing.images.first,
@@ -324,8 +368,9 @@ class _ListingCard extends StatelessWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(Spacing.md),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Row(
@@ -344,10 +389,10 @@ class _ListingCard extends StatelessWidget {
                                 size: 18, color: theme.colorScheme.primary),
                         ],
                       ),
-                      const Spacer(),
+                      const SizedBox(height: Spacing.sm),
                       if (listing.price != null)
                         Text(
-                          '${listing.price!.toStringAsFixed(2)}'
+                          '₹${listing.price!.toStringAsFixed(2)}'
                           '${listing.unit != null ? ' / ${listing.unit}' : ''}',
                           style: theme.textTheme.labelLarge,
                         ),
@@ -386,3 +431,63 @@ class _ImagePlaceholder extends StatelessWidget {
   }
 }
 
+/// Opacity-only skeleton respects the system's reduced-motion preference.
+class _CatalogSkeleton extends StatefulWidget {
+  const _CatalogSkeleton();
+
+  @override
+  State<_CatalogSkeleton> createState() => _CatalogSkeletonState();
+}
+
+class _CatalogSkeletonState extends State<_CatalogSkeleton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animation =
+      AnimationController(vsync: this, duration: AppMotion.skeletonDuration);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _animation.stop();
+      _animation.value = 1;
+    } else {
+      _animation.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _animation.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: 'Loading listings',
+        child: FadeTransition(
+          opacity: _animation.drive(
+              Tween<double>(begin: AppMotion.skeletonMinOpacity, end: 1)),
+          child: ListView.separated(
+            padding: const EdgeInsets.all(Spacing.lg),
+            itemCount: 6,
+            separatorBuilder: (_, __) => const SizedBox(height: Spacing.md),
+            itemBuilder: (_, __) => const _CatalogSkeletonRow(),
+          ),
+        ),
+      );
+}
+
+class _CatalogSkeletonRow extends StatelessWidget {
+  const _CatalogSkeletonRow();
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+        child: Container(
+          height: TouchTarget.min * 2,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: AppRadius.cardRadius,
+          ),
+        ),
+      );
+}

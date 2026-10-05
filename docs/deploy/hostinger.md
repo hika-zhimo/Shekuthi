@@ -150,3 +150,76 @@ The storage `public/` directory holds products, UPI QR, and evidence.
 Schedule a weekly download of `backend/storage/app/public/` (panel backup or
 a cron `tar` to a private directory outside the docroot). Keep the media
 backup separate from DB backups.
+
+## 10. SSH update commands (M58.2)
+
+Upload the reviewed backend changes first. This workspace contains uncommitted
+implementation changes: `git pull` on the server will not transfer them.
+Preserve the live `.env`, `storage/` (uploads, exports, sessions), and the
+host's `public_html/index.php` bootstrap paths. Do not upload a local `.env`,
+replace the application's encryption keys, or seed demo accounts.
+
+Get SSH host, username and port from hPanel. Replace the uppercase placeholders:
+
+```bash
+ssh -p SSH_PORT SSH_USER@SSH_HOST
+```
+
+On the server, after backing up the database and uploading reviewed files:
+
+```bash
+cd ~/domains/shekuthi.in/backend
+set -e
+PHP_BIN=/opt/alt/php82/usr/bin/php
+"$PHP_BIN" artisan down --retry=60
+"$PHP_BIN" /PATH/TO/composer.phar install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+"$PHP_BIN" /PATH/TO/composer.phar check-platform-reqs --no-dev
+"$PHP_BIN" artisan config:clear
+"$PHP_BIN" artisan migrate --force
+"$PHP_BIN" artisan assets:publish
+"$PHP_BIN" artisan config:cache
+"$PHP_BIN" artisan route:cache
+"$PHP_BIN" artisan view:cache
+"$PHP_BIN" artisan up
+```
+
+The PHP 8.2 path was recorded from the live host on 2026-09-24. Confirm the
+backend directory and Composer PHAR location on your account before running.
+Run in a dedicated SSH shell: `set -e` stops after a failed command and leaves
+the site in maintenance mode for investigation. After correcting the failure,
+rerun the remaining steps and `artisan up`. Never proceed past a failed migration.
+
+If the domain serves a separate `public_html/`, publish updated `backend/public/`
+assets there as well (CSS, JS and brand images), preserving its customized
+`index.php`, `.htaccess`, and storage symlink. The asset publishing command
+writes to `backend/public/`; it does not synchronize a separate document root.
+
+Verify Home, catalog, login and `/api/v1/catalog` after updating. Confirm the
+existing scheduled-task cron still runs. Do not run `cache:clear` or
+`optimize:clear` routinely: database-backed application cache may be shared
+with other features. These commands deliberately rebuild only deployment caches.
+
+Catalog optimization uses eager-loaded badge queries and request-local fee
+reuse. It does not cache public responses across requests, so revoked badges
+and administrator fee changes remain visible on the next request.
+References: https://laravel.com/docs/12.x/eloquent-relationships#eager-loading
+and https://laravel.com/docs/12.x/deployment#optimization.
+
+## 11. Git-based updates (M63.1)
+
+From the existing Git checkout on Hostinger, first run `git status --short`.
+Resolve local tracked changes before pulling; never reset or clean the host.
+Use `git pull --ff-only origin main`, preserving ignored backend/.env/storage.
+Run commands one at a time; do not enable `set -e` in an interactive SSH shell.
+The website code lives in backend/ beneath the Git repository root.
+After pulling: install production Composer dependencies, check platform
+requirements, run migrations after backup, publish assets and rebuild
+config/route/view caches. Restore service with `artisan up` after success.
+
+If public_html is separate, copy backend/public/css/, js/ and img/ there,
+preserving index.php, .htaccess and the storage symlink. Never rsync --delete.
+The current homepage image `home-landscape-cutout.png` is an ignored local
+asset derived from supplied artwork; Git does not distribute it. Upload it
+separately to backend/public/img/ and public_html/img/ before deploying the
+homepage view. Logo/favicon and original project SVG are part of the code
+release. Do not seed demo users on production or copy local databases.

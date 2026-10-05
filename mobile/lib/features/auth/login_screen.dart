@@ -40,17 +40,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final AsyncValue<SessionState> session =
-        ref.watch(authControllerProvider);
+    final AsyncValue<SessionState> session = ref.watch(authControllerProvider);
 
     ref.listen<AsyncValue<SessionState>>(
       authControllerProvider,
       (AsyncValue<SessionState>? previous, AsyncValue<SessionState> next) {
         next.whenOrNull(
           data: (SessionState state) {
-            if (state is SessionAuthenticated) {
-              context.go('/');
-            }
+            // The router restores the authorized destination after sign-in.
           },
           error: (Object error, StackTrace _) {
             ScaffoldMessenger.of(context)
@@ -142,8 +139,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         labelText: 'Password',
         prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
-          onPressed: () =>
-              setState(() => _obscurePassword = !_obscurePassword),
+          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
           icon: Icon(
             _obscurePassword
                 ? Icons.visibility_outlined
@@ -185,4 +181,3 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
-

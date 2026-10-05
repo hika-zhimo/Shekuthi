@@ -1,5 +1,7 @@
 # Design tokens reference
 
+Owner palette approval — 2026-10-05: logo green, white and black supersede the earlier blue/indigo and colored status palette. See [brand-kit.md](brand-kit.md).
+
 Single source of truth for design tokens across the three surfaces. Code files may reference these values only via their token files - never inline literals in components.
 
 ## Website (public, Blade) - source: `ui deisgns/website ui/minimalist-swiss-design.md`
@@ -8,13 +10,13 @@ Single source of truth for design tokens across the three surfaces. Code files m
 |---|---|---|
 | `--color-surface` | `#FFFFFF` | Page background |
 | `--color-surface-alt` | `#F8F8F8` | Section background, muted surfaces |
-| `--color-accent` | `#007BFF` | Links, focus states, primary buttons (interactive only) |
-| `--color-accent-hover` | `#0069D9` | Primary button hover |
-| `--color-ink` | `#212529` | Primary text (never `#000000`) |
-| `--color-muted` | `#6C757D` | Secondary text, borders |
-| `--color-success` | `#28A745` | Positive states |
-| `--color-warning` | `#FFC107` | Caution states |
-| `--color-danger` | `#DC3545` | Errors, destructive |
+| `--color-accent` | `#008000` | Links, focus states, primary buttons (interactive only) |
+| `--color-accent-hover` | `#000000` | Primary button hover |
+| `--color-ink` | `#000000` | Primary text |
+| `--color-muted` | `#666666` | Secondary text, borders |
+| `--color-success` | `#008000` | Positive states |
+| `--color-warning` | `#000000` | Caution states |
+| `--color-danger` | `#000000` | Errors, destructive |
 | `--font-sans` | Inter + system fallbacks | All text (400/500/600/700) |
 | `--radius-sm` | 4px | Buttons, inputs, cards |
 | `--space-unit` | 8px | All spacing multiples |
@@ -27,15 +29,15 @@ Single source of truth for design tokens across the three surfaces. Code files m
 |---|---|---|
 | `--adm-bg` | `#FAFAFA` | Page background |
 | `--adm-surface` | `#FFFFFF` | Cards, panels |
-| `--adm-interactive` | `#6366F1` | CTAs, active states, links, focus rings ONLY (never decoration) |
-| `--adm-interactive-hover` | `#4F46E5` | Interactive hover |
-| `--adm-ink` | `#0A0A0A` | Headings, body |
-| `--adm-ink-secondary` | `#6B6B6B` | Metadata, descriptions |
-| `--adm-muted` | `#9C9C9C` | Placeholders, timestamps, disabled |
-| `--adm-border` | `#E8E8EC` | Card/divider/input borders |
-| `--adm-success` | `#10B981` | Published, confirmations |
-| `--adm-warning` | `#F59E0B` | Pending states |
-| `--adm-danger` | `#EF4444` | Destructive, rejected |
+| `--adm-interactive` | `#008000` | CTAs, active states, links, focus rings ONLY (never decoration) |
+| `--adm-interactive-hover` | `#000000` | Interactive hover |
+| `--adm-ink` | `#000000` | Headings, body |
+| `--adm-ink-secondary` | `#666666` | Metadata, descriptions |
+| `--adm-muted` | `#666666` | Placeholders, timestamps, disabled |
+| `--adm-border` | `#DDDDDD` | Card/divider/input borders |
+| `--adm-success` | `#008000` | Published, confirmations |
+| `--adm-warning` | `#000000` | Pending states |
+| `--adm-danger` | `#000000` | Destructive, rejected |
 | `--adm-font-display` | General Sans (Fontshare) | Headings, tight tracking -0.03em |
 | `--adm-font-body` | DM Sans (Google Fonts) | Body, UI text |
 | `--adm-radius-button` | 6px | Buttons, inputs, selects |
@@ -46,10 +48,10 @@ Single source of truth for design tokens across the three surfaces. Code files m
 
 | Token | Value | Usage |
 |---|---|---|
-| seed color | `0xFF007BFF` | `ColorScheme.fromSeed` light + dark |
-| success | `0xFF28A745` | Positive states |
-| warning | `0xFFF59E0B` | Caution states |
-| danger | `0xFFDC3545` | Errors, destructive |
+| seed color | `0xFF008000` | Explicit light + dark schemes |
+| success | `0xFF008000` | Positive states |
+| warning | `0xFF000000` | Caution states |
+| danger | `0xFF000000` | Errors, destructive |
 | font | Inter via `google_fonts` | Full type scale |
 | spacing | 4/8/12/16/24/32/48 (`Spacing` in `tokens.dart`) | All layout |
 | radius | 4/8/12 (`AppRadius` in `tokens.dart`) | Buttons 8, inputs 8, cards 12 |
@@ -58,7 +60,7 @@ Single source of truth for design tokens across the three surfaces. Code files m
 ## Hard rules (all surfaces)
 
 1. Accent/interactive colors mark interaction and status only - never decoration.
-2. Never use pure black `#000000` for text; use the ink tokens above.
+2. Use logo green, white and black; neutral blends are permitted. Use the ink tokens above.
 3. No emojis anywhere in UI. Icons come from `assets/icons/` (outline default, filled only for active/selected states), recolored via `currentColor` / theme tint.
 4. Shadows subtle only; elevation communicated on hover/press, not on static elements.
 5. Motion: 150-250ms ease-out on transform/opacity only.

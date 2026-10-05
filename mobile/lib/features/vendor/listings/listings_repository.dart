@@ -118,6 +118,12 @@ class ListingsRepository {
     );
   }
 
+  Future<Listing> renew(int id) async {
+    final Response<Map<String, dynamic>> response =
+        await _api.dio.post<Map<String, dynamic>>('/listings/$id/renew');
+    return Listing.fromJson(response.data!['data'] as Map<String, dynamic>);
+  }
+
   Future<void> archive(int id) async {
     await _api.dio.delete<void>('/listings/$id');
   }

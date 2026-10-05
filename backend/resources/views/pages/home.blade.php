@@ -15,7 +15,7 @@
             <a class="btn btn-primary" href="{{ route('catalog') }}">Browse catalog</a>
             <a class="btn btn-secondary" href="{{ route('about') }}">How verification works</a>
         </div>
-        <img class="hero-art" src="{{ asset('img/farm-girl.svg') }}" alt="Illustration of a farmer presenting fresh produce" width="560" height="420">
+        <img class="hero-art" src="{{ asset('img/home-landscape-cutout.png') }}" alt="Illustration of rolling hills, cultivated fields, hay bales and a rural building" width="1254" height="1254">
     </section>
 
     <section class="section section-alt">

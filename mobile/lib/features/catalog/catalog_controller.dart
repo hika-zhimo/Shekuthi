@@ -60,8 +60,8 @@ class CatalogState {
 }
 
 class CatalogController extends AsyncNotifier<CatalogState> {
-  CatalogRepository get _repository =>
-      ref.read(catalogRepositoryProvider);
+  int _requestVersion = 0;
+  CatalogRepository get _repository => ref.read(catalogRepositoryProvider);
 
   @override
   Future<CatalogState> build() async {
@@ -73,21 +73,24 @@ class CatalogController extends AsyncNotifier<CatalogState> {
       page: 1,
     );
 
-    return CatalogState(items: first.items, total: first.total, lastPage: first.lastPage);
+    return CatalogState(
+        items: first.items, total: first.total, lastPage: first.lastPage);
   }
 
   Future<void> search({String? query, String? category}) async {
-    state = AsyncData(
-      (state.valueOrNull ?? const CatalogState()).copyWith(
-        loading: true,
-        error: null,
-      ),
-    );
+    final int version = ++_requestVersion;
+    final CatalogState before = state.valueOrNull ?? const CatalogState();
+    final String q = query ?? before.query;
+    final String cat = category ?? before.category;
+    state = AsyncData(before.copyWith(
+      query: q,
+      category: cat,
+      loading: true,
+      items: <Listing>[],
+    ));
 
     try {
       final CatalogState? current = state.valueOrNull;
-      final String? q = query ?? current?.query;
-      final String? cat = category ?? current?.category;
       final PageResult result = await _load(
         query: q,
         category: cat,
@@ -96,10 +99,11 @@ class CatalogController extends AsyncNotifier<CatalogState> {
         page: 1,
       );
 
+      if (version != _requestVersion) return;
       state = AsyncData(
         (state.valueOrNull ?? const CatalogState()).copyWith(
-          query: q ?? '',
-          category: cat ?? '',
+          query: q,
+          category: cat,
           items: result.items,
           total: result.total,
           currentPage: 1,
@@ -108,15 +112,20 @@ class CatalogController extends AsyncNotifier<CatalogState> {
         ),
       );
     } catch (_) {
-      state = AsyncError('Could not load the catalog. Check your connection.',
-          StackTrace.current);
+      if (version != _requestVersion) return;
+      state = AsyncData((state.valueOrNull ?? const CatalogState()).copyWith(
+        loading: false,
+        error: 'Could not load listings. Check your connection.',
+      ));
     }
   }
 
   /// Sets the service-area filter. Both values are always applied as a
   /// pair — pass null to clear — so a locality from another district can
   /// never linger (M9.2).
-  Future<void> filterArea({required int? districtId, required int? localityId}) async {
+  Future<void> filterArea(
+      {required int? districtId, required int? localityId}) async {
+    final int version = ++_requestVersion;
     final CatalogState current = state.valueOrNull ?? const CatalogState();
 
     state = AsyncData(CatalogState(
@@ -136,6 +145,7 @@ class CatalogController extends AsyncNotifier<CatalogState> {
         page: 1,
       );
 
+      if (version != _requestVersion) return;
       state = AsyncData(CatalogState(
         query: current.query,
         category: current.category,
@@ -147,8 +157,11 @@ class CatalogController extends AsyncNotifier<CatalogState> {
         lastPage: result.lastPage,
       ));
     } catch (_) {
-      state = AsyncError('Could not load the catalog. Check your connection.',
-          StackTrace.current);
+      if (version != _requestVersion) return;
+      state = AsyncData((state.valueOrNull ?? const CatalogState()).copyWith(
+        loading: false,
+        error: 'Could not load listings. Check your connection.',
+      ));
     }
   }
 
@@ -159,6 +172,7 @@ class CatalogController extends AsyncNotifier<CatalogState> {
       return;
     }
 
+    final int version = ++_requestVersion;
     state = AsyncData(current.copyWith(loading: true));
 
     try {
@@ -170,6 +184,7 @@ class CatalogController extends AsyncNotifier<CatalogState> {
         page: current.currentPage + 1,
       );
 
+      if (version != _requestVersion) return;
       state = AsyncData(current.copyWith(
         items: <Listing>[...current.items, ...result.items],
         currentPage: current.currentPage + 1,
@@ -177,6 +192,7 @@ class CatalogController extends AsyncNotifier<CatalogState> {
         loading: false,
       ));
     } catch (_) {
+      if (version != _requestVersion) return;
       state = AsyncData(current.copyWith(loading: false));
     }
   }

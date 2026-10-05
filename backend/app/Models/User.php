@@ -22,6 +22,15 @@ class User extends Authenticatable implements MustVerifyEmailContract
 
     public const ROLE_DRIVER = 'driver';
 
+    public const VEHICLE_CATEGORIES = [
+        'two_wheeler' => 'Two-wheeler',
+        'three_wheeler' => 'Three-wheeler',
+        'car' => 'Car',
+        'van' => 'Van',
+        'pickup' => 'Pickup',
+        'truck' => 'Truck',
+    ];
+
     public const ROLE_COLLECTOR = 'collector';
 
     public const ROLE_SKILLED_WORKER = 'skilled_worker';
@@ -52,6 +61,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
         'role',
         'district_id',
         'is_active',
+        'vehicle_category',
     ];
 
     /**
@@ -100,6 +110,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
             'email' => $this->email,
             'phone' => $this->phone,
             'role' => $this->role,
+            'vehicle_category' => $this->role === self::ROLE_DRIVER ? $this->vehicle_category : null,
             'district_id' => $this->district_id,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),

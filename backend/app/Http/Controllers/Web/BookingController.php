@@ -19,7 +19,7 @@ class BookingController extends Controller
 
     public function store(Request $request, Product $product)
     {
-        abort_unless($product->status === Product::STATUS_ACTIVE, 404);
+        abort_unless($product->isLive(), 404);
 
         $product->load('vendor');
 

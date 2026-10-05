@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Consent;
 use App\Models\District;
 use App\Models\Media;
 use App\Models\User;
@@ -10,6 +11,8 @@ use App\Models\Verification;
 use App\Models\VerificationVolunteer;
 use App\Support\BlindIndex;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class VerificationTest extends TestCase
@@ -71,6 +74,120 @@ class VerificationTest extends TestCase
         ]);
     }
 
+    public function test_uploaded_visit_photo_can_be_saved_submitted_and_reviewed(): void
+    {
+        Storage::fake('public');
+        $volunteer = $this->makeVolunteer();
+        $vendor = $this->makeVendor();
+        $upload = $this->actingAs($volunteer, 'sanctum')->postJson('/api/v1/media', [
+            'file' => UploadedFile::fake()->image('shop.png', 3000, 2000),
+            'directory' => 'evidence',
+            'evidence_public_consent' => true,
+        ])->assertCreated()->assertJsonPath('mime', 'image/webp');
+        $path = $upload->json('path');
+        $this->assertStringStartsWith('evidence/', $path);
+        Storage::disk('public')->assertExists($path);
+        $this->assertDatabaseHas('media', ['path' => $path, 'uploaded_by' => $volunteer->id]);
+
+        $saved = $this->postJson('/api/v1/verifications', [
+            'subject_type' => Vendor::class,
+            'subject_id' => $vendor->id,
+            'notes' => 'Shopfront and goods confirmed in person.',
+            'checklist' => ['address_confirmed' => true],
+            'geo_lat' => 25.9,
+            'geo_lng' => 93.7,
+            'evidence' => [$path],
+            'evidence_public_consent' => true,
+        ])->assertCreated()
+            ->assertJsonPath('data.subject_type', Vendor::class)
+            ->assertJsonPath('data.subject_id', $vendor->id)
+            ->assertJsonPath('data.evidence', [$path])
+            ->assertJsonStructure(['data' => ['id', 'status', 'notes', 'created_at']]);
+        $id = $saved->json('data.id');
+        $consent = Consent::query()->where('subject_type', Verification::class)
+            ->where('subject_id', $id)->firstOrFail();
+        $this->assertSame(Consent::KEY_VERIFICATION_EVIDENCE_PUBLIC, $consent->consent_key);
+        $this->assertSame('1.0', $consent->text_version);
+        $this->assertNotNull($consent->granted_at);
+        $this->getJson("/api/v1/verifications/{$id}")->assertOk()
+            ->assertJsonPath('data.evidence', [$path]);
+        $this->postJson("/api/v1/verifications/{$id}/submit")->assertOk();
+        $this->actingAs($this->makeAdmin(), 'sanctum')
+            ->postJson("/api/v1/verifications/{$id}/approve")->assertOk();
+        $this->assertSame(Verification::STATUS_APPROVED, Verification::findOrFail($id)->status);
+    }
+
+    public function test_four_photos_are_accepted_but_existing_large_uploads_cannot_bypass_evidence_limit(): void
+    {
+        $volunteer = $this->makeVolunteer();
+        $vendor = $this->makeVendor();
+        $paths = [];
+        for ($i = 0; $i < 4; $i++) {
+            $path = "evidence/visit-{$i}.webp";
+            Media::create(['uploaded_by' => $volunteer->id, 'path' => $path, 'size' => 500 * 1024]);
+            $paths[] = $path;
+        }
+        $payload = ['subject_type' => Vendor::class, 'subject_id' => $vendor->id,
+            'notes' => 'Visit confirmed.', 'evidence' => $paths, 'evidence_public_consent' => true];
+        $this->actingAs($volunteer, 'sanctum')->postJson('/api/v1/verifications', $payload)
+            ->assertCreated()->assertJsonCount(4, 'data.evidence');
+        Media::create(['uploaded_by' => $volunteer->id, 'path' => 'products/large.webp', 'size' => 500 * 1024 + 1]);
+        $payload['evidence'] = ['products/large.webp'];
+        $this->postJson('/api/v1/verifications', $payload)->assertUnprocessable()
+            ->assertJsonValidationErrors('evidence');
+        $this->assertDatabaseCount('verifications', 1);
+    }
+
+    public function test_evidence_rejects_over_500_kb_without_changing_product_upload_limit(): void
+    {
+        Storage::fake('public');
+        $volunteer = $this->makeVolunteer();
+        $this->actingAs($volunteer, 'sanctum')->postJson('/api/v1/media', [
+            'file' => UploadedFile::fake()->image('shop.png')->size(501),
+            'directory' => 'evidence', 'evidence_public_consent' => true,
+        ])->assertUnprocessable()->assertJsonValidationErrors('file');
+        $this->assertDatabaseCount('media', 0);
+        $this->postJson('/api/v1/media', [
+            'file' => UploadedFile::fake()->image('shop.png')->size(500),
+            'directory' => 'evidence', 'evidence_public_consent' => true,
+        ])->assertCreated();
+        $this->postJson('/api/v1/media', [
+            'file' => UploadedFile::fake()->image('product.png')->size(501),
+            'directory' => 'products',
+        ])->assertCreated();
+    }
+
+    public function test_evidence_upload_requires_a_volunteer_and_permission(): void
+    {
+        Storage::fake('public');
+        $volunteer = $this->makeVolunteer();
+        $this->actingAs($volunteer, 'sanctum')->postJson('/api/v1/media', [
+            'file' => UploadedFile::fake()->image('shop.png'),
+            'directory' => 'evidence',
+        ])->assertUnprocessable()->assertJsonValidationErrors('evidence_public_consent');
+        $this->actingAs($this->makeAdmin(), 'sanctum')->postJson('/api/v1/media', [
+            'file' => UploadedFile::fake()->image('shop.png'),
+            'directory' => 'evidence',
+            'evidence_public_consent' => true,
+        ])->assertForbidden();
+        $this->assertDatabaseCount('media', 0);
+    }
+
+    public function test_evidence_report_requires_permission_and_accepts_at_most_four_photos(): void
+    {
+        $volunteer = $this->makeVolunteer();
+        $vendor = $this->makeVendor();
+        $report = ['subject_type' => Vendor::class, 'subject_id' => $vendor->id,
+            'notes' => 'Visit completed.', 'evidence' => ['evidence/shop.webp']];
+        $this->actingAs($volunteer, 'sanctum')->postJson('/api/v1/verifications', $report)
+            ->assertUnprocessable()->assertJsonValidationErrors('evidence_public_consent');
+        $report['evidence_public_consent'] = true;
+        $report['evidence'] = array_fill(0, 5, 'evidence/shop.webp');
+        $this->postJson('/api/v1/verifications', $report)->assertUnprocessable()
+            ->assertJsonValidationErrors('evidence');
+        $this->assertDatabaseCount('verifications', 0);
+    }
+
     public function test_a_volunteer_can_create_and_view_profile(): void
     {
         $volunteer = $this->makeVolunteer();
@@ -125,6 +242,7 @@ class VerificationTest extends TestCase
                 'subject_id' => $vendor->id,
                 'notes' => 'Visited the shop, confirmed details',
                 'evidence' => ['evidence/shop-front.jpg', 'evidence/shelf.jpg'],
+                'evidence_public_consent' => true,
             ]);
 
         $store->assertCreated()
@@ -177,6 +295,7 @@ class VerificationTest extends TestCase
                 'subject_id' => $vendor->id,
                 'notes' => 'Visited the shop, confirmed details',
                 'evidence' => ['evidence/mine.jpg', 'evidence/theirs.jpg'],
+                'evidence_public_consent' => true,
             ])
             ->assertCreated()
             ->assertJsonPath('data.evidence', ['evidence/mine.jpg']);

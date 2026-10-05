@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Services\ListingLifecycleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,9 +24,7 @@ class ListingModerationController extends Controller
 
     public function approve(Request $request, Product $product): RedirectResponse
     {
-        abort_unless($product->status === Product::STATUS_PENDING, 422);
-
-        $product->update(['status' => Product::STATUS_ACTIVE, 'unpublished_at' => null]);
+        app(ListingLifecycleService::class)->approve($product);
 
         return redirect()
             ->route('admin.listings.index')
@@ -34,9 +33,7 @@ class ListingModerationController extends Controller
 
     public function reject(Request $request, Product $product): RedirectResponse
     {
-        abort_unless($product->status === Product::STATUS_PENDING, 422);
-
-        $product->update(['status' => Product::STATUS_INACTIVE, 'unpublished_at' => now()]);
+        app(ListingLifecycleService::class)->reject($product);
 
         return redirect()
             ->route('admin.listings.index')

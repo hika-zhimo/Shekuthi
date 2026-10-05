@@ -6,9 +6,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'vendor_id',
         'category',
@@ -26,6 +30,14 @@ class Product extends Model
         'locality_id',
         'status',
         'unpublished_at',
+        'approved_at',
+        'expires_at',
+        'expired_at',
+        'deletion_scheduled_at',
+        'expiry_mail_sent_at',
+        'expiry_database_sent_at',
+        'reminder_mail_sent_at',
+        'reminder_database_sent_at',
     ];
 
     public const CATEGORY_TRADITIONAL = 'traditional';
@@ -68,6 +80,15 @@ class Product extends Model
             'available_to' => 'date',
             'images' => 'array',
             'unpublished_at' => 'datetime',
+            'approved_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'expired_at' => 'datetime',
+            'deletion_scheduled_at' => 'datetime',
+            'expiry_mail_sent_at' => 'datetime',
+            'expiry_database_sent_at' => 'datetime',
+            'reminder_mail_sent_at' => 'datetime',
+            'reminder_database_sent_at' => 'datetime',
+
         ];
     }
 
@@ -94,16 +115,36 @@ class Product extends Model
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('status', self::STATUS_ACTIVE);
+        return $query->where('status', self::STATUS_ACTIVE)
+            ->where(fn (Builder $q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
+    }
+
+    public function isLive(): bool
+    {
+        return ! $this->trashed() && $this->status === self::STATUS_ACTIVE
+            && ($this->expires_at === null || $this->expires_at->gt(now()));
+    }
+
+    public function canRenew(): bool
+    {
+        return ! $this->trashed() && $this->status !== self::STATUS_PENDING
+            && $this->expires_at !== null && $this->expires_at->lte(now());
     }
 
     public function getVerifiedBadgeAttribute(): ?Badge
     {
-        return Badge::query()
+        if ($this->relationLoaded('activeBadge')) {
+            return $this->getRelation('activeBadge');
+        }
+
+        return $this->activeBadge()->first();
+    }
+
+    public function activeBadge(): HasOne
+    {
+        return $this->hasOne(Badge::class, 'subject_id')
             ->where('subject_type', self::class)
-            ->where('subject_id', $this->id)
-            ->whereNull('revoked_at')
-            ->first();
+            ->whereNull('revoked_at');
     }
 
     public function vendor(): BelongsTo

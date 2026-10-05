@@ -1,0 +1,17 @@
+# Listing approval, expiry and renewal — 2026-10-05
+
+M53 / R165–R167 implements the owner's annual listing policy. Publication always needs admin review, including administrator edits through vendor endpoints; the legacy REQUIRE_LISTING_APPROVAL flag cannot bypass this. New listings and content edits enter pending review. Pause and archive remain available. Approval starts one calendar year (29 February anniversaries become 28 February). Migration returns legacy active listings to pending: they have no recorded approval date, so no approval date is invented and no old listing is immediately erased.
+
+Public queries, detail pages and booking validation reject expired listings even if the scheduler is late. The lifecycle sweep inactivates listings at their anniversary and schedules removal 30 days later. Manually paused listings also age from their last approval. Drafts without an approval date do not expire.
+
+Warning schedule adopted after the timing question received no selection: email and in-app inbox messages at expiry, then seven days before deletion. Each channel has its own delivery acknowledgment timestamp. A channel exception leaves its marker empty for retry; successful channels are not resent. A scheduler catch-up or mail outage postpones deletion to preserve seven full days after both final warnings succeed. Email success means acceptance by the configured mail transport, not proof the recipient read or received it. SMTP acceptance followed by a database/process failure can cause a repeated email on retry. No real messages are sent by tests.
+
+Renewal is owner/admin authorized and enters pending review, suspending deletion. Edits/resubmission also enter review. Approval resets the full year and warning markers. Rejected expired renewals get a fresh 30-day removal window with new warnings. Renewal cannot resurrect deleted listings. Owner request versus scheduler runs are serialized with database row locks.
+
+Automatic removal scrubs listing title, description, image references and batch code, then soft-deletes it so existing booking foreign keys and price snapshots survive. It disappears from catalog and management routes. Only an integrity tombstone remains; this is not a restorable public listing. Exclusive product images and owned Media entries are removed; files referenced by other products, posts or verification evidence remain for those separate records. Existing vendor-requested hard deletion rules (seven days unpublished and no linked orders) remain unchanged.
+
+## Deployment and operations
+
+Run migrations after backup and review the legacy-active moderation effect. Configure SMTP and validate sender delivery in staging. Set APP_CRON_ENABLED=true and configure the host to run `php artisan schedule:run` every minute; the expiry sweep runs hourly with overlap prevention. Host confirmation remains Q7/M8.4. Scheduler execution, mail deliverability and production rollout are not verified by local automated tests.
+
+Preview with `php artisan listings:lifecycle --dry-run`: no writes, file removal or notification delivery. Apply with `php artisan listings:lifecycle`; JSON counts include expired/deleted/channel warnings/failed operations. A nonzero exit code reports retryable failures; logs contain listing IDs and exception classes, never email addresses or message contents. Monitor failures and retry after fixing mail/storage. Never run a destructive production sweep merely to demonstrate this feature.

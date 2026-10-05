@@ -31,8 +31,7 @@ class ListingsState {
 }
 
 class ListingsController extends AsyncNotifier<ListingsState> {
-  ListingsRepository get _repository =>
-      ref.read(listingsRepositoryProvider);
+  ListingsRepository get _repository => ref.read(listingsRepositoryProvider);
 
   @override
   Future<ListingsState> build() async {
@@ -116,6 +115,16 @@ class ListingsController extends AsyncNotifier<ListingsState> {
       return null;
     } on DioException catch (error) {
       return _message(error) ?? 'Could not save the listing. Try again.';
+    }
+  }
+
+  Future<String?> renew(int id) async {
+    try {
+      await _repository.renew(id);
+      await refresh();
+      return null;
+    } on DioException {
+      return 'Could not renew the listing. Try again.';
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/tokens.dart';
 import '../../directory/directory_repository.dart';
 import '../../profile/role_profile_repository.dart';
 
@@ -23,6 +24,8 @@ class _DriverWorkProfileScreenState
   final Set<int> _selected = <int>{};
 
   List<DirectoryCategory> _categories = <DirectoryCategory>[];
+  String? _vehicleCategory;
+  Map<String, String> _vehicleCategories = <String, String>{};
   bool _loading = true;
   bool _saving = false;
   String? _error;
@@ -60,6 +63,11 @@ class _DriverWorkProfileScreenState
             ..clear()
             ..addAll(profile.transportCategoryIds);
           _categories = categories;
+          _vehicleCategories = profile.vehicleCategories;
+          _vehicleCategory =
+              _vehicleCategories.containsKey(profile.vehicleCategory)
+                  ? profile.vehicleCategory
+                  : null;
           _loading = false;
         });
       }
@@ -82,6 +90,7 @@ class _DriverWorkProfileScreenState
 
     try {
       await ref.read(roleProfileRepositoryProvider).saveDriver(
+            vehicleCategory: _vehicleCategory!,
             name: _name.text.trim(),
             phone: _phone.text.trim(),
             transportCategoryIds: _selected.toList(),
@@ -114,9 +123,22 @@ class _DriverWorkProfileScreenState
     return Scaffold(
       appBar: AppBar(title: const Text('Work profile')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? ListView(children: <Widget>[
+              for (int index = 0; index < 3; index++)
+                Card(
+                    child: ListTile(
+                        title: ColoredBox(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            child: const SizedBox(height: Spacing.xl)),
+                        subtitle: const Text('Loading work profile…'))),
+            ])
           : _error != null
-              ? Center(child: Text(_error!))
+              ? Center(
+                  child:
+                      Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                  Text(_error!),
+                  TextButton(onPressed: _load, child: const Text('Try again')),
+                ]))
               : Form(
                   key: _formKey,
                   child: ListView(
@@ -137,7 +159,9 @@ class _DriverWorkProfileScreenState
                           border: OutlineInputBorder(),
                         ),
                         validator: (String? v) =>
-                            (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+                            (v == null || v.trim().isEmpty)
+                                ? 'Enter your name'
+                                : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -149,6 +173,33 @@ class _DriverWorkProfileScreenState
                         ),
                       ),
                       const SizedBox(height: 20),
+                      DropdownButtonFormField<String>(
+                        initialValue: _vehicleCategory,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                            labelText: 'Vehicle category',
+                            border: OutlineInputBorder()),
+                        hint: const Text('Choose a vehicle category'),
+                        items: _vehicleCategories.entries
+                            .map((entry) => DropdownMenuItem<String>(
+                                value: entry.key, child: Text(entry.value)))
+                            .toList(),
+                        onChanged: _saving || _vehicleCategories.isEmpty
+                            ? null
+                            : (value) =>
+                                setState(() => _vehicleCategory = value),
+                        validator: (value) => value == null
+                            ? 'Choose your vehicle category'
+                            : null,
+                      ),
+                      const SizedBox(height: Spacing.sm),
+                      Text(_vehicleCategories.isEmpty
+                          ? 'Vehicle categories are unavailable. Try loading your profile again.'
+                          : 'Choose your vehicle before appearing in Transport & errands.'),
+                      if (_vehicleCategories.isEmpty)
+                        TextButton(
+                            onPressed: _load, child: const Text('Try again')),
+                      const SizedBox(height: Spacing.lg),
                       Text('Transport & errand work',
                           style: theme.textTheme.titleSmall),
                       const SizedBox(height: 8),
@@ -172,7 +223,9 @@ class _DriverWorkProfileScreenState
                       ),
                       const SizedBox(height: 24),
                       FilledButton.icon(
-                        onPressed: _saving ? null : _save,
+                        onPressed: _saving || _vehicleCategories.isEmpty
+                            ? null
+                            : _save,
                         icon: const Icon(Icons.save_outlined),
                         label: Text(_saving ? 'Saving…' : 'Save work profile'),
                       ),

@@ -17,7 +17,7 @@ class ListingController extends Controller
      */
     public function show(Request $request, Product $product)
     {
-        abort_unless($product->status === Product::STATUS_ACTIVE, 404);
+        abort_unless($product->isLive(), 404);
 
         // M9.3: a shared listing link may carry ?ref=CODE — remember it in
         // the session for signup attribution, exactly like /ref/{code} does.

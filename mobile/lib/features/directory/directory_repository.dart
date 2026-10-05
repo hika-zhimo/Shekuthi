@@ -34,7 +34,8 @@ class DirectoryWorker {
   final String? services;
   final List<DirectoryCategory> categories;
 
-  factory DirectoryWorker.fromJson(Map<String, dynamic> json) => DirectoryWorker(
+  factory DirectoryWorker.fromJson(Map<String, dynamic> json) =>
+      DirectoryWorker(
         id: (json['id'] as num).toInt(),
         name: json['name'] as String? ?? 'Skilled worker',
         district: json['district'] as String?,
@@ -56,6 +57,7 @@ class DirectoryDriver {
     required this.categories,
     this.phone,
     this.district,
+    this.vehicleCategoryName,
   });
 
   final int id;
@@ -63,18 +65,22 @@ class DirectoryDriver {
   final String? phone;
   final bool isOnline;
   final String? district;
+  final String? vehicleCategoryName;
   final List<DirectoryCategory> categories;
 
-  factory DirectoryDriver.fromJson(Map<String, dynamic> json) => DirectoryDriver(
+  factory DirectoryDriver.fromJson(Map<String, dynamic> json) =>
+      DirectoryDriver(
         id: (json['id'] as num).toInt(),
         name: json['name'] as String? ?? 'Driver',
         phone: json['phone'] as String?,
         isOnline: json['is_online'] as bool? ?? false,
         district: json['district'] as String?,
-        categories: (json['transport_categories'] as List<dynamic>? ?? <dynamic>[])
-            .map((dynamic e) =>
-                DirectoryCategory.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        vehicleCategoryName: json['vehicle_category_name'] as String?,
+        categories:
+            (json['transport_categories'] as List<dynamic>? ?? <dynamic>[])
+                .map((dynamic e) =>
+                    DirectoryCategory.fromJson(e as Map<String, dynamic>))
+                .toList(),
       );
 }
 

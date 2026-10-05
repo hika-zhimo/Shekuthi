@@ -51,7 +51,7 @@ class ListingsTest extends TestCase
             ->assertJsonPath('data.moq', 5)
             ->assertJsonPath('data.is_verified', false);
 
-        $this->assertDatabaseHas('products', ['title' => 'Fresh tomatoes', 'status' => 'active']);
+        $this->assertDatabaseHas('products', ['title' => 'Fresh tomatoes', 'status' => 'pending']);
     }
 
     public function test_a_listing_accepts_at_most_four_images(): void

@@ -251,7 +251,7 @@ textarea:focus-visible {
     border: 1px solid transparent;
     border-radius: var(--adm-radius-control);
     background: var(--adm-interactive);
-    color: #FFFFFF;
+    color: var(--adm-on-interactive);
     font: inherit;
     font-weight: 600;
     cursor: pointer;
@@ -284,7 +284,7 @@ textarea:focus-visible {
 }
 
 .button.danger:hover {
-    background: #DC2626;
+    background: var(--adm-danger-hover);
 }
 
 .button[disabled] {

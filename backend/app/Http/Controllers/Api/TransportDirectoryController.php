@@ -24,6 +24,7 @@ class TransportDirectoryController extends Controller
         $drivers = User::query()
             ->where('role', User::ROLE_DRIVER)
             ->where('is_active', true)
+            ->whereIn('vehicle_category', array_keys(User::VEHICLE_CATEGORIES))
             ->with([
                 'driverAvailability',
                 'transportCategories' => fn ($query) => $query->where('is_active', true),
@@ -42,6 +43,8 @@ class TransportDirectoryController extends Controller
             'data' => $drivers->map(fn (User $driver) => [
                 'id' => $driver->id,
                 'name' => $driver->name,
+                'vehicle_category' => $driver->vehicle_category,
+                'vehicle_category_name' => User::VEHICLE_CATEGORIES[$driver->vehicle_category],
                 'phone' => $driver->phone,
                 'is_online' => (bool) $driver->driverAvailability?->is_online,
                 'district' => $driver->riderBaseOperation?->district?->name,

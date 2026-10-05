@@ -34,6 +34,7 @@ class TransportDirectoryTest extends TestCase
             'phone_index' => $phone !== '' ? BlindIndex::make($phone) : null,
             'password' => bcrypt('Password123!'),
             'role' => User::ROLE_DRIVER,
+            'vehicle_category' => 'two_wheeler',
             'is_active' => $active,
         ]);
 

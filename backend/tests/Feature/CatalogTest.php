@@ -2,16 +2,65 @@
 
 namespace Tests\Feature;
 
+use App\Models\Badge;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Models\VerificationFeeSetting;
 use App\Support\BlindIndex;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CatalogTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_catalog_batches_badges_and_reads_current_fee_once_per_request(): void
+    {
+        $vendor = $this->makeVendor('Query Budget');
+        $fee = VerificationFeeSetting::current();
+        $fee->update(['amount_inr' => 150]);
+        $verified = $this->makeProduct($vendor, ['title' => 'Verified produce']);
+        Badge::query()->create([
+            'subject_type' => Product::class,
+            'subject_id' => $verified->id,
+            'volunteer_name' => 'Test Volunteer',
+            'issued_at' => now(),
+        ]);
+        $revoked = $this->makeProduct($vendor, ['title' => 'Revoked produce']);
+        Badge::query()->create([
+            'subject_type' => Product::class,
+            'subject_id' => $revoked->id,
+            'volunteer_name' => 'Test Volunteer',
+            'issued_at' => now(),
+            'revoked_at' => now(),
+        ]);
+        for ($i = 0; $i < 10; $i++) {
+            $this->makeProduct($vendor, ['title' => 'Test batch '.$i]);
+        }
+
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+        $response = $this->getJson('/api/v1/catalog')->assertOk();
+        $queries = collect(DB::getQueryLog())->pluck('query');
+        DB::disableQueryLog();
+        $this->assertCount(1, $queries->filter(fn ($sql) => str_contains($sql, 'from "badges"')));
+        $this->assertCount(1, $queries->filter(fn ($sql) => str_contains($sql, 'from "verification_fee_settings"')));
+        $items = collect($response->json('data'))->keyBy('id');
+        $this->assertTrue($items[$verified->id]['is_verified']);
+        $this->assertSame('Test Volunteer', $items[$verified->id]['verified_by']);
+        $this->assertArrayNotHasKey('verification_fee_inr', $items[$verified->id]);
+        $this->assertFalse($items[$revoked->id]['is_verified']);
+        $this->assertEquals(150, $items[$revoked->id]['verification_fee_inr']);
+
+        $fee->update(['amount_inr' => 200]);
+        $this->getJson('/api/v1/catalog/'.$revoked->id)
+            ->assertOk()->assertJsonPath('data.verification_fee_inr', 200);
+        $fee->update(['amount_inr' => null]);
+        $this->getJson('/api/v1/catalog/'.$revoked->id)
+            ->assertOk()->assertJsonMissingPath('data.verification_fee_inr');
+    }
 
     private function makeVendor(string $name, string $category = 'agro'): Vendor
     {

@@ -131,6 +131,7 @@ class ServiceAreaTest extends TestCase
         [$district, $active, $inactive] = $this->makeArea();
 
         $this->postJson('/api/v1/errands', [
+            'accept_contact' => true,
             'contact_name' => 'Guest',
             'contact_phone' => '+5550001',
             'description' => 'Pick up a parcel',
@@ -141,6 +142,7 @@ class ServiceAreaTest extends TestCase
         ])->assertStatus(422);
 
         $this->postJson('/api/v1/errands', [
+            'accept_contact' => true,
             'contact_name' => 'Guest',
             'contact_phone' => '+5550001',
             'description' => 'Pick up a parcel',
